@@ -72,7 +72,7 @@ def throw_if( name: str, value: object ) -> None:
 	    Enforces the presence of required clustering inputs before estimator execution. The
 	    validation accepts populated NumPy arrays and standard Python containers while
 	    rejecting null values and empty collections that would otherwise cause downstream
-	    sklearn operations to fail or produce undefined clustering results.
+	    operations to fail or produce undefined clustering results.
 	
 	Args:
 	    name (str): Argument name used in the validation error message.
@@ -144,14 +144,14 @@ class Outlier( ):
 		Purpose:
 		    Defines the required training contract for concrete anomaly-detection wrappers.
 		    Implementations must fit the wrapped estimator to a feature matrix and return the
-		    fitted wrapper when training completes.
+		    fitted class/object when training completes.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to fit the detector.
 		    y (np.ndarray): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    object | None: Fitted concrete detector wrapper.
+		    object | None: Fitted concrete detector class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -218,16 +218,16 @@ class Outlier( ):
 		raise NotImplementedError
 
 class IsolationForest( Outlier ):
-	"""Wrap sklearn IsolationForest.
+	"""Provides IsolationForest model functionality.
 	
 	Purpose:
 	    Detects anomalies by fitting an ensemble of randomized isolation trees and
-	    identifying samples that require fewer splits to isolate. The wrapper stores the
+	    identifying samples that require fewer splits to isolate. The class/object stores the
 	    fitted estimator, contamination setting, prediction vector, anomaly scores, and
 	    aggregate inlier/outlier counts for consistent downstream analysis.
 	
 	Attributes:
-	    model (en.IsolationForest): Underlying sklearn isolation-forest estimator.
+	    model (en.IsolationForest): Underlying isolation-forest estimator.
 	    contamination (float): Expected proportion of outliers in the input data.
 	    prediction (Optional[np.ndarray]): Most recent inlier/outlier prediction vector.
 	    anomaly_scores (Optional[np.ndarray]): Most recent isolation-forest decision scores."""
@@ -240,7 +240,7 @@ class IsolationForest( Outlier ):
 		"""Initialize IsolationForest.
 		
 		Purpose:
-		    Configures the sklearn IsolationForest estimator with the expected contamination
+		    Configures the IsolationForest estimator with the expected contamination
 		    rate and initializes prediction and anomaly-score caches for later training and
 		    scoring operations.
 		
@@ -269,7 +269,7 @@ class IsolationForest( Outlier ):
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    IsolationForest | None: Fitted IsolationForest wrapper instance.
+		    IsolationForest | None: Fitted IsolationForest class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -294,7 +294,7 @@ class IsolationForest( Outlier ):
 		
 		Purpose:
 		    Validates the supplied feature matrix and generates inlier/outlier labels with the
-		    fitted IsolationForest estimator. The prediction vector is cached on the wrapper for
+		    fitted IsolationForest estimator. The prediction vector is cached on the class/object for
 		    later scoring, analysis, and inspection.
 		
 		Args:
@@ -412,16 +412,16 @@ class IsolationForest( Outlier ):
 			raise exception
 
 class OneClass( Outlier ):
-	"""Wrap sklearn OneClassSVM.
+	"""One-Class Support Vector Machine.
 	
 	Purpose:
 	    Detects novelty and outliers by learning the support of the normal data distribution
-	    with a one-class support-vector machine. The wrapper stores kernel configuration,
+	    with a one-class support-vector machine. The class/object stores kernel configuration,
 	    the fitted estimator, prediction labels, anomaly scores, and aggregate
 	    inlier/outlier counts for consistent reporting.
 	
 	Attributes:
-	    model (Optional[sv.OneClassSVM]): Underlying sklearn One-Class SVM estimator.
+	    model (Optional[sv.OneClassSVM]): Underlying One-Class SVM estimator.
 	    data (Optional[np.ndarray]): Optional fitted-data cache retained for interface
 	                                 compatibility.
 	    prediction (Optional[np.ndarray]): Most recent inlier/outlier prediction vector.
@@ -437,7 +437,7 @@ class OneClass( Outlier ):
 		"""Initialize OneClassSVM.
 		
 		Purpose:
-		    Configures the sklearn One-Class SVM estimator with kernel, nu, and gamma settings
+		    Configures the One-Class SVM estimator with kernel, nu, and gamma settings
 		    and initializes prediction and anomaly-score caches for novelty and
 		    outlier-detection workflows.
 		
@@ -469,7 +469,7 @@ class OneClass( Outlier ):
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    OneClass | None: Fitted OneClass wrapper instance.
+		    OneClass | None: Fitted OneClass class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -494,7 +494,7 @@ class OneClass( Outlier ):
 		
 		Purpose:
 		    Validates the supplied feature matrix and generates inlier/outlier labels with the
-		    fitted One-Class SVM estimator. The prediction vector is cached on the wrapper for
+		    fitted One-Class SVM estimator. The prediction vector is cached on the class/object for
 		    later scoring, analysis, and inspection.
 		
 		Args:
@@ -610,16 +610,16 @@ class OneClass( Outlier ):
 			raise exception
 
 class OutlierFactor( Outlier ):
-	"""Wrap sklearn LocalOutlierFactor.
+	"""Wrap LocalOutlierFactor.
 	
 	Purpose:
 	    Detects density-based anomalies by comparing each sample's local density with the
-	    local density of neighboring samples. The wrapper supports both novelty and
+	    local density of neighboring samples. The class/object supports both novelty and
 	    fit-predict behavior while storing predictions, anomaly scores, neighborhood
 	    settings, contamination settings, and aggregate counts.
 	
 	Attributes:
-	    model (nn.LocalOutlierFactor): Underlying sklearn Local Outlier Factor estimator.
+	    model (nn.LocalOutlierFactor): Underlying Local Outlier Factor estimator.
 	    prediction (Optional[np.ndarray]): Most recent inlier/outlier prediction vector.
 	    anomaly_scores (Optional[np.ndarray]): Most recent local outlier scores or decision
 	                                           scores.
@@ -637,7 +637,7 @@ class OutlierFactor( Outlier ):
 		"""Initialize LocalOutlierFactor.
 		
 		Purpose:
-		    Configures the sklearn Local Outlier Factor estimator with neighborhood,
+		    Configures the Local Outlier Factor estimator with neighborhood,
 		    contamination, and novelty-detection settings and initializes prediction and
 		    anomaly-score caches.
 		
@@ -672,7 +672,7 @@ class OutlierFactor( Outlier ):
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    OutlierFactor | None: Fitted OutlierFactor wrapper instance.
+		    OutlierFactor | None: Fitted OutlierFactor class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -702,7 +702,7 @@ class OutlierFactor( Outlier ):
 		Purpose:
 		    Validates the supplied feature matrix and generates inlier/outlier labels with the
 		    fitted Local Outlier Factor estimator. The prediction vector is cached on the
-		    wrapper for later scoring, analysis, and inspection.
+		    class/object for later scoring, analysis, and inspection.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to generate inlier and outlier predictions.
@@ -824,16 +824,16 @@ class OutlierFactor( Outlier ):
 			raise exception
 
 class EllipticSquare( Outlier ):
-	"""Wrap sklearn EllipticEnvelope.
+	"""Provides the EllipticEnvelope functionality.
 	
 	Purpose:
 	    Detects multivariate outliers by fitting a robust covariance estimate and
-	    identifying samples outside the learned elliptical data envelope. The wrapper stores
+	    identifying samples outside the learned elliptical data envelope. The class/object stores
 	    the fitted estimator, contamination setting, prediction labels, anomaly scores, and
 	    aggregate inlier/outlier counts.
 	
 	Attributes:
-	    model (cv.EllipticEnvelope): Underlying sklearn robust covariance estimator.
+	    model (cv.EllipticEnvelope): Underlying robust covariance estimator.
 	    prediction (Optional[np.ndarray]): Most recent inlier/outlier prediction vector.
 	    anomaly_scores (Optional[np.ndarray]): Most recent EllipticEnvelope decision scores.
 	    contamination (Optional[float]): Expected proportion of outliers in the input data."""
@@ -846,7 +846,7 @@ class EllipticSquare( Outlier ):
 		"""Initialize EllipticEnvelope.
 		
 		Purpose:
-		    Configures the sklearn EllipticEnvelope estimator with the expected contamination
+		    Configures the EllipticEnvelope estimator with the expected contamination
 		    rate and initializes prediction and anomaly-score caches for robust covariance
 		    outlier detection.
 		
@@ -875,7 +875,7 @@ class EllipticSquare( Outlier ):
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    EllipticSquare | None: Fitted EllipticSquare wrapper instance.
+		    EllipticSquare | None: Fitted EllipticSquare class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -900,7 +900,7 @@ class EllipticSquare( Outlier ):
 		
 		Purpose:
 		    Validates the supplied feature matrix and generates inlier/outlier labels with the
-		    fitted EllipticEnvelope estimator. The prediction vector is cached on the wrapper
+		    fitted EllipticEnvelope estimator. The prediction vector is cached on the class/object
 		    for later scoring, analysis, and inspection.
 		
 		Args:

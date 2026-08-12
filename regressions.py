@@ -96,10 +96,10 @@ def throw_if( name: str, value: object ) -> None:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Regression( ):
-	"""Regression regression wrapper.
+	"""Regression regression class/object.
 	
 	Purpose:
-	    Defines the shared regression wrapper contract and common evaluation-state fields
+	    Defines the shared regression class/object contract and common evaluation-state fields
 	    used by concrete Mathy regressor implementations.
 	
 	Attributes:
@@ -136,7 +136,7 @@ class Regression( ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the Regression wrapper with estimator configuration, runtime state,
+		    Initializes the Regression class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -161,7 +161,7 @@ class Regression( ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -184,7 +184,7 @@ class Regression( ):
 		
 		Purpose:
 		    Fits the underlying Regression regression estimator to feature and target arrays and
-		    returns the wrapper for chained modeling workflows.
+		    returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -192,7 +192,7 @@ class Regression( ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted wrapper instance.
+		    object | None: Fitted class/object instance.
 		
 		Raises:
 		    NotImplementedError: Raised when the abstract interface method is called directly."""
@@ -203,7 +203,7 @@ class Regression( ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted Regression regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -222,7 +222,7 @@ class Regression( ):
 		
 		Purpose:
 		    Evaluates the fitted Regression regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -259,7 +259,7 @@ class Regression( ):
 		raise NotImplementedError
 
 class LeastSquares( Regression ):
-	"""LeastSquares regression wrapper.
+	"""LeastSquares regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.linear_model.LinearRegression for ordinary least-squares regression,
@@ -268,7 +268,7 @@ class LeastSquares( Regression ):
 	
 	Attributes:
 	    model (skl.LinearRegression): Underlying sklearn regression estimator managed by the
-	                                  wrapper.
+	                                  class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -319,7 +319,7 @@ class LeastSquares( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the LeastSquares wrapper with estimator configuration, runtime state,
+		    Initializes the LeastSquares class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -361,11 +361,11 @@ class LeastSquares( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the LeastSquares wrapper for
+		    Returns the stable public API surface exposed by the LeastSquares class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'fit_intercept', 'copy_X', 'tol', 'n_jobs', 'positive',
 			'weights', 'intercept', 'features', 'mean_absolute_error', 'mean_squared_error',
 			'root_mean_squared_error', 'r2_score', 'explained_variance_score', 'max_error',
@@ -430,7 +430,7 @@ class LeastSquares( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -467,7 +467,7 @@ class LeastSquares( Regression ):
 		
 		Purpose:
 		    Fits the underlying LeastSquares regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -475,7 +475,7 @@ class LeastSquares( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    LeastSquares | None: Fitted wrapper instance.
+		    LeastSquares | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -504,7 +504,7 @@ class LeastSquares( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted LeastSquares regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -533,7 +533,7 @@ class LeastSquares( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted LeastSquares regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -658,15 +658,15 @@ class LeastSquares( Regression ):
 			raise exception
 
 class Ridge( Regression ):
-	"""Ridge regression wrapper.
+	"""Ridge regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.Ridge for L2-regularized linear regression with
+	    Encapsulates Ridge Regression for L2-regularized linear regression with
 	    coefficient inspection, prediction, scoring, metric analysis, and diagnostic scatter
 	    plotting.
 	
 	Attributes:
-	    model (skl.Ridge): Underlying sklearn regression estimator managed by the wrapper.
+	    model (skl.Ridge): Underlying regression estimator managed by the class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -727,7 +727,7 @@ class Ridge( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the Ridge wrapper with estimator configuration, runtime state, cached
+		    Initializes the Ridge class/object with estimator configuration, runtime state, cached
 		    prediction fields, and regression metric fields required by training and evaluation
 		    workflows.
 		
@@ -778,11 +778,11 @@ class Ridge( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the Ridge wrapper for interactive
+		    Returns the stable public API surface exposed by the Ridge class/object for interactive
 		    inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'alpha', 'fit_intercept', 'copy_X', 'max_iter', 'tol',
 			'solver', 'positive', 'random_state', 'weights', 'intercept', 'features',
 			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
@@ -847,7 +847,7 @@ class Ridge( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -884,7 +884,7 @@ class Ridge( Regression ):
 		
 		Purpose:
 		    Fits the underlying Ridge regression estimator to feature and target arrays and
-		    returns the wrapper for chained modeling workflows.
+		    returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -892,7 +892,7 @@ class Ridge( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    Ridge | None: Fitted wrapper instance.
+		    Ridge | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -921,7 +921,7 @@ class Ridge( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted Ridge regression estimator
-		    and caches the prediction array on the wrapper.
+		    and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -950,7 +950,7 @@ class Ridge( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted Ridge regression estimator with its primary scoring behavior
-		    and returns the score in the wrapper reporting format.
+		    and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1076,7 +1076,7 @@ class Ridge( Regression ):
 			raise exception
 
 class Lasso( Regression ):
-	"""Lasso regression wrapper.
+	"""Lasso regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.linear_model.Lasso for L1-regularized linear regression with sparse
@@ -1084,7 +1084,7 @@ class Lasso( Regression ):
 	    plotting.
 	
 	Attributes:
-	    model (skl.Lasso): Underlying sklearn regression estimator managed by the wrapper.
+	    model (skl.Lasso): Underlying regression estimator managed by the class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -1147,7 +1147,7 @@ class Lasso( Regression ):
 		copy: bool=True, iters: int=1000, tol: float=1e-4, warm: bool=False,
 		positive: bool=False, rando: Optional[ int ] = None, select: str = 'cyclic',
 		selection: Optional[ str ] = None ) -> None:
-		"""Initialize the Lasso regression wrapper.
+		"""Initialize the Lasso regression class/object.
 		
 		Purpose:
 		    Configures an L1-regularized linear regression estimator for sparse coefficient
@@ -1191,11 +1191,11 @@ class Lasso( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the Lasso wrapper for interactive
+		    Returns the stable public API surface exposed by the Lasso class/object for interactive
 		    inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'alpha', 'fit_intercept', 'precompute', 'copy_X',
 			'max_iter', 'tol', 'warm_start', 'positive', 'random_state', 'selection', 'weights',
 			'intercept', 'features', 'mean_absolute_error', 'mean_squared_error',
@@ -1261,7 +1261,7 @@ class Lasso( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1298,7 +1298,7 @@ class Lasso( Regression ):
 		
 		Purpose:
 		    Fits the underlying Lasso regression estimator to feature and target arrays and
-		    returns the wrapper for chained modeling workflows.
+		    returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1306,7 +1306,7 @@ class Lasso( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    Lasso | None: Fitted wrapper instance.
+		    Lasso | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -1335,7 +1335,7 @@ class Lasso( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted Lasso regression estimator
-		    and caches the prediction array on the wrapper.
+		    and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1364,7 +1364,7 @@ class Lasso( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted Lasso regression estimator with its primary scoring behavior
-		    and returns the score in the wrapper reporting format.
+		    and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1488,7 +1488,7 @@ class Lasso( Regression ):
 			raise exception
 
 class ElasticNet( Regression ):
-	"""ElasticNet regression wrapper.
+	"""ElasticNet regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.linear_model.ElasticNet for combined L1 and L2 regularized linear
@@ -1496,8 +1496,8 @@ class ElasticNet( Regression ):
 	    plotting.
 	
 	Attributes:
-	    model (skl.ElasticNet): Underlying sklearn regression estimator managed by the
-	                            wrapper.
+	    model (skl.ElasticNet): Underlying regression estimator managed by the
+	                            class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -1565,7 +1565,7 @@ class ElasticNet( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the ElasticNet wrapper with estimator configuration, runtime state,
+		    Initializes the ElasticNet class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -1623,11 +1623,11 @@ class ElasticNet( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the ElasticNet wrapper for
+		    Returns the stable public API surface exposed by the ElasticNet class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'alpha', 'l1_ratio', 'fit_intercept', 'precompute',
 			'max_iter', 'copy_X', 'tol', 'warm_start', 'positive', 'random_state', 'selection',
 			'weights', 'intercept', 'features', 'mean_absolute_error', 'mean_squared_error',
@@ -1693,7 +1693,7 @@ class ElasticNet( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1730,7 +1730,7 @@ class ElasticNet( Regression ):
 		
 		Purpose:
 		    Fits the underlying ElasticNet regression estimator to feature and target arrays and
-		    returns the wrapper for chained modeling workflows.
+		    returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1738,7 +1738,7 @@ class ElasticNet( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    ElasticNet | None: Fitted wrapper instance.
+		    ElasticNet | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -1767,7 +1767,7 @@ class ElasticNet( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted ElasticNet regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1796,7 +1796,7 @@ class ElasticNet( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted ElasticNet regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -1920,7 +1920,7 @@ class ElasticNet( Regression ):
 			raise exception
 
 class LeastAngle( Regression ):
-	"""LeastAngle regression wrapper.
+	"""LeastAngle regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.linear_model.Lars for least-angle regression with
@@ -1928,7 +1928,7 @@ class LeastAngle( Regression ):
 	    diagnostic scatter plotting.
 	
 	Attributes:
-	    model (skl.Lars): Underlying sklearn regression estimator managed by the wrapper.
+	    model (skl.Lars): Underlying regression estimator managed by the class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -1965,7 +1965,7 @@ class LeastAngle( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the LeastAngle wrapper with estimator configuration, runtime state,
+		    Initializes the LeastAngle class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -1998,11 +1998,11 @@ class LeastAngle( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the LeastAngle wrapper for
+		    Returns the stable public API surface exposed by the LeastAngle class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'fit_intercept', 'precompute', 'n_nonzero_coefs',
 			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
 			'explained_variance_score', 'median_absolute_error', 'max_error', 'train', 'project',
@@ -2014,7 +2014,7 @@ class LeastAngle( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2050,7 +2050,7 @@ class LeastAngle( Regression ):
 		
 		Purpose:
 		    Fits the underlying LeastAngle regression estimator to feature and target arrays and
-		    returns the wrapper for chained modeling workflows.
+		    returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2058,7 +2058,7 @@ class LeastAngle( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    LeastAngle | None: Fitted wrapper instance.
+		    LeastAngle | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -2080,7 +2080,7 @@ class LeastAngle( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted LeastAngle regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2109,7 +2109,7 @@ class LeastAngle( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted LeastAngle regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2233,7 +2233,7 @@ class LeastAngle( Regression ):
 			raise exception
 
 class BayesianRidge( Regression ):
-	"""BayesianRidge regression wrapper.
+	"""BayesianRidge regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.linear_model.BayesianRidge for probabilistic linear regression with
@@ -2241,8 +2241,8 @@ class BayesianRidge( Regression ):
 	    scatter plotting.
 	
 	Attributes:
-	    model (skl.BayesianRidge): Underlying sklearn regression estimator managed by the
-	                               wrapper.
+	    model (skl.BayesianRidge): Underlying regression estimator managed by the
+	                               class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -2312,7 +2312,7 @@ class BayesianRidge( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the BayesianRidge wrapper with estimator configuration, runtime state,
+		    Initializes the BayesianRidge class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -2372,11 +2372,11 @@ class BayesianRidge( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the BayesianRidge wrapper for
+		    Returns the stable public API surface exposed by the BayesianRidge class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'shape_alpha', 'scale_alpha', 'shape_lambda',
 			'scale_lambda', 'max_iter', 'tol', 'alpha_init', 'lambda_init', 'compute_score',
 			'fit_intercept', 'copy_X', 'verbose', 'weights', 'intercept', 'features',
@@ -2442,7 +2442,7 @@ class BayesianRidge( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2479,7 +2479,7 @@ class BayesianRidge( Regression ):
 		
 		Purpose:
 		    Fits the underlying BayesianRidge regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2487,7 +2487,7 @@ class BayesianRidge( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    BayesianRidge | None: Fitted wrapper instance.
+		    BayesianRidge | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -2516,7 +2516,7 @@ class BayesianRidge( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted BayesianRidge regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2545,7 +2545,7 @@ class BayesianRidge( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted BayesianRidge regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2669,7 +2669,7 @@ class BayesianRidge( Regression ):
 			raise exception
 
 class GradientDescent( Regression ):
-	"""GradientDescent regression wrapper.
+	"""GradientDescent regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.linear_model.SGDRegressor for stochastic-gradient regression with
@@ -2697,8 +2697,8 @@ class GradientDescent( Regression ):
 	    n_iter_no_change (int): Stable-iteration count required to trigger early stopping.
 	    warm_start (bool): Whether repeated fits reuse the preceding fitted estimator state.
 	    average (bool): Averaging strategy or calculated arithmetic-mean values.
-	    model (skl.SGDRegressor): Underlying sklearn regression estimator managed by the
-	                              wrapper.
+	    model (skl.SGDRegressor): Underlying regression estimator managed by the
+	                              class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    mean_absolute_error (Optional[float]): Most recent mean absolute error metric.
@@ -2760,7 +2760,7 @@ class GradientDescent( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the GradientDescent wrapper with estimator configuration, runtime state,
+		    Initializes the GradientDescent class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -2838,11 +2838,11 @@ class GradientDescent( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the GradientDescent wrapper for
+		    Returns the stable public API surface exposed by the GradientDescent class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'penalty', 'max_iter', 'random_state', 'loss',
 			'learning_rate', 'l1_ratio', 'alpha', 'fit_intercept', 'tol', 'shuffle', 'verbose',
 			'epsilon', 'eta0', 'power_t', 'early_stopping', 'validation_fraction',
@@ -2928,7 +2928,7 @@ class GradientDescent( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2965,7 +2965,7 @@ class GradientDescent( Regression ):
 		
 		Purpose:
 		    Fits the underlying GradientDescent regression estimator to feature and target
-		    arrays and returns the wrapper for chained modeling workflows.
+		    arrays and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -2973,7 +2973,7 @@ class GradientDescent( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    GradientDescent | None: Fitted wrapper instance.
+		    GradientDescent | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -3002,7 +3002,7 @@ class GradientDescent( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted GradientDescent regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3031,7 +3031,7 @@ class GradientDescent( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted GradientDescent regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3155,15 +3155,15 @@ class GradientDescent( Regression ):
 			raise exception
 
 class NearestNeighbor( Regression ):
-	"""NearestNeighbor regression wrapper.
+	"""NearestNeighbor regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.neighbors.KNeighborsRegressor for neighbor-based continuous-value
 	    prediction, model scoring, metric analysis, and diagnostic scatter plotting.
 	
 	Attributes:
-	    model (skn.KNeighborsRegressor): Underlying sklearn regression estimator managed by
-	                                     the wrapper.
+	    model (skn.KNeighborsRegressor): Underlying regression estimator managed by
+	                                     the class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -3224,7 +3224,7 @@ class NearestNeighbor( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the NearestNeighbor wrapper with estimator configuration, runtime state,
+		    Initializes the NearestNeighbor class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -3273,11 +3273,11 @@ class NearestNeighbor( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the NearestNeighbor wrapper for
+		    Returns the stable public API surface exposed by the NearestNeighbor class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'weights', 'algorithm', 'n_neighbors', 'leaf_size',
 			'power', 'metric', 'metric_params', 'n_jobs', 'mean_absolute_error', 'mean_squared_error',
 			'root_mean_squared_error', 'r2_score', 'explained_variance_score',
@@ -3307,7 +3307,7 @@ class NearestNeighbor( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3344,7 +3344,7 @@ class NearestNeighbor( Regression ):
 		
 		Purpose:
 		    Fits the underlying NearestNeighbor regression estimator to feature and target
-		    arrays and returns the wrapper for chained modeling workflows.
+		    arrays and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3352,7 +3352,7 @@ class NearestNeighbor( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    NearestNeighbor | None: Fitted wrapper instance.
+		    NearestNeighbor | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -3381,7 +3381,7 @@ class NearestNeighbor( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted NearestNeighbor regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3410,7 +3410,7 @@ class NearestNeighbor( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted NearestNeighbor regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3534,15 +3534,15 @@ class NearestNeighbor( Regression ):
 			raise exception
 
 class DecisionTree( Regression ):
-	"""DecisionTree regression wrapper.
+	"""DecisionTree regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.tree.DecisionTreeRegressor for non-parametric tree-based regression,
 	    prediction, scoring, metric analysis, and diagnostic scatter plotting.
 	
 	Attributes:
-	    model (skd.DecisionTreeRegressor): Underlying sklearn regression estimator managed
-	                                       by the wrapper.
+	    model (skd.DecisionTreeRegressor): Underlying regression estimator managed
+	                                       by the class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -3582,7 +3582,7 @@ class DecisionTree( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the DecisionTree wrapper with estimator configuration, runtime state,
+		    Initializes the DecisionTree class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -3616,11 +3616,11 @@ class DecisionTree( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the DecisionTree wrapper for
+		    Returns the stable public API surface exposed by the DecisionTree class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'criterion', 'splitter', 'random_state', 'max_depth',
 			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
 			'explained_variance_score', 'median_absolute_error', 'max_error', 'train', 'project',
@@ -3632,7 +3632,7 @@ class DecisionTree( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3668,7 +3668,7 @@ class DecisionTree( Regression ):
 		
 		Purpose:
 		    Fits the underlying DecisionTree regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3676,7 +3676,7 @@ class DecisionTree( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    DecisionTree | None: Fitted wrapper instance.
+		    DecisionTree | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -3698,7 +3698,7 @@ class DecisionTree( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted DecisionTree regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3727,7 +3727,7 @@ class DecisionTree( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted DecisionTree regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -3849,15 +3849,15 @@ class DecisionTree( Regression ):
 			raise exception
 
 class ExtraTreesModel( Regression ):
-	"""ExtraTreesModel regression wrapper.
+	"""ExtraTreesModel regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.ensemble.ExtraTreesRegressor for randomized ensemble tree regression,
 	    feature metadata inspection, prediction, scoring, and metric analysis.
 	
 	Attributes:
-	    model (ske.ExtraTreesRegressor): Underlying sklearn regression estimator managed by
-	                                     the wrapper.
+	    model (ske.ExtraTreesRegressor): Underlying regression estimator managed by
+	                                     the class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -3948,7 +3948,7 @@ class ExtraTreesModel( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the ExtraTreesModel wrapper with estimator configuration, runtime state,
+		    Initializes the ExtraTreesModel class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -4024,11 +4024,11 @@ class ExtraTreesModel( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the ExtraTreesModel wrapper for
+		    Returns the stable public API surface exposed by the ExtraTreesModel class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'n_estimators', 'criterion', 'max_depth',
 			'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features',
 			'max_leaf_nodes', 'min_impurity_decrease', 'bootstrap', 'oob_score', 'n_jobs',
@@ -4061,7 +4061,7 @@ class ExtraTreesModel( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4098,7 +4098,7 @@ class ExtraTreesModel( Regression ):
 		
 		Purpose:
 		    Fits the underlying ExtraTreesModel regression estimator to feature and target
-		    arrays and returns the wrapper for chained modeling workflows.
+		    arrays and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4106,7 +4106,7 @@ class ExtraTreesModel( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    ExtraTreesModel | None: Fitted wrapper instance.
+		    ExtraTreesModel | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -4135,7 +4135,7 @@ class ExtraTreesModel( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted ExtraTreesModel regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4164,7 +4164,7 @@ class ExtraTreesModel( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted ExtraTreesModel regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4288,15 +4288,15 @@ class ExtraTreesModel( Regression ):
 			raise exception
 
 class RandomForest( Regression ):
-	"""RandomForest regression wrapper.
+	"""RandomForest regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.ensemble.RandomForestRegressor for bagged ensemble tree regression,
 	    feature metadata inspection, prediction, scoring, and metric analysis.
 	
 	Attributes:
-	    model (ske.RandomForestRegressor): Underlying sklearn regression estimator managed
-	                                       by the wrapper.
+	    model (ske.RandomForestRegressor): Underlying regression estimator managed
+	                                       by the class/object.
 	    n_estimators (int): Number of ensemble estimators.
 	    criterion (str): Split or impurity criterion used by tree-based estimators.
 	    max_depth (Optional[int]): Maximum tree depth.
@@ -4387,7 +4387,7 @@ class RandomForest( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the RandomForest wrapper with estimator configuration, runtime state,
+		    Initializes the RandomForest class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -4463,11 +4463,11 @@ class RandomForest( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the RandomForest wrapper for
+		    Returns the stable public API surface exposed by the RandomForest class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'n_estimators', 'criterion', 'max_depth',
 			'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features',
 			'max_leaf_nodes', 'min_impurity_decrease', 'bootstrap', 'oob_score', 'n_jobs',
@@ -4500,7 +4500,7 @@ class RandomForest( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4537,7 +4537,7 @@ class RandomForest( Regression ):
 		
 		Purpose:
 		    Fits the underlying RandomForest regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4545,7 +4545,7 @@ class RandomForest( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    RandomForest | None: Fitted wrapper instance.
+		    RandomForest | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -4575,7 +4575,7 @@ class RandomForest( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted RandomForest regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4604,7 +4604,7 @@ class RandomForest( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted RandomForest regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4728,15 +4728,15 @@ class RandomForest( Regression ):
 			raise exception
 
 class GradientBoost( Regression ):
-	"""GradientBoost regression wrapper.
+	"""GradientBoost regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.ensemble.GradientBoostingRegressor for stage-wise boosted tree
 	    regression, prediction, scoring, metric analysis, and diagnostic scatter plotting.
 	
 	Attributes:
-	    model (ske.GradientBoostingRegressor): Underlying sklearn regression estimator
-	                                           managed by the wrapper.
+	    model (ske.GradientBoostingRegressor): Underlying regression estimator
+	                                           managed by the class/object.
 	    loss (str): Loss function minimized by the estimator.
 	    learning_rate (float): Estimator learning-rate configuration.
 	    n_estimators (int): Number of ensemble estimators.
@@ -4831,7 +4831,7 @@ class GradientBoost( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the GradientBoost wrapper with estimator configuration, runtime state,
+		    Initializes the GradientBoost class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -4916,11 +4916,11 @@ class GradientBoost( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the GradientBoost wrapper for
+		    Returns the stable public API surface exposed by the GradientBoost class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'loss', 'learning_rate', 'n_estimators', 'subsample',
 			'criterion', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf',
 			'max_depth', 'min_impurity_decrease', 'init', 'random_state', 'max_features', 'alpha',
@@ -4954,7 +4954,7 @@ class GradientBoost( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4991,7 +4991,7 @@ class GradientBoost( Regression ):
 		
 		Purpose:
 		    Fits the underlying GradientBoost regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -4999,7 +4999,7 @@ class GradientBoost( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    GradientBoost | None: Fitted wrapper instance.
+		    GradientBoost | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -5028,7 +5028,7 @@ class GradientBoost( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted GradientBoost regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5057,7 +5057,7 @@ class GradientBoost( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted GradientBoost regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5181,15 +5181,15 @@ class GradientBoost( Regression ):
 			raise exception
 
 class AdaptiveBoost( Regression ):
-	"""AdaptiveBoost regression wrapper.
+	"""AdaptiveBoost regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.ensemble.AdaBoostRegressor for adaptive boosted regression using a
 	    configurable base estimator and loss function.
 	
 	Attributes:
-	    model (ske.AdaBoostRegressor): Underlying sklearn regression estimator managed by
-	                                   the wrapper.
+	    model (ske.AdaBoostRegressor): Underlying regression estimator managed by
+	                                   the class/object.
 	    estimator (Optional[object]): Estimator used by the selector, ensemble, or
 	                                  forecasting workflow.
 	    n_estimators (int): Number of ensemble estimators.
@@ -5243,12 +5243,12 @@ class AdaptiveBoost( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the AdaptiveBoost wrapper with estimator configuration, runtime state,
+		    Initializes the AdaptiveBoost class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
 		Args:
-		    estimator (Optional[object]): Base estimator used by an ensemble wrapper.
+		    estimator (Optional[object]): Base estimator used by an ensemble class/object.
 		    estimators (int): Number of estimators in an ensemble.
 		    rate (float): Learning rate used by boosting estimators.
 		    loss (str): Loss function used by the estimator.
@@ -5285,11 +5285,11 @@ class AdaptiveBoost( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the AdaptiveBoost wrapper for
+		    Returns the stable public API surface exposed by the AdaptiveBoost class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'estimator', 'n_estimators', 'learning_rate', 'loss',
 			'random_state', 'base_estimator', 'features', 'mean_absolute_error',
 			'mean_squared_error', 'root_mean_squared_error', 'r2_score',
@@ -5337,7 +5337,7 @@ class AdaptiveBoost( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5374,7 +5374,7 @@ class AdaptiveBoost( Regression ):
 		
 		Purpose:
 		    Fits the underlying AdaptiveBoost regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5382,7 +5382,7 @@ class AdaptiveBoost( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    AdaptiveBoost | None: Fitted wrapper instance.
+		    AdaptiveBoost | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -5411,7 +5411,7 @@ class AdaptiveBoost( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted AdaptiveBoost regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5440,7 +5440,7 @@ class AdaptiveBoost( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted AdaptiveBoost regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5564,15 +5564,15 @@ class AdaptiveBoost( Regression ):
 			raise exception
 
 class BaggingModel( Regression ):
-	"""BaggingModel regression wrapper.
+	"""BaggingModel regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.ensemble.BaggingRegressor for bootstrap-aggregated regression over
 	    configurable base estimators, samples, features, and parallel execution.
 	
 	Attributes:
-	    model (ske.BaggingRegressor): Underlying sklearn regression estimator managed by the
-	                                  wrapper.
+	    model (ske.BaggingRegressor): Underlying regression estimator managed by the
+	                                  class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -5643,12 +5643,12 @@ class BaggingModel( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the BaggingModel wrapper with estimator configuration, runtime state,
+		    Initializes the BaggingModel class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
 		Args:
-		    estimator (Optional[object]): Base estimator used by an ensemble wrapper.
+		    estimator (Optional[object]): Base estimator used by an ensemble class/object.
 		    num (int): Number of neighbors, estimators, or model-specific components.
 		    samples (Optional[int | float]): Maximum sample setting used by ensemble estimators.
 		    features (int | float): Maximum feature-selection setting used by the estimator.
@@ -5700,11 +5700,11 @@ class BaggingModel( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the BaggingModel wrapper for
+		    Returns the stable public API surface exposed by the BaggingModel class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'estimator', 'n_estimators', 'max_samples', 'max_features',
 			'bootstrap', 'bootstrap_features', 'oob_score', 'warm_start', 'n_jobs', 'random_state',
 			'verbose', 'base_estimator', 'features', 'training_score', 'testing_score',
@@ -5752,7 +5752,7 @@ class BaggingModel( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5789,7 +5789,7 @@ class BaggingModel( Regression ):
 		
 		Purpose:
 		    Fits the underlying BaggingModel regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5797,7 +5797,7 @@ class BaggingModel( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    BaggingModel | None: Fitted wrapper instance.
+		    BaggingModel | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -5826,7 +5826,7 @@ class BaggingModel( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted BaggingModel regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5855,7 +5855,7 @@ class BaggingModel( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted BaggingModel regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -5980,15 +5980,15 @@ class BaggingModel( Regression ):
 			raise exception
 
 class VotingModel( Regression ):
-	"""VotingModel regression wrapper.
+	"""VotingModel regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.ensemble.VotingRegressor for averaging predictions from multiple named
 	    regression estimators with optional weights.
 	
 	Attributes:
-	    model (ske.VotingRegressor): Underlying sklearn regression estimator managed by the
-	                                 wrapper.
+	    model (ske.VotingRegressor): Underlying regression estimator managed by the
+	                                 class/object.
 	    estimators (List[tuple[str, object]]): Named estimator collection used by ensemble
 	                                           wrappers.
 	    weights (Optional[List[float]]): Optional estimator or neighbor weights.
@@ -6040,7 +6040,7 @@ class VotingModel( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the VotingModel wrapper with estimator configuration, runtime state,
+		    Initializes the VotingModel class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -6081,11 +6081,11 @@ class VotingModel( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the VotingModel wrapper for
+		    Returns the stable public API surface exposed by the VotingModel class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'estimators', 'weights', 'n_jobs', 'verbose', 'features',
 			'named_estimators', 'training_score', 'testing_score', 'mean_absolute_error',
 			'mean_squared_error', 'root_mean_squared_error', 'r2_score',
@@ -6134,7 +6134,7 @@ class VotingModel( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6171,7 +6171,7 @@ class VotingModel( Regression ):
 		
 		Purpose:
 		    Fits the underlying VotingModel regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6179,7 +6179,7 @@ class VotingModel( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    VotingModel | None: Fitted wrapper instance.
+		    VotingModel | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -6208,7 +6208,7 @@ class VotingModel( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted VotingModel regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6237,7 +6237,7 @@ class VotingModel( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted VotingModel regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6361,15 +6361,15 @@ class VotingModel( Regression ):
 			raise exception
 
 class StackingModel( Regression ):
-	"""StackingModel regression wrapper.
+	"""StackingModel regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.ensemble.StackingRegressor for stacked generalization using base
 	    regressors, a final estimator, cross-validation, and optional passthrough features.
 	
 	Attributes:
-	    model (ske.StackingRegressor): Underlying sklearn regression estimator managed by
-	                                   the wrapper.
+	    model (ske.StackingRegressor): Underlying regression estimator managed by
+	                                   the class/object.
 	    estimators (List[tuple[str, object]]): Named estimator collection used by ensemble
 	                                           wrappers.
 	    final_estimator (object | None): Final estimator used by stacked regression.
@@ -6422,7 +6422,7 @@ class StackingModel( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the StackingModel wrapper with estimator configuration, runtime state,
+		    Initializes the StackingModel class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -6468,11 +6468,11 @@ class StackingModel( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the StackingModel wrapper for
+		    Returns the stable public API surface exposed by the StackingModel class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'estimators', 'final_estimator', 'cv', 'n_jobs',
 			'passthrough', 'verbose', 'features', 'estimator_list', 'final', 'training_score',
 			'testing_score', 'mean_absolute_error', 'mean_squared_error',
@@ -6537,7 +6537,7 @@ class StackingModel( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6574,7 +6574,7 @@ class StackingModel( Regression ):
 		
 		Purpose:
 		    Fits the underlying StackingModel regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6582,7 +6582,7 @@ class StackingModel( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    StackingModel | None: Fitted wrapper instance.
+		    StackingModel | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -6611,7 +6611,7 @@ class StackingModel( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted StackingModel regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6640,7 +6640,7 @@ class StackingModel( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted StackingModel regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6764,14 +6764,14 @@ class StackingModel( Regression ):
 			raise exception
 
 class SupportVector( Regression ):
-	"""SupportVector regression wrapper.
+	"""SupportVector regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.svm.SVR for kernel-based support-vector regression with configurable
 	    kernel, regularization, tolerance, epsilon, and cache behavior.
 	
 	Attributes:
-	    model (skv.SVR): Underlying sklearn regression estimator managed by the wrapper.
+	    model (skv.SVR): Underlying regression estimator managed by the class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -6837,7 +6837,7 @@ class SupportVector( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the SupportVector wrapper with estimator configuration, runtime state,
+		    Initializes the SupportVector class/object with estimator configuration, runtime state,
 		    cached prediction fields, and regression metric fields required by training and
 		    evaluation workflows.
 		
@@ -6894,11 +6894,11 @@ class SupportVector( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the SupportVector wrapper for
+		    Returns the stable public API surface exposed by the SupportVector class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'kernel', 'degree', 'gamma', 'coef0', 'tol', 'penalty',
 			'epsilon', 'shrinking', 'cache_size', 'verbose', 'max_iter', 'features',
 			'mean_absolute_error', 'mean_squared_error', 'root_mean_squared_error', 'r2_score',
@@ -6928,7 +6928,7 @@ class SupportVector( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6965,7 +6965,7 @@ class SupportVector( Regression ):
 		
 		Purpose:
 		    Fits the underlying SupportVector regression estimator to feature and target arrays
-		    and returns the wrapper for chained modeling workflows.
+		    and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -6973,7 +6973,7 @@ class SupportVector( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    SupportVector | None: Fitted wrapper instance.
+		    SupportVector | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -7003,7 +7003,7 @@ class SupportVector( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted SupportVector regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7032,7 +7032,7 @@ class SupportVector( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted SupportVector regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7157,7 +7157,7 @@ class SupportVector( Regression ):
 			raise exception
 
 class GaussianProcess( Regression ):
-	"""GaussianProcess regression wrapper.
+	"""GaussianProcess regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.gaussian_process.GaussianProcessRegressor for kernel-based
@@ -7165,8 +7165,8 @@ class GaussianProcess( Regression ):
 	    configuration.
 	
 	Attributes:
-	    model (GaussianProcessRegressor): Underlying sklearn regression estimator managed by
-	                                      the wrapper.
+	    model (GaussianProcessRegressor): Underlying regression estimator managed by
+	                                      the class/object.
 	    kernel (object | None): Kernel function used to transform feature-space
 	                            relationships.
 	    alpha (float | np.ndarray): Regularization strength or loss parameter passed to the
@@ -7260,11 +7260,11 @@ class GaussianProcess( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the GaussianProcess wrapper for
+		    Returns the stable public API surface exposed by the GaussianProcess class/object for
 		    interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'kernel', 'alpha', 'optimizer', 'n_restarts_optimizer',
 			'normalize_y', 'copy_X_train', 'random_state', 'mean_absolute_error',
 			'mean_squared_error', 'root_mean_squared_error', 'r2_score',
@@ -7278,7 +7278,7 @@ class GaussianProcess( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7314,7 +7314,7 @@ class GaussianProcess( Regression ):
 		
 		Purpose:
 		    Fits the underlying GaussianProcess regression estimator to feature and target
-		    arrays and returns the wrapper for chained modeling workflows.
+		    arrays and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7322,7 +7322,7 @@ class GaussianProcess( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    GaussianProcess | None: Fitted wrapper instance.
+		    GaussianProcess | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -7344,7 +7344,7 @@ class GaussianProcess( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted GaussianProcess regression
-		    estimator and caches the prediction array on the wrapper.
+		    estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7373,7 +7373,7 @@ class GaussianProcess( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted GaussianProcess regression estimator with its primary scoring
-		    behavior and returns the score in the wrapper reporting format.
+		    behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7497,7 +7497,7 @@ class GaussianProcess( Regression ):
 			raise exception
 
 class MultiLayerPerceptron( Regression ):
-	"""MultiLayerPerceptron regression wrapper.
+	"""MultiLayerPerceptron regression class/object.
 	
 	Purpose:
 	    Wraps sklearn.neural_network.MLPRegressor for feed-forward neural-network regression
@@ -7505,8 +7505,8 @@ class MultiLayerPerceptron( Regression ):
 	    behavior.
 	
 	Attributes:
-	    model (skm.MLPRegressor): Underlying sklearn regression estimator managed by the
-	                              wrapper.
+	    model (skm.MLPRegressor): Underlying regression estimator managed by the
+	                              class/object.
 	    prediction (Optional[np.ndarray]): Most recent prediction array returned by the
 	                                       fitted estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent output produced by the
@@ -7552,7 +7552,7 @@ class MultiLayerPerceptron( Regression ):
 		"""Initialize instance.
 		
 		Purpose:
-		    Initializes the MultiLayerPerceptron wrapper with estimator configuration, runtime
+		    Initializes the MultiLayerPerceptron class/object with estimator configuration, runtime
 		    state, cached prediction fields, and regression metric fields required by training
 		    and evaluation workflows.
 		
@@ -7592,11 +7592,11 @@ class MultiLayerPerceptron( Regression ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public API surface exposed by the MultiLayerPerceptron wrapper
+		    Returns the stable public API surface exposed by the MultiLayerPerceptron class/object
 		    for interactive inspection and documentation generation.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'hidden_layers', 'activation_function', 'solver', 'alpha',
 			'learning', 'random_state', 'mean_absolute_error', 'mean_squared_error',
 			'root_mean_squared_error', 'r2_score', 'explained_variance_score',
@@ -7609,7 +7609,7 @@ class MultiLayerPerceptron( Regression ):
 		
 		Purpose:
 		    Splits aligned feature and target arrays into training and testing partitions using
-		    sklearn.model_selection.train_test_split with wrapper defaults.
+		    sklearn.model_selection.train_test_split with class/object defaults.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7645,7 +7645,7 @@ class MultiLayerPerceptron( Regression ):
 		
 		Purpose:
 		    Fits the underlying MultiLayerPerceptron regression estimator to feature and target
-		    arrays and returns the wrapper for chained modeling workflows.
+		    arrays and returns the class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7653,7 +7653,7 @@ class MultiLayerPerceptron( Regression ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 		
 		Returns:
-		    MultiLayerPerceptron | None: Fitted wrapper instance.
+		    MultiLayerPerceptron | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped regression estimator execution fails."""
@@ -7675,7 +7675,7 @@ class MultiLayerPerceptron( Regression ):
 		
 		Purpose:
 		    Generates continuous target predictions from the fitted MultiLayerPerceptron
-		    regression estimator and caches the prediction array on the wrapper.
+		    regression estimator and caches the prediction array on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or
@@ -7704,7 +7704,7 @@ class MultiLayerPerceptron( Regression ):
 		
 		Purpose:
 		    Evaluates the fitted MultiLayerPerceptron regression estimator with its primary
-		    scoring behavior and returns the score in the wrapper reporting format.
+		    scoring behavior and returns the score in the class/object reporting format.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring, or

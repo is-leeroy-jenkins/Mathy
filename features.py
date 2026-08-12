@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-    Provides feature-selection and dimensionality-reduction wrappers for Mathy modeling
+    Provides feature-selection and dimensionality-reduction class/objects for Mathy modeling
     workflows. The module centralizes variance thresholding, canonical correlation analysis,
     principal component analysis, univariate feature selection, sequential backward selection,
     recursive feature elimination, train/test splitting, projection, transformation, and
@@ -87,11 +87,11 @@ def throw_if( name: str, value: object ) -> None:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Selector( ):
-	"""Selector feature-selection wrapper.
+	"""Selector feature-selection class/object.
 	
 	Purpose:
 	    Defines the shared feature-selection interface used by dimensionality-reduction and
-	    selector wrappers. The base class stores prediction, transformed-data, accuracy, and
+	    selector class/objects. The base class stores prediction, transformed-data, accuracy, and
 	    plotting-marker state and specifies the train, project, transform, fit-transform,
 	    scoring, and splitting contracts implemented by concrete selectors.
 	
@@ -115,7 +115,7 @@ class Selector( ):
 		Purpose:
 		    Initializes shared selector runtime state, plotting markers, prediction storage,
 		    transformed-data storage, and accuracy storage used by concrete feature-selection
-		    wrappers.
+		    class/objects.
 		
 		Returns:
 		    None: This method initializes the object and does not return a value."""
@@ -151,7 +151,7 @@ class Selector( ):
 		
 		Purpose:
 		    Defines the training contract for concrete feature selectors and
-		    dimensionality-reduction wrappers.
+		    dimensionality-reduction class/objects.
 		
 		Args:
 		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or
@@ -159,7 +159,7 @@ class Selector( ):
 		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted selector wrapper or fitted estimator result.
+		    object | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    NotImplementedError: Raised when required fitted estimator metadata is unavailable
@@ -191,7 +191,7 @@ class Selector( ):
 		
 		Purpose:
 		    Defines the transformation contract for fitted selectors and
-		    dimensionality-reduction wrappers.
+		    dimensionality-reduction class/objects.
 		
 		Args:
 		    X (np.ndarray): Feature matrix supplied to the selector, projector, estimator, or
@@ -248,11 +248,11 @@ class Selector( ):
 		raise NotImplementedError
 
 class VarianceThreshold( Selector ):
-	"""VarianceThreshold feature-selection wrapper.
+	"""VarianceThreshold feature-selection class/object.
 	
 	Purpose:
 	    Removes low-variance features with sklearn.feature_selection.VarianceThreshold. The
-	    wrapper stores the threshold configuration, transformed feature matrix, prediction
+	    class/object stores the threshold configuration, transformed feature matrix, prediction
 	    state, and train/test scoring metrics used to evaluate the reduced feature space.
 	
 	Attributes:
@@ -301,11 +301,11 @@ class VarianceThreshold( Selector ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable list of public members exposed by the VarianceThreshold wrapper
+		    Returns the stable list of public members exposed by the VarianceThreshold class/object
 		    for interactive inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'threshold', 'model', 'prediction', 'transformed_data', 'split_data', 'train',
 			'project', 'score', 'transform', 'train_transform' ]
 	
@@ -360,7 +360,7 @@ class VarianceThreshold( Selector ):
 		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    sf.VarianceThreshold | None: Fitted selector wrapper or fitted estimator result.
+		    sf.VarianceThreshold | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    Error: Raised when validation, fitting, transformation, projection, or scoring fails
@@ -520,11 +520,11 @@ class VarianceThreshold( Selector ):
 			raise exception
 
 class CCA( Selector ):
-	"""CCA feature-selection wrapper.
+	"""CCA feature-selection class/object.
 	
 	Purpose:
 	    Projects paired feature and target matrices with canonical correlation analysis. The
-	    wrapper fits sklearn cross-decomposition CCA, stores canonical components, supports
+	    class/object fits sklearn cross-decomposition CCA, stores canonical components, supports
 	    supervised projections, and evaluates downstream classifier performance on the
 	    transformed representation.
 	
@@ -587,11 +587,11 @@ class CCA( Selector ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable list of public members exposed by the CCA wrapper for interactive
+		    Returns the stable list of public members exposed by the CCA class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'n_components', 'scale', 'max_iter', 'prediction', 'transformed_data',
 			'split_data', 'train', 'project', 'score', 'transform', 'train_transform' ]
 	
@@ -691,14 +691,14 @@ class CCA( Selector ):
 			_target_count = int( y.shape[ 1 ] ) if len( y.shape ) > 1 else 1
 			_prediction_count = int( y_pred.shape[ 1 ] ) if len( y_pred.shape ) > 1 else 1
 			_metrics = \
-				{
-						'Components': [ self.n_components ],
-						'Training Score': [ float( self.training_score ) ],
-						'Testing Score': [ float( self.testing_score ) ],
-						'Predictor Count': [ int( X.shape[ 1 ] ) ],
-						'Target Count': [ _target_count ],
-						'Prediction Count': [ _prediction_count ],
-				}
+			{
+					'Components': [ self.n_components ],
+					'Training Score': [ float( self.training_score ) ],
+					'Testing Score': [ float( self.testing_score ) ],
+					'Predictor Count': [ int( X.shape[ 1 ] ) ],
+					'Target Count': [ _target_count ],
+					'Prediction Count': [ _prediction_count ],
+			}
 			df_metrics = pd.DataFrame( _metrics )
 			return df_metrics
 		except Exception as e:
@@ -722,7 +722,7 @@ class CCA( Selector ):
 		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted selector wrapper or fitted estimator result.
+		    object | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    Error: Raised when validation, fitting, transformation, projection, or scoring fails
@@ -808,11 +808,11 @@ class CCA( Selector ):
 			raise exception
 
 class PCA( Selector ):
-	"""PCA feature-selection wrapper.
+	"""PCA feature-selection class/object.
 	
 	Purpose:
 	    Projects numeric features into a lower-dimensional principal-component space with
-	    sklearn decomposition PCA. The wrapper stores component configuration,
+	    sklearn decomposition PCA. The class/object stores component configuration,
 	    explained-variance metadata, transformed features, and train/test evaluation metrics
 	    for reduced feature sets.
 	
@@ -868,11 +868,11 @@ class PCA( Selector ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable list of public members exposed by the PCA wrapper for interactive
+		    Returns the stable list of public members exposed by the PCA class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'svd_solver', 'n_components', 'transformed_data',
 			'split_data', 'train', 'project', 'score', 'transform', 'train_transform' ]
 	
@@ -938,7 +938,7 @@ class PCA( Selector ):
 		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted selector wrapper or fitted estimator result.
+		    object | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    Error: Raised when validation, fitting, transformation, projection, or scoring fails
@@ -1090,11 +1090,11 @@ class PCA( Selector ):
 			raise exception
 
 class SelectBest( Selector ):
-	"""SelectBest feature-selection wrapper.
+	"""SelectBest feature-selection class/object.
 	
 	Purpose:
 	    Selects the top scoring features with sklearn.feature_selection.SelectKBest. The
-	    wrapper applies univariate statistical tests, stores scores and transformed
+	    class/object applies univariate statistical tests, stores scores and transformed
 	    matrices, and evaluates classifier performance after retaining the configured number
 	    of features.
 	
@@ -1148,11 +1148,11 @@ class SelectBest( Selector ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable list of public members exposed by the SelectBest wrapper for
+		    Returns the stable list of public members exposed by the SelectBest class/object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'score_function', 'n_features', 'transformed_data',
 			'split_data', 'chi_square', 'train', 'project', 'score', 'transform',
 			'train_transform' ]
@@ -1238,7 +1238,7 @@ class SelectBest( Selector ):
 		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted selector wrapper or fitted estimator result.
+		    object | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    Error: Raised when validation, fitting, transformation, projection, or scoring fails
@@ -1382,11 +1382,11 @@ class SelectBest( Selector ):
 			raise exception
 
 class SelectPercent( Selector ):
-	"""SelectPercent feature-selection wrapper.
+	"""SelectPercent feature-selection class/object.
 	
 	Purpose:
 	    Selects the highest scoring feature percentile with
-	    sklearn.feature_selection.SelectPercentile. The wrapper applies univariate
+	    sklearn.feature_selection.SelectPercentile. The object applies univariate
 	    statistical tests, stores transformed matrices, and evaluates classifier performance
 	    after retaining the configured percentage of features.
 	
@@ -1443,11 +1443,11 @@ class SelectPercent( Selector ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable list of public members exposed by the SelectPercent wrapper for
+		    Returns the stable list of public members exposed by the SelectPercent class/object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'score_function', 'percentile', 'transformed_data',
 			'split_data', 'chi_square', 'train', 'project', 'score', 'transform',
 			'train_transform' ]
@@ -1533,7 +1533,7 @@ class SelectPercent( Selector ):
 		    y (Optional[np.ndarray]): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted selector wrapper or fitted estimator result.
+		    object | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    Error: Raised when validation, fitting, transformation, projection, or scoring fails
@@ -1677,11 +1677,11 @@ class SelectPercent( Selector ):
 			raise exception
 
 class SBS( Selector ):
-	"""SBS feature-selection wrapper.
+	"""SBS feature-selection class.
 	
 	Purpose:
 	    Implements sequential backward selection with a cloned classifier and scoring
-	    function. The wrapper iteratively removes features, tracks candidate subsets,
+	    function. The class iteratively removes features, tracks candidate subsets,
 	    records subset scores, and preserves the selected feature indices for projection and
 	    evaluation.
 	
@@ -1755,11 +1755,11 @@ class SBS( Selector ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable list of public members exposed by the SBS wrapper for interactive
+		    Returns the stable list of public members exposed by the SBS class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'scoring', 'classifier', 'k_features', 'test_size', 'random_state', 'prediction',
 			'transformed_data', 'indices_', 'subsets_', 'scores_', 'k_score_', 'split_data',
 			'train', 'project', 'score', 'transform', 'train_transform', 'calc_score' ]
@@ -1815,7 +1815,7 @@ class SBS( Selector ):
 		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted selector wrapper or fitted estimator result.
+		    object | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    Error: Raised when validation, fitting, transformation, projection, or scoring fails
@@ -1944,7 +1944,7 @@ class SBS( Selector ):
 		try:
 			throw_if( 'X', X )
 			if self.indices_ is None:
-				raise ValueError( 'The SBS wrapper must be trained before calling transform.' )
+				raise ValueError( 'The SBS class/object must be trained before calling transform.' )
 			self.transformed_data = X[ :, self.indices_ ]
 			return self.transformed_data
 		except Exception as e:
@@ -2027,11 +2027,11 @@ class SBS( Selector ):
 			raise exception
 
 class RFE( Selector ):
-	"""RFE feature-selection wrapper.
+	"""RFE feature-selection class/object.
 	
 	Purpose:
 	    Performs recursive feature elimination with an sklearn-compatible estimator. The
-	    wrapper recursively prunes low-importance features, stores feature rankings,
+	    class recursively prunes low-importance features, stores feature rankings,
 	    supports projection into the selected feature set, and evaluates downstream
 	    classifier performance.
 	
@@ -2094,11 +2094,11 @@ class RFE( Selector ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable list of public members exposed by the RFE wrapper for interactive
+		    Returns the stable list of public members exposed by the RFE class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'classifier', 'n_features_to_select', 'verbose', 'prediction', 'transformed_data',
 			'features_in', 'ranking', 'split_data', 'train', 'project', 'score', 'transform',
 			'train_transform' ]
@@ -2190,7 +2190,7 @@ class RFE( Selector ):
 		    y (np.ndarray): Target vector or target matrix aligned to the rows of `X`.
 		
 		Returns:
-		    object | None: Fitted selector wrapper or fitted estimator result.
+		    object | None: Fitted selector class/object or fitted estimator result.
 		
 		Raises:
 		    Error: Raised when validation, fitting, transformation, projection, or scoring fails

@@ -89,7 +89,7 @@ class Transformer( ):
 	
 	Attributes:
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -107,17 +107,17 @@ class Transformer( ):
 		"""Fit Transformer.
 		
 		Purpose:
-		    Fits the underlying transformer to supplied input data and returns the wrapper for
+		    Fits the underlying transformer to supplied input data and returns the class/object for
 		    chained preprocessing workflows.
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    object | None: Fitted wrapper instance.
+		    object | None: Fitted class/object instance.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -132,10 +132,10 @@ class Transformer( ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -150,12 +150,12 @@ class Transformer( ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -170,10 +170,10 @@ class Transformer( ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
-		    np.ndarray: Decoded or reconstructed output produced by the fitted wrapper.
+		    np.ndarray: Decoded or reconstructed output produced by the fitted class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -184,18 +184,18 @@ class Binarizer( Transformer ):
 	
 	Purpose:
 	    Converts numeric feature values into binary indicators using a configured threshold.
-	    The wrapper delegates to sklearn.preprocessing.Binarizer and caches the transformed
+	    The class/object delegates to sklearn.preprocessing.Binarizer and caches the transformed
 	    matrix for downstream preprocessing and modeling steps.
 	
 	Attributes:
 	    model (pp.Binarizer): Underlying sklearn estimator or transformer used by the
-	                          wrapper.
+	                          class/object.
 	    threshold (Optional[float]): Numeric cutoff used to convert values into binary
 	                                 indicators.
 	    copy (Optional[bool]): Flag controlling whether binarization copies input data
 	                           before transformation.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: pp.Binarizer
 	threshold: Optional[ float ]
 	copy: Optional[ bool ]
@@ -226,11 +226,11 @@ class Binarizer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'threshold', 'copy', 'model', 'transformed_data', 'train', 'transform',
 			'train_transform' ]
 	
@@ -239,16 +239,16 @@ class Binarizer( Transformer ):
 		
 		Purpose:
 		    Fits the underlying binary-threshold transformer to supplied input data and returns
-		    the wrapper for chained preprocessing workflows.
+		    the class/object for chained preprocessing workflows.
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    Binarizer | None: Fitted wrapper instance.
+		    Binarizer | None: Fitted class/object instance.
 		
 		Raises:
 		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
@@ -273,13 +273,13 @@ class Binarizer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.transform( X )
@@ -301,15 +301,15 @@ class Binarizer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.fit_transform( X, y )
@@ -327,12 +327,12 @@ class LabelBinarizer( Transformer ):
 	
 	Purpose:
 	    Converts single-label target vectors into one-vs-rest binary indicator matrices. The
-	    wrapper exposes fitted class metadata, target-type metadata, inverse decoding, and
+	    class/object exposes fitted class metadata, target-type metadata, inverse decoding, and
 	    cached transformed output.
 	
 	Attributes:
-	    model (pp.LabelBinarizer): Underlying sklearn estimator or transformer used by the
-	                               wrapper.
+	    model (pp.LabelBinarizer): Underlying estimator or transformer used by the
+	                               class/object.
 	    pos_label (Optional[int]): Positive indicator value assigned during label
 	                               binarization.
 	    neg_label (Optional[int]): Negative indicator value assigned during label
@@ -340,7 +340,7 @@ class LabelBinarizer( Transformer ):
 	    sparse_output (Optional[bool]): Flag controlling sparse output for label or
 	                                    multilabel binarization.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: pp.LabelBinarizer
 	pos_label: Optional[ int ]
 	neg_label: Optional[ int ]
@@ -352,7 +352,7 @@ class LabelBinarizer( Transformer ):
 		"""Initialize LabelBinarizer.
 		
 		Purpose:
-		    Initializes the label-binarizer transformer with configured sklearn objects, runtime
+		    Initializes the label-binarizer transformer with configured objects, runtime
 		    options, and transformed-output cache required by later preprocessing operations.
 		
 		Args:
@@ -374,11 +374,11 @@ class LabelBinarizer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'pos_label', 'neg_label', 'sparse_output', 'model', 'transformed_data', 'classes',
 			'types', 'train', 'transform', 'train_transform', 'inverse_transform' ]
 	
@@ -387,7 +387,7 @@ class LabelBinarizer( Transformer ):
 		"""Return classes.
 		
 		Purpose:
-		    Returns fitted class metadata learned by the wrapped sklearn transformer for
+		    Returns fitted class metadata learned by the wrapped transformer for
 		    inspection and compatibility checks.
 		
 		Returns:
@@ -423,16 +423,16 @@ class LabelBinarizer( Transformer ):
 		
 		Purpose:
 		    Fits the underlying label-binarizer transformer to supplied input data and returns
-		    the wrapper for chained preprocessing workflows.
+		    the class/object for chained preprocessing workflows.
 		
 		Args:
 		    y (np.ndarray): Target vector or label collection aligned to the input data.
 		
 		Returns:
-		    LabelBinarizer | None: Fitted wrapper instance.
+		    LabelBinarizer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'y', y )
 			self.model.fit( y )
@@ -456,10 +456,10 @@ class LabelBinarizer( Transformer ):
 		    y (np.ndarray): Target vector or label collection aligned to the input data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'y', y )
 			self.transformed_data = self.model.transform( y )
@@ -483,10 +483,10 @@ class LabelBinarizer( Transformer ):
 		    y (np.ndarray): Target vector or label collection aligned to the input data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'y', y )
 			self.transformed_data = self.model.fit_transform( y )
@@ -511,10 +511,10 @@ class LabelBinarizer( Transformer ):
 		                    inverse transformation.
 		
 		Returns:
-		    np.ndarray: Decoded or reconstructed output produced by the fitted wrapper.
+		    np.ndarray: Decoded or reconstructed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'Y', Y )
 			return self.model.inverse_transform( Y )
@@ -531,16 +531,16 @@ class MultiLabelBinarizer( Transformer ):
 	
 	Purpose:
 	    Converts iterable multilabel targets into binary indicator matrices with stable
-	    class ordering. The wrapper supports dense or sparse output, inverse decoding, and
+	    class ordering. The class/object supports dense or sparse output, inverse decoding, and
 	    cached transformed output for multilabel modeling workflows.
 	
 	Attributes:
-	    model (pp.MultiLabelBinarizer): Underlying sklearn estimator or transformer used by
-	                                    the wrapper.
+	    model (pp.MultiLabelBinarizer): Underlying estimator or transformer used by
+	                                    the class/object.
 	    sparse_output (Optional[bool]): Flag controlling sparse output for label or
 	                                    multilabel binarization.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: pp.MultiLabelBinarizer
 	sparse_output: Optional[ bool ]
 	transformed_data: Optional[ np.ndarray ]
@@ -550,7 +550,7 @@ class MultiLabelBinarizer( Transformer ):
 		"""Initialize MultiLabelBinarizer.
 		
 		Purpose:
-		    Initializes the multilabel-binarizer transformer with configured sklearn objects,
+		    Initializes the multilabel-binarizer transformer with configured objects,
 		    runtime options, and transformed-output cache required by later preprocessing
 		    operations.
 		
@@ -571,11 +571,11 @@ class MultiLabelBinarizer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'sparse_output', 'model', 'transformed_data', 'classes', 'train', 'transform',
 			'train_transform', 'inverse_transform' ]
 	
@@ -584,7 +584,7 @@ class MultiLabelBinarizer( Transformer ):
 		"""Return classes.
 		
 		Purpose:
-		    Returns fitted class metadata learned by the wrapped sklearn transformer for
+		    Returns fitted class metadata learned by the wrapped transformer for
 		    inspection and compatibility checks.
 		
 		Returns:
@@ -602,16 +602,16 @@ class MultiLabelBinarizer( Transformer ):
 		
 		Purpose:
 		    Fits the underlying multilabel-binarizer transformer to supplied input data and
-		    returns the wrapper for chained preprocessing workflows.
+		    returns the class/object for chained preprocessing workflows.
 		
 		Args:
 		    y (np.ndarray): Target vector or label collection aligned to the input data.
 		
 		Returns:
-		    MultiLabelBinarizer | None: Fitted wrapper instance.
+		    MultiLabelBinarizer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'y', y )
 			self.model.fit( y )
@@ -635,10 +635,10 @@ class MultiLabelBinarizer( Transformer ):
 		    y (np.ndarray): Target vector or label collection aligned to the input data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'y', y )
 			self.transformed_data = self.model.transform( y )
@@ -662,10 +662,10 @@ class MultiLabelBinarizer( Transformer ):
 		    y (np.ndarray): Target vector or label collection aligned to the input data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'y', y )
 			self.transformed_data = self.model.fit_transform( y )
@@ -690,10 +690,10 @@ class MultiLabelBinarizer( Transformer ):
 		                    inverse transformation.
 		
 		Returns:
-		    np.ndarray: Decoded or reconstructed output produced by the fitted wrapper.
+		    np.ndarray: Decoded or reconstructed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'Y', Y )
 			return self.model.inverse_transform( Y )
@@ -710,18 +710,18 @@ class TfidfTransformer( Transformer ):
 	
 	Purpose:
 	    Transforms token-count matrices into normalized term-frequency
-	    inverse-document-frequency representations. The wrapper exposes fitted IDF and
+	    inverse-document-frequency representations. The class/object exposes fitted IDF and
 	    feature-count metadata while preserving a consistent transformer API.
 	
 	Attributes:
-	    model (sk.TfidfTransformer): Underlying sklearn estimator or transformer used by the
-	                                 wrapper.
+	    model (sk.TfidfTransformer): Underlying estimator or transformer used by the
+	                                 class/object.
 	    norm (Optional[str]): Normalization strategy applied to transformed vectors.
 	    use_idf (Optional[bool]): Flag controlling inverse-document-frequency weighting.
 	    smooth_idf (Optional[bool]): Flag controlling IDF smoothing.
 	    sublinear_tf (Optional[bool]): Flag controlling logarithmic term-frequency scaling.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: sk.TfidfTransformer
 	norm: Optional[ str ]
 	use_idf: Optional[ bool ]
@@ -734,7 +734,7 @@ class TfidfTransformer( Transformer ):
 		"""Initialize TfidfTransformer.
 		
 		Purpose:
-		    Initializes the TF-IDF transformer with configured sklearn objects, runtime options,
+		    Initializes the TF-IDF transformer with configured objects, runtime options,
 		    and transformed-output cache required by later preprocessing operations.
 		
 		Args:
@@ -758,11 +758,11 @@ class TfidfTransformer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'norm', 'use_idf', 'smooth_idf', 'sublinear_tf', 'model', 'transformed_data',
 			'idf_vector', 'features', 'train', 'transform', 'train_transform' ]
 	
@@ -789,7 +789,7 @@ class TfidfTransformer( Transformer ):
 		"""Return features.
 		
 		Purpose:
-		    Returns the fitted input feature count recorded by the wrapped sklearn transformer.
+		    Returns the fitted input feature count recorded by the wrapped transformer.
 		
 		Returns:
 		    int: Number of input features observed during fitting.
@@ -806,19 +806,19 @@ class TfidfTransformer( Transformer ):
 		
 		Purpose:
 		    Fits the underlying TF-IDF transformer to supplied input data and returns the
-		    wrapper for chained preprocessing workflows.
+		    class/object for chained preprocessing workflows.
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    TfidfTransformer | None: Fitted wrapper instance.
+		    TfidfTransformer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X, y )
@@ -840,13 +840,13 @@ class TfidfTransformer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.transform( X, copy=True ).toarray( )
@@ -868,15 +868,15 @@ class TfidfTransformer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.fit_transform( X, y ).toarray( )
@@ -898,8 +898,8 @@ class ColumnTransformer( Transformer ):
 	    weights through sklearn.compose.ColumnTransformer.
 	
 	Attributes:
-	    model (sc.ColumnTransformer): Underlying sklearn estimator or transformer used by
-	                                  the wrapper.
+	    model (sc.ColumnTransformer): Underlying estimator or transformer used by
+	                                  the class/object.
 	    transformers (Optional[List[Tuple[str, object, List[str]]]]): Named transformer
 	                                                                  definitions passed to
 	                                                                  sklearn
@@ -910,11 +910,11 @@ class ColumnTransformer( Transformer ):
 	                                                      applied to transformed outputs.
 	    sparse_threshold (Optional[float]): Density threshold controlling sparse combined
 	                                        output.
-	    n_jobs (Optional[int]): Parallel worker count used by sklearn during fitting or
+	    n_jobs (Optional[int]): Parallel worker count used by during fitting or
 	                            transformation.
-	    verbose (Optional[bool]): Flag controlling sklearn verbose execution output.
+	    verbose (Optional[bool]): Flag controlling verbose execution output.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: sc.ColumnTransformer
 	transformers: Optional[ List[ Tuple[ str, object, List[ str ] ] ] ]
 	remainder: Optional[ str ]
@@ -932,7 +932,7 @@ class ColumnTransformer( Transformer ):
 		"""Initialize ColumnTransformer.
 		
 		Purpose:
-		    Initializes the column transformer with configured sklearn objects, runtime options,
+		    Initializes the column transformer with configured objects, runtime options,
 		    and transformed-output cache required by later preprocessing operations.
 		
 		Args:
@@ -941,10 +941,10 @@ class ColumnTransformer( Transformer ):
 		                                                        and column selections.
 		    remainder (str): Policy applied to columns not listed in `transformers`.
 		    sparse_threshold (float): Density threshold controlling sparse combined output.
-		    n_jobs (Optional[int]): Parallel worker count used during sklearn operations.
+		    n_jobs (Optional[int]): Parallel worker count used during operations.
 		    transformer_weights (Optional[Dict[str, float]]): Optional per-transformer weights
 		                                                      applied to transformed outputs.
-		    verbose (bool): Flag controlling sklearn verbose execution output.
+		    verbose (bool): Flag controlling verbose execution output.
 		
 		Returns:
 		    None: This method initializes the object and does not return a value."""
@@ -965,11 +965,11 @@ class ColumnTransformer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'transformers', 'remainder', 'transformer_weights', 'sparse_threshold',
 			'n_jobs', 'verbose', 'transformed_data', 'train', 'transform', 'train_transform' ]
 	
@@ -979,19 +979,19 @@ class ColumnTransformer( Transformer ):
 		
 		Purpose:
 		    Fits the underlying column transformer to supplied input data and returns the
-		    wrapper for chained preprocessing workflows.
+		    class/object for chained preprocessing workflows.
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    ColumnTransformer | None: Fitted wrapper instance.
+		    ColumnTransformer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X, y )
@@ -1013,13 +1013,13 @@ class ColumnTransformer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			result = self.model.transform( X )
@@ -1043,15 +1043,15 @@ class ColumnTransformer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			result = self.model.fit_transform( X, y )
@@ -1069,14 +1069,14 @@ class TfidfVectorizer( Transformer ):
 	"""TfidfVectorizer.
 	
 	Purpose:
-	    Converts raw text documents into TF-IDF weighted token-feature matrices. The wrapper
+	    Converts raw text documents into TF-IDF weighted token-feature matrices. The class/object
 	    centralizes text decoding, tokenization, analyzer, vocabulary, n-gram,
 	    document-frequency, normalization, and IDF configuration.
 	
 	Attributes:
-	    model (sk.TfidfVectorizer): Underlying sklearn estimator or transformer used by the
-	                                wrapper.
-	    input (Optional[str]): Input source mode used by sklearn text vectorizers.
+	    model (sk.TfidfVectorizer): Underlying estimator or transformer used by the
+	                                class/object.
+	    input (Optional[str]): Input source mode used by text vectorizers.
 	    encoding (Optional[str]): Character encoding used when decoding text input.
 	    decode_error (Optional[str]): Error-handling policy used during text decoding.
 	    strip_accents (Optional[Any]): Accent stripping configuration used during text
@@ -1107,7 +1107,7 @@ class TfidfVectorizer( Transformer ):
 	    smooth_idf (Optional[bool]): Flag controlling IDF smoothing.
 	    sublinear_tf (Optional[bool]): Flag controlling logarithmic term-frequency scaling.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: sk.TfidfVectorizer
 	input: Optional[ str ]
 	encoding: Optional[ str ]
@@ -1147,11 +1147,11 @@ class TfidfVectorizer( Transformer ):
 		"""Initialize TfidfVectorizer.
 		
 		Purpose:
-		    Initializes the TF-IDF vectorizer with configured sklearn objects, runtime options,
+		    Initializes the TF-IDF vectorizer with configured objects, runtime options,
 		    and transformed-output cache required by later preprocessing operations.
 		
 		Args:
-		    input (str): Input source mode used by sklearn text vectorizers.
+		    input (str): Input source mode used by text vectorizers.
 		    encoding (str): Character encoding used when decoding text input.
 		    decode_error (str): Error-handling policy used during text decoding.
 		    strip_accents (Any): Accent stripping configuration used during preprocessing.
@@ -1215,11 +1215,11 @@ class TfidfVectorizer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'input', 'encoding', 'decode_error', 'strip_accents', 'lowercase',
 			'preprocessor', 'tokenizer', 'analyzer', 'stop_words', 'token_pattern', 'ngram_range',
 			'max_df', 'min_df', 'max_features', 'vocabulary', 'binary', 'dtype', 'norm', 'use_idf',
@@ -1249,7 +1249,7 @@ class TfidfVectorizer( Transformer ):
 		"""Fit TfidfVectorizer.
 		
 		Purpose:
-		    Fits the underlying TF-IDF vectorizer to supplied input data and returns the wrapper
+		    Fits the underlying TF-IDF vectorizer to supplied input data and returns the class/object
 		    for chained preprocessing workflows.
 		
 		Args:
@@ -1258,10 +1258,10 @@ class TfidfVectorizer( Transformer ):
 		                              data.
 		
 		Returns:
-		    TfidfVectorizer | None: Fitted wrapper instance.
+		    TfidfVectorizer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.model.fit( text, y )
@@ -1285,10 +1285,10 @@ class TfidfVectorizer( Transformer ):
 		    text (List[str] | np.ndarray): Raw text documents supplied to the vectorizer.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.transformed_data = self.model.transform( text ).toarray( )
@@ -1315,10 +1315,10 @@ class TfidfVectorizer( Transformer ):
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.transformed_data = self.model.fit_transform( text, y ).toarray( )
@@ -1340,14 +1340,14 @@ class TfidfVectorizer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
 		    List[np.ndarray] | None: Decoded or reconstructed output produced by the fitted
-		                             wrapper.
+		                             class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			return self.model.inverse_transform( X )
@@ -1363,14 +1363,14 @@ class CountVectorizer( Transformer ):
 	"""CountVectorizer.
 	
 	Purpose:
-	    Converts raw text documents into token-count feature matrices. The wrapper
+	    Converts raw text documents into token-count feature matrices. The class/object
 	    centralizes text decoding, tokenization, analyzer, vocabulary, n-gram,
 	    document-frequency, binary-count, and dtype configuration.
 	
 	Attributes:
-	    model (sk.CountVectorizer): Underlying sklearn estimator or transformer used by the
-	                                wrapper.
-	    input (Optional[str]): Input source mode used by sklearn text vectorizers.
+	    model (sk.CountVectorizer): Underlying estimator or transformer used by the
+	                                class/object.
+	    input (Optional[str]): Input source mode used by text vectorizers.
 	    encoding (Optional[str]): Character encoding used when decoding text input.
 	    decode_error (Optional[str]): Error-handling policy used during text decoding.
 	    strip_accents (Optional[Any]): Accent stripping configuration used during text
@@ -1397,7 +1397,7 @@ class CountVectorizer( Transformer ):
 	                             integer counts.
 	    dtype (Optional[Any]): Numeric dtype used for transformed feature matrices.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: sk.CountVectorizer
 	input: Optional[ str ]
 	encoding: Optional[ str ]
@@ -1427,11 +1427,11 @@ class CountVectorizer( Transformer ):
 		"""Initialize CountVectorizer.
 		
 		Purpose:
-		    Initializes the count vectorizer with configured sklearn objects, runtime options,
+		    Initializes the count vectorizer with configured objects, runtime options,
 		    and transformed-output cache required by later preprocessing operations.
 		
 		Args:
-		    input (str): Input source mode used by sklearn text vectorizers.
+		    input (str): Input source mode used by text vectorizers.
 		    encoding (str): Character encoding used when decoding text input.
 		    decode_error (str): Error-handling policy used during text decoding.
 		    strip_accents (Any): Accent stripping configuration used during preprocessing.
@@ -1486,11 +1486,11 @@ class CountVectorizer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'input', 'encoding', 'decode_error', 'strip_accents', 'lowercase',
 			'preprocessor', 'tokenizer', 'analyzer', 'stop_words', 'token_pattern', 'ngram_range',
 			'max_df', 'min_df', 'max_features', 'vocabulary', 'binary', 'dtype',
@@ -1502,7 +1502,7 @@ class CountVectorizer( Transformer ):
 		"""Fit CountVectorizer.
 		
 		Purpose:
-		    Fits the underlying count vectorizer to supplied input data and returns the wrapper
+		    Fits the underlying count vectorizer to supplied input data and returns the class/object
 		    for chained preprocessing workflows.
 		
 		Args:
@@ -1511,10 +1511,10 @@ class CountVectorizer( Transformer ):
 		                              data.
 		
 		Returns:
-		    CountVectorizer | None: Fitted wrapper instance.
+		    CountVectorizer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.model.fit( text, y )
@@ -1538,10 +1538,10 @@ class CountVectorizer( Transformer ):
 		    text (List[str] | np.ndarray): Raw text documents supplied to the vectorizer.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.transformed_data = self.model.transform( text ).toarray( )
@@ -1568,10 +1568,10 @@ class CountVectorizer( Transformer ):
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.transformed_data = self.model.fit_transform( text, y ).toarray( )
@@ -1593,14 +1593,14 @@ class CountVectorizer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
 		    List[np.ndarray] | None: Decoded or reconstructed output produced by the fitted
-		                             wrapper.
+		                             class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			return self.model.inverse_transform( X )
@@ -1616,14 +1616,22 @@ class HashVectorizer( Transformer ):
 	"""HashVectorizer.
 	
 	Purpose:
-	    Converts raw text documents into hashed token-feature matrices without storing a
-	    vocabulary. The wrapper centralizes hashing dimension, tokenization, analyzer,
-	    normalization, alternate-sign behavior, and dtype configuration.
+	    Convert a collection of text documents to a matrix of token occurrences. It turns a collection
+	    of text documents into a scipy.sparse matrix holding token occurrence counts (or binary
+	    occurrence information), possibly normalized as token frequencies if norm=’l1’ or projected
+	    on the euclidean unit sphere if norm=’l2’.
+	    
+	    This text vectorizer implementation uses the hashing trick to find the token string name to
+	    feature integer index mapping. This strategy has several advantages: 1) it is very low memory
+	    scalable to large datasets as there is no need to store a vocabulary dictionary in memory.
+	    2) it is fast to pickle and un-pickle as it holds no state besides the constructor parameters.
+
+
 	
 	Attributes:
-	    vectorizer (sk.HashingVectorizer): Underlying sklearn hashing vectorizer used by the
-	                                       wrapper.
-	    input (Optional[str]): Input source mode used by sklearn text vectorizers.
+	    vectorizer (sk.HashingVectorizer): Underlying hashing vectorizer used by the
+	                                       class/object.
+	    input (Optional[str]): Input source mode used by text vectorizers.
 	    encoding (Optional[str]): Character encoding used when decoding text input.
 	    decode_error (Optional[str]): Error-handling policy used during text decoding.
 	    strip_accents (Optional[Any]): Accent stripping configuration used during text
@@ -1645,7 +1653,7 @@ class HashVectorizer( Transformer ):
 	    n_features (Optional[int]): Number of hashed output features.
 	    dtype (Optional[Any]): Numeric dtype used for transformed feature matrices.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	vectorizer: sk.HashingVectorizer
 	input: Optional[ str ]
 	encoding: Optional[ str ]
@@ -1670,16 +1678,16 @@ class HashVectorizer( Transformer ):
 		tokenizer: Any=None, analyzer: str | Any='word', stop_words: Any=None,
 		token_pattern: str=r'(?u)\b\w\w+\b', ngram_range: Tuple[ int, int ]=(1, 1),
 		binary: bool=False, norm: str | None='l2', alternate_sign: bool=True,
-		dtype: An =np.float64 ) -> None:
+		dtype: Any=np.float64 ) -> None:
 		"""Initialize HashVectorizer.
 		
 		Purpose:
-		    Initializes the hashing vectorizer with configured sklearn objects, runtime options,
+		    Initializes the hashing vectorizer with configured objects, runtime options,
 		    and transformed-output cache required by later preprocessing operations.
 		
 		Args:
 		    num (int): Number of hashed output features used by HashingVectorizer.
-		    input (str): Input source mode used by sklearn text vectorizers.
+		    input (str): Input source mode used by text vectorizers.
 		    encoding (str): Character encoding used when decoding text input.
 		    decode_error (str): Error-handling policy used during text decoding.
 		    strip_accents (Any): Accent stripping configuration used during preprocessing.
@@ -1727,11 +1735,11 @@ class HashVectorizer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'vectorizer', 'input', 'encoding', 'decode_error', 'strip_accents', 'lowercase',
 			'preprocessor', 'tokenizer', 'analyzer', 'stop_words', 'token_pattern', 'ngram_range',
 			'binary', 'norm', 'alternate_sign', 'n_features', 'dtype', 'transformed_data', 'train',
@@ -1743,7 +1751,7 @@ class HashVectorizer( Transformer ):
 		
 		Purpose:
 		    Fits the underlying hashing vectorizer to supplied input data and returns the
-		    wrapper for chained preprocessing workflows.
+		    class/object for chained preprocessing workflows.
 		
 		Args:
 		    text (List[str] | np.ndarray): Raw text documents supplied to the vectorizer.
@@ -1751,10 +1759,10 @@ class HashVectorizer( Transformer ):
 		                              data.
 		
 		Returns:
-		    HashVectorizer | None: Fitted wrapper instance.
+		    HashVectorizer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			return self
@@ -1777,10 +1785,10 @@ class HashVectorizer( Transformer ):
 		    text (List[str] | np.ndarray): Raw text documents supplied to the vectorizer.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.transformed_data = self.vectorizer.transform( text ).toarray( )
@@ -1807,10 +1815,10 @@ class HashVectorizer( Transformer ):
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'text', text )
 			self.transformed_data = self.vectorizer.transform( text ).toarray( )
@@ -1832,7 +1840,7 @@ class HashVectorizer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
 		    None: This function performs its work through side effects and does not return a
@@ -1847,19 +1855,19 @@ class DictVectorizer( Transformer ):
 	
 	Purpose:
 	    Converts dictionaries of named feature values into numeric feature matrices. The
-	    wrapper exposes fitted feature names, vocabulary metadata, inverse decoding,
+	    class/object exposes fitted feature names, vocabulary metadata, inverse decoding,
 	    sparse-output behavior, and cached transformed output.
 	
 	Attributes:
-	    model (fe.DictVectorizer): Underlying sklearn estimator or transformer used by the
-	                               wrapper.
+	    model (fe.DictVectorizer): Underlying estimator or transformer used by the
+	                               class/object.
 	    dtype (Optional[Any]): Numeric dtype used for transformed feature matrices.
 	    separator (Optional[str]): String separating dictionary keys and values in generated
 	                               feature names.
 	    sparse (Optional[bool]): Flag controlling sparse output from DictVectorizer.
 	    sort (Optional[bool]): Flag controlling sorted feature ordering in DictVectorizer.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: fe.DictVectorizer
 	dtype: Optional[ Any ]
 	separator: Optional[ str ]
@@ -1872,7 +1880,7 @@ class DictVectorizer( Transformer ):
 		"""Initialize DictVectorizer.
 		
 		Purpose:
-		    Initializes the dictionary vectorizer with configured sklearn objects, runtime
+		    Initializes the dictionary vectorizer with configured objects, runtime
 		    options, and transformed-output cache required by later preprocessing operations.
 		
 		Args:
@@ -1897,11 +1905,11 @@ class DictVectorizer( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'dtype', 'separator', 'sparse', 'sort', 'transformed_data',
 			'feature_names', 'vocabulary', 'train', 'transform', 'train_transform',
 			'inverse_transform' ]
@@ -1957,19 +1965,19 @@ class DictVectorizer( Transformer ):
 		
 		Purpose:
 		    Fits the underlying dictionary vectorizer to supplied input data and returns the
-		    wrapper for chained preprocessing workflows.
+		    class/object for chained preprocessing workflows.
 		
 		Args:
 		    X (List[Dict[str, Any]]): Input matrix, sequence, or feature collection transformed
-		                              by the wrapper.
+		                              by the class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    DictVectorizer | None: Fitted wrapper instance.
+		    DictVectorizer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X, y )
@@ -1991,13 +1999,13 @@ class DictVectorizer( Transformer ):
 		
 		Args:
 		    X (List[Dict[str, Any]]): Input matrix, sequence, or feature collection transformed
-		                              by the wrapper.
+		                              by the class/object.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			result = self.model.transform( X )
@@ -2021,15 +2029,15 @@ class DictVectorizer( Transformer ):
 		
 		Args:
 		    X (List[Dict[str, Any]]): Input matrix, sequence, or feature collection transformed
-		                              by the wrapper.
+		                              by the class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			result = self.model.fit_transform( X, y )
@@ -2052,14 +2060,14 @@ class DictVectorizer( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
 		    List[Dict[str, Any]] | None: Decoded or reconstructed output produced by the fitted
-		                                 wrapper.
+		                                 class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			return self.model.inverse_transform( X )
@@ -2076,18 +2084,18 @@ class FeatureHasher( Transformer ):
 	
 	Purpose:
 	    Converts dictionaries, feature-name pairs, or string feature collections into hashed
-	    numeric feature matrices. The wrapper stores hashing dimension, input type,
+	    numeric feature matrices. The class/object stores hashing dimension, input type,
 	    alternate-sign behavior, dtype, and cached transformed output.
 	
 	Attributes:
-	    model (fe.FeatureHasher): Underlying sklearn estimator or transformer used by the
-	                              wrapper.
+	    model (fe.FeatureHasher): Underlying estimator or transformer used by the
+	                              class/object.
 	    n_features (Optional[int]): Number of hashed output features.
 	    input_type (Optional[str]): Input collection type accepted by FeatureHasher.
 	    dtype (Optional[Any]): Numeric dtype used for transformed feature matrices.
 	    alternate_sign (Optional[bool]): Flag controlling signed hashing behavior.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             the wrapper."""
+	                                             the class/object."""
 	model: fe.FeatureHasher
 	n_features: Optional[ int ]
 	input_type: Optional[ str ]
@@ -2100,7 +2108,7 @@ class FeatureHasher( Transformer ):
 		"""Initialize FeatureHasher.
 		
 		Purpose:
-		    Initializes the feature hasher with configured sklearn objects, runtime options, and
+		    Initializes the feature hasher with configured objects, runtime options, and
 		    transformed-output cache required by later preprocessing operations.
 		
 		Args:
@@ -2125,11 +2133,11 @@ class FeatureHasher( Transformer ):
 		"""Return dir .
 		
 		Purpose:
-		    Returns the stable public member list exposed by the wrapper for interactive
+		    Returns the stable public member list exposed by the class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'n_features', 'input_type', 'dtype', 'alternate_sign',
 			'transformed_data',
 			'train', 'transform', 'train_transform', 'inverse_transform' ]
@@ -2139,22 +2147,22 @@ class FeatureHasher( Transformer ):
 		"""Fit FeatureHasher.
 		
 		Purpose:
-		    Fits the underlying feature hasher to supplied input data and returns the wrapper
+		    Fits the underlying feature hasher to supplied input data and returns the class/object
 		    for chained preprocessing workflows.
 		
 		Args:
 		    X (List[Dict[str, Any]] | List[Tuple[str, Any]] | List[str]): Input matrix,
 		                                                                  sequence, or feature
 		                                                                  collection transformed
-		                                                                  by the wrapper.
+		                                                                  by the class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    FeatureHasher | None: Fitted wrapper instance.
+		    FeatureHasher | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X, y )
@@ -2178,13 +2186,13 @@ class FeatureHasher( Transformer ):
 		    X (List[Dict[str, Any]] | List[Tuple[str, Any]] | List[str]): Input matrix,
 		                                                                  sequence, or feature
 		                                                                  collection transformed
-		                                                                  by the wrapper.
+		                                                                  by the class/object.
 		
 		Returns:
-		    np.ndarray: Transformed output produced by the fitted wrapper.
+		    np.ndarray: Transformed output produced by the fitted class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			result = self.model.transform( X )
@@ -2210,15 +2218,15 @@ class FeatureHasher( Transformer ):
 		    X (List[Dict[str, Any]] | List[Tuple[str, Any]] | List[str]): Input matrix,
 		                                                                  sequence, or feature
 		                                                                  collection transformed
-		                                                                  by the wrapper.
+		                                                                  by the class/object.
 		    y (Optional[np.ndarray]): Target vector or label collection aligned to the input
 		                              data.
 		
 		Returns:
-		    np.ndarray: Transformed output produced after fitting the wrapper.
+		    np.ndarray: Transformed output produced after fitting the class/object.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			result = self.model.fit_transform( X, y )
@@ -2241,7 +2249,7 @@ class FeatureHasher( Transformer ):
 		
 		Args:
 		    X (np.ndarray): Input matrix, sequence, or feature collection transformed by the
-		                    wrapper.
+		                    class/object.
 		
 		Returns:
 		    None: This function performs its work through side effects and does not return a

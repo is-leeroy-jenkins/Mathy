@@ -36,7 +36,7 @@
 
 </copyright>
 <summary>
-    Provides encoder and feature-expansion wrappers over sklearn.preprocessing for Mathy
+    Provides encoder and feature-expansion class/objects for Mathy
     preprocessing workflows. The module centralizes categorical encoding, label encoding,
     target encoding, and polynomial feature generation behind a consistent training,
     transformation, and inverse-transformation interface.
@@ -55,7 +55,7 @@ def throw_if( name: str, value: object ) -> None:
 	    Enforces the presence of required clustering inputs before estimator execution. The
 	    validation accepts populated NumPy arrays and standard Python containers while
 	    rejecting null values and empty collections that would otherwise cause downstream
-	    sklearn operations to fail or produce undefined clustering results.
+	    operations to fail or produce undefined clustering results.
 	
 	Args:
 	    name (str): Argument name used in the validation error message.
@@ -80,22 +80,22 @@ class Encoder( ):
 	"""Define the encoder interface.
 	
 	Purpose:
-	    Defines the shared encoder contract used by Mathy preprocessing wrappers. The base
+	    Defines the shared encoder contract used by Mathy preprocessing class/objects. The base
 	    class establishes a common transformed-data attribute and requires concrete
 	    subclasses to implement fit, transform, fit-transform, and inverse-transform
 	    behavior where supported.
 	
 	Attributes:
 	    transformed_data (Optional[np.ndarray]): Most recent transformed output produced by
-	                                             a concrete encoder wrapper."""
+	                                             a concrete encoder class/object."""
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		"""Initialize encoder state.
 		
 		Purpose:
-		    Initializes the common transformed-data cache used by concrete encoder wrappers to
-		    store the most recent output returned by sklearn preprocessing operations.
+		    Initializes the common transformed-data cache used by concrete encoder class/objects to
+		    store the most recent output returned by preprocessing operations.
 		
 		Returns:
 		    None: This method initializes the object and does not return a value."""
@@ -105,16 +105,16 @@ class Encoder( ):
 		"""Fit an encoder.
 		
 		Purpose:
-		    Defines the required training contract for concrete encoder wrappers. Subclasses
-		    must fit their underlying sklearn preprocessing object to the supplied input and
-		    return a fitted wrapper or compatible result.
+		    Defines the required training contract for concrete encoder class/objects. Subclasses
+		    must fit their underlying preprocessing object to the supplied input and
+		    return a fitted class/object or compatible result.
 		
 		Args:
 		    X (np.ndarray): Feature matrix, categorical matrix, or target vector supplied to the
 		                    concrete encoder implementation.
 		
 		Returns:
-		    object | None: Fitted concrete encoder wrapper or implementation-specific training
+		    object | None: Fitted concrete encoder class/object or implementation-specific training
 		                   result.
 		
 		Raises:
@@ -125,7 +125,7 @@ class Encoder( ):
 		"""Transform input values.
 		
 		Purpose:
-		    Defines the required transformation contract for concrete encoder wrappers.
+		    Defines the required transformation contract for concrete encoder class/objects.
 		    Subclasses must transform supplied input with a fitted preprocessing object and
 		    return the encoded output.
 		
@@ -134,7 +134,7 @@ class Encoder( ):
 		                    concrete encoder implementation.
 		
 		Returns:
-		    np.ndarray: Encoded output produced by the concrete encoder wrapper.
+		    np.ndarray: Encoded output produced by the concrete encoder class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base method is called directly."""
@@ -144,7 +144,7 @@ class Encoder( ):
 		"""Fit and transform input values.
 		
 		Purpose:
-		    Defines the required combined fit-transform contract for concrete encoder wrappers.
+		    Defines the required combined fit-transform contract for concrete encoder class/objects.
 		    Subclasses must fit their preprocessing object and return the encoded output in one
 		    operation.
 		
@@ -153,7 +153,7 @@ class Encoder( ):
 		                    concrete encoder implementation.
 		
 		Returns:
-		    np.ndarray: Encoded output produced after fitting the concrete encoder wrapper.
+		    np.ndarray: Encoded output produced after fitting the concrete encoder class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base method is called directly."""
@@ -163,23 +163,23 @@ class Encoder( ):
 		"""Decode transformed values.
 		
 		Purpose:
-		    Defines the required inverse-transformation contract for concrete encoder wrappers.
+		    Defines the required inverse-transformation contract for concrete encoder class/objects.
 		    Subclasses must map encoded values back to their source representation when the
-		    wrapped sklearn object supports decoding.
+		    wrapped object supports decoding.
 		
 		Args:
 		    X (np.ndarray): Encoded matrix or vector supplied to the concrete encoder
 		                    implementation.
 		
 		Returns:
-		    np.ndarray: Decoded output produced by the concrete encoder wrapper.
+		    np.ndarray: Decoded output produced by the concrete encoder class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base method is called directly."""
 		raise NotImplementedError( )
 
 class OneHotEncoder( Encoder ):
-	"""Wrap sklearn OneHotEncoder.
+	"""Provides One-Hot feature encoding functionality.
 	
 	Purpose:
 	    Encodes categorical feature columns as a one-hot numeric representation. The class
@@ -188,12 +188,12 @@ class OneHotEncoder( Encoder ):
 	    transformation.
 	
 	Attributes:
-	    unknown (Optional[str]): Strategy used by sklearn for unknown categories during
+	    unknown (Optional[str]): Strategy used by for unknown categories during
 	                             transform.
 	    sparse (Optional[bool]): Flag controlling sparse or dense transformed output.
-	    model (pp.OneHotEncoder): Underlying sklearn preprocessing estimator.
+	    model (pp.OneHotEncoder): Underlying preprocessing estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent encoded output produced by the
-	                                             wrapper."""
+	                                             class/object."""
 	unknown: Optional[ str ]
 	sparse: Optional[ bool ]
 	model: pp.OneHotEncoder
@@ -203,8 +203,8 @@ class OneHotEncoder( Encoder ):
 		"""Initialize OneHotEncoder.
 		
 		Purpose:
-		    Initializes the one-hot encoder class with sklearn sparse-output and
-		    unknown-category configuration. The constructor prepares the backing sklearn model
+		    Initializes the one-hot encoder class with sparse-output and
+		    unknown-category configuration. The constructor prepares the backing model
 		    without fitting it to any data.
 		
 		Args:
@@ -254,7 +254,7 @@ class OneHotEncoder( Encoder ):
 		"""Fit the one-hot encoder.
 		
 		Purpose:
-		    Fits the underlying sklearn one-hot encoder to a categorical input matrix and
+		    Fits the underlying one-hot encoder to a categorical input matrix and
 		    returns the class instance for consistent preprocessing chains.
 		
 		Args:
@@ -264,7 +264,7 @@ class OneHotEncoder( Encoder ):
 		    OneHotEncoder | None: Fitted one-hot encoder class.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
@@ -291,7 +291,7 @@ class OneHotEncoder( Encoder ):
 		    np.ndarray: One-hot encoded matrix produced by the fitted encoder.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.transform( X )
@@ -318,7 +318,7 @@ class OneHotEncoder( Encoder ):
 		    np.ndarray: One-hot encoded matrix produced after fitting the encoder.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.fit_transform( X )
@@ -336,7 +336,7 @@ class OneHotEncoder( Encoder ):
 		
 		Purpose:
 		    Converts one-hot encoded rows back to their original categorical representation
-		    using the inverse transformation provided by the fitted sklearn encoder.
+		    using the inverse transformation provided by the fitted encoder.
 		
 		Args:
 		    X (np.ndarray): One-hot encoded matrix to decode.
@@ -345,7 +345,7 @@ class OneHotEncoder( Encoder ):
 		    np.ndarray: Decoded categorical matrix.
 		
 		Raises:
-		    Error: Raised when validation or sklearn inverse transformation fails."""
+		    Error: Raised when validation or inverse transformation fails."""
 		try:
 			throw_if( 'X', X )
 			return self.model.inverse_transform( X )
@@ -358,7 +358,7 @@ class OneHotEncoder( Encoder ):
 			raise exception
 
 class OrdinalEncoder( Encoder ):
-	"""Wrap sklearn OrdinalEncoder.
+	"""Provides ordinal encoded feature scaling.
 	
 	Purpose:
 	    Converts categorical feature values into integer-like ordinal codes ranging from
@@ -366,7 +366,7 @@ class OrdinalEncoder( Encoder ):
 	    ordinal encoding through the shared Mathy encoder interface.
 	
 	Attributes:
-	    model (pp.OrdinalEncoder): Underlying sklearn preprocessing estimator.
+	    model (pp.OrdinalEncoder): Underlying preprocessing estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent encoded output produced by the
 	                                             object."""
 	model: pp.OrdinalEncoder
@@ -421,7 +421,7 @@ class OrdinalEncoder( Encoder ):
 		"""Fit the ordinal encoder.
 		
 		Purpose:
-		    Fits the underlying sklearn ordinal encoder to a categorical input matrix and
+		    Fits the underlying ordinal encoder to a categorical input matrix and
 		    returns the object instance for consistent preprocessing chains.
 		
 		Args:
@@ -431,7 +431,7 @@ class OrdinalEncoder( Encoder ):
 		    OrdinalEncoder | None: Fitted ordinal encoder object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
@@ -458,7 +458,7 @@ class OrdinalEncoder( Encoder ):
 		    np.ndarray: Ordinal-encoded matrix produced by the fitted encoder.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.transform( X )
@@ -485,7 +485,7 @@ class OrdinalEncoder( Encoder ):
 		    np.ndarray: Ordinal-encoded matrix produced after fitting the encoder.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.fit_transform( X )
@@ -503,7 +503,7 @@ class OrdinalEncoder( Encoder ):
 		
 		Purpose:
 		    Converts ordinal-encoded rows back to their original categorical representation
-		    using the inverse transformation provided by the fitted sklearn encoder.
+		    using the inverse transformation provided by the fitted encoder.
 		
 		Args:
 		    X (np.ndarray): Ordinal-encoded matrix to decode.
@@ -512,7 +512,7 @@ class OrdinalEncoder( Encoder ):
 		    np.ndarray: Decoded categorical matrix.
 		
 		Raises:
-		    Error: Raised when validation or sklearn inverse transformation fails."""
+		    Error: Raised when validation or inverse transformation fails."""
 		try:
 			throw_if( 'X', X )
 			return self.model.inverse_transform( X )
@@ -525,15 +525,15 @@ class OrdinalEncoder( Encoder ):
 			raise exception
 
 class LabelEncoder( Encoder ):
-	"""Wrap sklearn LabelEncoder.
+	"""Wrap LabelEncoder.
 	
 	Purpose:
 	    Encodes one-dimensional target labels as integer values from zero to one less than
-	    the number of observed classes. The object exposes sklearn label encoding through
+	    the number of observed classes. The object exposes label encoding through
 	    the shared Mathy encoder interface.
 	
 	Attributes:
-	    model (pp.LabelEncoder): Underlying sklearn preprocessing estimator.
+	    model (pp.LabelEncoder): Underlying preprocessing estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent encoded label vector produced
 	                                             by the object."""
 	model: pp.LabelEncoder
@@ -543,7 +543,7 @@ class LabelEncoder( Encoder ):
 		"""Initialize LabelEncoder.
 		
 		Purpose:
-		    Initializes the label encoder object by constructing the underlying sklearn encoder
+		    Initializes the label encoder object by constructing the underlying encoder
 		    and preparing the transformed-data cache used by later label transformation methods.
 		
 		Returns:
@@ -587,7 +587,7 @@ class LabelEncoder( Encoder ):
 		"""Fit the label encoder.
 		
 		Purpose:
-		    Fits the underlying sklearn label encoder to a one-dimensional label vector and
+		    Fits the underlying label encoder to a one-dimensional label vector and
 		    returns the object instance for consistent preprocessing chains.
 		
 		Args:
@@ -597,7 +597,7 @@ class LabelEncoder( Encoder ):
 		    LabelEncoder | None: Fitted label encoder object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
@@ -624,7 +624,7 @@ class LabelEncoder( Encoder ):
 		    np.ndarray: Encoded label vector.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.transform( X )
@@ -651,7 +651,7 @@ class LabelEncoder( Encoder ):
 		    np.ndarray: Encoded label vector produced after fitting the encoder.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.fit_transform( X )
@@ -669,7 +669,7 @@ class LabelEncoder( Encoder ):
 		
 		Purpose:
 		    Converts encoded integer labels back to their original class labels using the
-		    inverse transformation provided by the fitted sklearn label encoder.
+		    inverse transformation provided by the fitted label encoder.
 		
 		Args:
 		    X (np.ndarray): Encoded label vector to decode.
@@ -678,7 +678,7 @@ class LabelEncoder( Encoder ):
 		    np.ndarray: Decoded label vector.
 		
 		Raises:
-		    Error: Raised when validation or sklearn inverse transformation fails."""
+		    Error: Raised when validation or inverse transformation fails."""
 		try:
 			throw_if( 'X', X )
 			return self.model.inverse_transform( X )
@@ -695,12 +695,12 @@ class TargetEncoder( Encoder ):
 	
 	Purpose:
 	    Encodes categorical feature values with target-conditioned statistics learned from
-	    paired features and target values. The object exposes sklearn target encoding
+	    paired features and target values. The object exposes target encoding
 	    through the shared Mathy encoder interface and caches transformed output for
 	    downstream modeling workflows.
 	
 	Attributes:
-	    model (pp.TargetEncoder): Underlying sklearn preprocessing estimator.
+	    model (pp.TargetEncoder): Underlying preprocessing estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent target-encoded matrix produced
 	                                             by the object.
 	    categories (Optional[str]): Category configuration metadata retained for interface
@@ -719,7 +719,7 @@ class TargetEncoder( Encoder ):
 		"""Initialize TargetEncoder.
 		
 		Purpose:
-		    Initializes the target encoder object by constructing the underlying sklearn encoder
+		    Initializes the target encoder object by constructing the underlying encoder
 		    and preparing the transformed-data cache used by later target-aware transformations.
 		
 		Returns:
@@ -820,7 +820,7 @@ class TargetEncoder( Encoder ):
 		"""Fit the target encoder.
 		
 		Purpose:
-		    Fits the underlying sklearn target encoder to categorical features and aligned
+		    Fits the underlying target encoder to categorical features and aligned
 		    target values so category-level encodings can be learned from target-conditioned
 		    statistics.
 		
@@ -832,7 +832,7 @@ class TargetEncoder( Encoder ):
 		    TargetEncoder | None: Fitted target encoder object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -860,7 +860,7 @@ class TargetEncoder( Encoder ):
 		    np.ndarray: Target-encoded feature matrix.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.transform( X )
@@ -878,7 +878,7 @@ class TargetEncoder( Encoder ):
 		
 		Purpose:
 		    Fits the underlying target encoder and returns target-encoded training data in one
-		    operation. The method uses sklearn target encoding behavior for paired feature and
+		    operation. The method uses target encoding behavior for paired feature and
 		    target arrays and caches the transformed result on the object.
 		
 		Args:
@@ -889,7 +889,7 @@ class TargetEncoder( Encoder ):
 		    np.ndarray: Target-encoded feature matrix produced after fitting the encoder.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			throw_if( 'y', y )
@@ -904,18 +904,18 @@ class TargetEncoder( Encoder ):
 			raise exception
 
 class PolynomialFeatures( Encoder ):
-	"""Wrap sklearn PolynomialFeatures.
+	"""Provides polnomial feature encoding.
 	
 	Purpose:
 	    Generates polynomial and interaction terms from numeric input features. The object
-	    exposes sklearn polynomial feature expansion through the shared encoder interface
+	    exposes polynomial feature expansion through the shared encoder interface
 	    and retains the generated output for downstream modeling workflows.
 	
 	Attributes:
 	    degree (Optional[int]): Maximum polynomial degree generated by the transformer.
 	    interaction_only (Optional[bool]): Flag indicating whether only interaction terms
 	                                       are generated.
-	    model (pp.PolynomialFeatures): Underlying sklearn preprocessing estimator.
+	    model (pp.PolynomialFeatures): Underlying preprocessing estimator.
 	    transformed_data (Optional[np.ndarray]): Most recent polynomial feature matrix
 	                                             produced by the object."""
 	degree: Optional[ int ]
@@ -928,7 +928,7 @@ class PolynomialFeatures( Encoder ):
 		
 		Purpose:
 		    Initializes the polynomial feature object by configuring maximum degree and
-		    interaction-only behavior on the underlying sklearn transformer. The constructor
+		    interaction-only behavior on the underlying transformer. The constructor
 		    prepares the model without fitting it to any data.
 		
 		Args:
@@ -977,7 +977,7 @@ class PolynomialFeatures( Encoder ):
 		"""Fit the polynomial transformer.
 		
 		Purpose:
-		    Fits the underlying sklearn polynomial feature transformer to the supplied feature
+		    Fits the underlying polynomial feature transformer to the supplied feature
 		    matrix and returns the object instance for consistent preprocessing chains.
 		
 		Args:
@@ -987,7 +987,7 @@ class PolynomialFeatures( Encoder ):
 		    PolynomialFeatures | None: Fitted polynomial feature object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X )
@@ -1005,7 +1005,7 @@ class PolynomialFeatures( Encoder ):
 		
 		Purpose:
 		    Expands the supplied feature matrix into the polynomial feature space learned or
-		    configured by the underlying sklearn transformer and caches the transformed matrix
+		    configured by the underlying transformer and caches the transformed matrix
 		    on the object.
 		
 		Args:
@@ -1015,7 +1015,7 @@ class PolynomialFeatures( Encoder ):
 		    np.ndarray: Polynomially expanded feature matrix.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.transform( X )
@@ -1044,7 +1044,7 @@ class PolynomialFeatures( Encoder ):
 		                transformer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.model.fit_transform( X )

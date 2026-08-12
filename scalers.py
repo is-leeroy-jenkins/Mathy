@@ -87,7 +87,7 @@ class Scaler( ):
 	
 	Attributes:
 	    transformed_data (Optional[np.ndarray]): Most recent transformed matrix produced by
-	                                             a concrete scaler wrapper."""
+	                                             a concrete scaler class/object."""
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
@@ -107,7 +107,7 @@ class Scaler( ):
 		Purpose:
 		    Defines the required training contract for concrete scaler wrappers. Subclasses must
 		    fit their underlying preprocessing estimator to the supplied feature matrix and
-		    return the fitted wrapper or compatible result.
+		    return the fitted class/object or compatible result.
 		
 		Args:
 		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
@@ -116,7 +116,7 @@ class Scaler( ):
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    object | None: Fitted concrete scaler wrapper or implementation-specific training
+		    object | None: Fitted concrete scaler class/object or implementation-specific training
 		                   result.
 		
 		Raises:
@@ -149,7 +149,7 @@ class Scaler( ):
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    np.ndarray: Transformed feature matrix produced by the concrete scaler wrapper.
+		    np.ndarray: Transformed feature matrix produced by the concrete scaler class/object.
 		
 		Raises:
 		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
@@ -175,17 +175,17 @@ class Scaler( ):
 		    transformed feature matrix in one operation.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
 		    np.ndarray: Transformed feature matrix produced after fitting the concrete scaler
-		                wrapper.
+		                class/object.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails.
 		    NotImplementedError: Raised when the `train_transform` operation cannot complete."""
 		try:
@@ -208,14 +208,14 @@ class Scaler( ):
 		    the underlying estimator supports that operation.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		
 		Returns:
 		    np.ndarray: Feature matrix reconstructed in the original input scale.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails.
 		    NotImplementedError: Raised when the `inverse_transform` operation cannot complete."""
 		try:
@@ -230,18 +230,18 @@ class Scaler( ):
 			raise exception
 
 class StandardScaler( Scaler ):
-	"""Wrap sklearn StandardScaler.
+	"""Provides the StandardScaler feature scaling.
 	
 	Purpose:
 	    Standardizes numeric features by removing the fitted mean and scaling to unit
-	    variance. The wrapper stores the sklearn estimator and cached transformed matrix
+	    variance. The class/object stores the estimator and cached transformed matrix
 	    while preserving a uniform Mathy preprocessing API.
 	
 	Attributes:
-	    model (pp.StandardScaler): Underlying sklearn preprocessing estimator used by the
-	                               wrapper.
+	    model (pp.StandardScaler): Underlying preprocessing estimator used by the
+	                               class/object.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed feature matrix
-	                                             produced by the wrapper."""
+	                                             produced by the class/object."""
 	model: pp.StandardScaler
 	transformed_data: Optional[ np.ndarray ]
 	
@@ -249,7 +249,7 @@ class StandardScaler( Scaler ):
 		"""Initialize StandardScaler.
 		
 		Purpose:
-		    Initializes the StandardScaler wrapper by configuring the underlying sklearn
+		    Initializes the StandardScaler class/object by configuring the underlying sklearn
 		    preprocessing estimator and preparing the transformed-data cache used by later
 		    transformation methods.
 		
@@ -263,11 +263,11 @@ class StandardScaler( Scaler ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the StandardScaler wrapper for
+		    Returns the stable member names exposed by the StandardScaler class/object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'scaler', 'transformed_data', 'train', 'transform', 'train_transform',
 			'inverse_transform' ]
 	
@@ -275,21 +275,21 @@ class StandardScaler( Scaler ):
 		"""Fit StandardScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix
-		    and returns the current wrapper so callers can chain preprocessing operations
+		    Fits the underlying preprocessing estimator to the supplied feature matrix
+		    and returns the current class/object so callers can chain preprocessing operations
 		    through the Mathy interface.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    StandardScaler | None: Fitted scaler wrapper instance.
+		    StandardScaler | None: Fitted scaler class/object instance.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -304,15 +304,15 @@ class StandardScaler( Scaler ):
 			raise exception
 	
 	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
-		"""Transform with StandardScaler.
+		"""Transform data with StandardScaler feature scaling.
 		
 		Purpose:
-		    Transforms the supplied feature matrix with the fitted sklearn preprocessing
-		    estimator and stores the transformed output on the wrapper for later inspection or
+		    Transforms the supplied feature matrix with the fitted preprocessing
+		    estimator and stores the transformed output on the class/object for later inspection or
 		    reuse.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -321,7 +321,7 @@ class StandardScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced by the fitted scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -339,12 +339,12 @@ class StandardScaler( Scaler ):
 		"""Fit and transform with StandardScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix,
+		    Fits the underlying preprocessing estimator to the supplied feature matrix,
 		    transforms the same matrix immediately, and stores the transformed output on the
-		    wrapper.
+		    class/object.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -353,7 +353,7 @@ class StandardScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced after fitting the scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -368,21 +368,21 @@ class StandardScaler( Scaler ):
 			raise exception
 	
 	def inverse_transform( self, X: np.ndarray ) -> np.ndarray:
-		"""Invert StandardScaler transformation.
+		"""Reverse StandardScaler transformation.
 		
 		Purpose:
 		    Maps transformed feature values back toward their original scale using the inverse
-		    transformation provided by the underlying sklearn preprocessing estimator.
+		    transformation provided by the underlying preprocessing estimator.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		
 		Returns:
 		    np.ndarray: Feature matrix reconstructed in the original input scale.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -396,18 +396,18 @@ class StandardScaler( Scaler ):
 			raise exception
 
 class MinMaxScaler( Scaler ):
-	"""Wrap sklearn MinMaxScaler.
+	"""Provides MinMaxScaler feature scaling.
 	
 	Purpose:
 	    Scales numeric features into a bounded range using minimum and maximum values
-	    learned from the training data. The wrapper stores the sklearn estimator and cached
+	    learned from the training data. The class/object stores the estimator and cached
 	    transformed matrix while preserving a uniform Mathy preprocessing API.
 	
 	Attributes:
-	    model (pp.MinMaxScaler): Underlying sklearn preprocessing estimator used by the
-	                             wrapper.
+	    model (pp.MinMaxScaler): Underlying preprocessing estimator used by the
+	                             class/object.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed feature matrix
-	                                             produced by the wrapper."""
+	                                             produced by the class/object."""
 	model: pp.MinMaxScaler
 	transformed_data: Optional[ np.ndarray ]
 	
@@ -415,7 +415,7 @@ class MinMaxScaler( Scaler ):
 		"""Initialize MinMaxScaler.
 		
 		Purpose:
-		    Initializes the MinMaxScaler wrapper by configuring the underlying sklearn
+		    Initializes the MinMaxScaler class/object by configuring the underlying sklearn
 		    preprocessing estimator and preparing the transformed-data cache used by later
 		    transformation methods.
 		
@@ -429,11 +429,11 @@ class MinMaxScaler( Scaler ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the MinMaxScaler wrapper for interactive
+		    Returns the stable member names exposed by the MinMaxScaler class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'scaler', 'transformed_data', 'train', 'transform', 'train_transform',
 			'inverse_transform' ]
 	
@@ -441,21 +441,21 @@ class MinMaxScaler( Scaler ):
 		"""Fit MinMaxScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix
-		    and returns the current wrapper so callers can chain preprocessing operations
+		    Fits the underlying preprocessing estimator to the supplied feature matrix
+		    and returns the current class/object so callers can chain preprocessing operations
 		    through the Mathy interface.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    MinMaxScaler | None: Fitted scaler wrapper instance.
+		    MinMaxScaler | None: Fitted scaler class/object instance.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -473,12 +473,12 @@ class MinMaxScaler( Scaler ):
 		"""Transform with MinMaxScaler.
 		
 		Purpose:
-		    Transforms the supplied feature matrix with the fitted sklearn preprocessing
-		    estimator and stores the transformed output on the wrapper for later inspection or
+		    Transforms the supplied feature matrix with the fitted preprocessing
+		    estimator and stores the transformed output on the class/object for later inspection or
 		    reuse.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -487,7 +487,7 @@ class MinMaxScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced by the fitted scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -505,18 +505,18 @@ class MinMaxScaler( Scaler ):
 		"""Fit and transform with MinMaxScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix,
+		    Fits the underlying preprocessing estimator to the supplied feature matrix,
 		    transforms the same matrix immediately, and stores the transformed output on the
-		    wrapper.
+		    class/object.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    np.ndarray: Error: Raised when validation, sklearn preprocessing, or wrapped scaler
+		    np.ndarray: Error: Raised when validation, preprocessing, or wrapped scaler
 		                execution fails."""
 		try:
 			throw_if( 'X', X )
@@ -535,17 +535,17 @@ class MinMaxScaler( Scaler ):
 		
 		Purpose:
 		    Maps transformed feature values back toward their original scale using the inverse
-		    transformation provided by the underlying sklearn preprocessing estimator.
+		    transformation provided by the underlying preprocessing estimator.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		
 		Returns:
 		    np.ndarray: Feature matrix reconstructed in the original input scale.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -559,19 +559,19 @@ class MinMaxScaler( Scaler ):
 			raise exception
 
 class RobustScaler( Scaler ):
-	"""Wrap sklearn RobustScaler.
+	"""Provides RobustScaler feature scaling.
 	
 	Purpose:
 	    Scales numeric features with statistics that are robust to outliers by using medians
-	    and interquartile ranges learned from the training data. The wrapper stores the
-	    sklearn estimator and cached transformed matrix while preserving a uniform Mathy
+	    and interquartile ranges learned from the training data. The class/object stores the
+	    estimator and cached transformed matrix while preserving a uniform Mathy
 	    preprocessing API.
 	
 	Attributes:
-	    model (pp.RobustScaler): Underlying sklearn preprocessing estimator used by the
-	                             wrapper.
+	    model (pp.RobustScaler): Underlying preprocessing estimator used by the
+	                             class/object.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed feature matrix
-	                                             produced by the wrapper."""
+	                                             produced by the class/object."""
 	model: pp.RobustScaler
 	transformed_data: Optional[ np.ndarray ]
 	
@@ -579,7 +579,7 @@ class RobustScaler( Scaler ):
 		"""Initialize RobustScaler.
 		
 		Purpose:
-		    Initializes the RobustScaler wrapper by configuring the underlying sklearn
+		    Initializes the RobustScaler class/object by configuring the underlying sklearn
 		    preprocessing estimator and preparing the transformed-data cache used by later
 		    transformation methods.
 		
@@ -593,11 +593,11 @@ class RobustScaler( Scaler ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the RobustScaler wrapper for interactive
+		    Returns the stable member names exposed by the RobustScaler class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'scaler', 'transformed_data', 'train', 'transform', 'train_transform',
 			'inverse_transform' ]
 	
@@ -605,21 +605,21 @@ class RobustScaler( Scaler ):
 		"""Fit RobustScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix
-		    and returns the current wrapper so callers can chain preprocessing operations
+		    Fits the underlying preprocessing estimator to the supplied feature matrix
+		    and returns the current class/object so callers can chain preprocessing operations
 		    through the Mathy interface.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    RobustScaler | None: Fitted scaler wrapper instance.
+		    RobustScaler | None: Fitted scaler class/object instance.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -637,12 +637,12 @@ class RobustScaler( Scaler ):
 		"""Transform with RobustScaler.
 		
 		Purpose:
-		    Transforms the supplied feature matrix with the fitted sklearn preprocessing
-		    estimator and stores the transformed output on the wrapper for later inspection or
+		    Transforms the supplied feature matrix with the fitted preprocessing
+		    estimator and stores the transformed output on the class/object for later inspection or
 		    reuse.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -651,7 +651,7 @@ class RobustScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced by the fitted scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -669,12 +669,12 @@ class RobustScaler( Scaler ):
 		"""Fit and transform with RobustScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix,
+		    Fits the underlying preprocessing estimator to the supplied feature matrix,
 		    transforms the same matrix immediately, and stores the transformed output on the
-		    wrapper.
+		    class/object.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -683,7 +683,7 @@ class RobustScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced after fitting the scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -702,17 +702,17 @@ class RobustScaler( Scaler ):
 		
 		Purpose:
 		    Maps transformed feature values back toward their original scale using the inverse
-		    transformation provided by the underlying sklearn preprocessing estimator.
+		    transformation provided by the underlying preprocessing estimator.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		
 		Returns:
 		    np.ndarray: Feature matrix reconstructed in the original input scale.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -727,19 +727,19 @@ class RobustScaler( Scaler ):
 			raise exception
 
 class NormalScaler( Scaler ):
-	"""Wrap sklearn Normalizer.
+	"""Provides normalizing feature scaling.
 	
 	Purpose:
 	    Normalizes individual sample vectors to the requested norm so each row is rescaled
-	    independently. The wrapper stores the sklearn estimator, selected norm, and cached
+	    independently. The class/object stores the estimator, selected norm, and cached
 	    transformed matrix while preserving a uniform Mathy preprocessing API.
 	
 	Attributes:
-	    model (pp.Normalizer): Underlying sklearn preprocessing estimator used by the
-	                           wrapper.
+	    model (pp.Normalizer): Underlying preprocessing estimator used by the
+	                           class/object.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed feature matrix
-	                                             produced by the wrapper.
-	    norm (str): Vector norm used by the sklearn normalizer."""
+	                                             produced by the class/object.
+	    norm (str): Vector norm used by the normalizer."""
 	model: pp.Normalizer
 	transformed_data: Optional[ np.ndarray ]
 	norm: str
@@ -748,7 +748,7 @@ class NormalScaler( Scaler ):
 		"""Initialize NormalScaler.
 		
 		Purpose:
-		    Initializes the NormalScaler wrapper by configuring the underlying sklearn
+		    Initializes the NormalScaler class/object by configuring the underlying sklearn
 		    preprocessing estimator and preparing the transformed-data cache used by later
 		    transformation methods.
 		
@@ -766,11 +766,11 @@ class NormalScaler( Scaler ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the NormalScaler wrapper for interactive
+		    Returns the stable member names exposed by the NormalScaler class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'scaler', 'transformed_data', 'norm', 'train', 'transform', 'train_transform',
 			'inverse_transform' ]
 	
@@ -778,21 +778,21 @@ class NormalScaler( Scaler ):
 		"""Fit NormalScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix
-		    and returns the current wrapper so callers can chain preprocessing operations
+		    Fits the underlying preprocessing estimator to the supplied feature matrix
+		    and returns the current class/object so callers can chain preprocessing operations
 		    through the Mathy interface.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    NormalScaler | None: Fitted scaler wrapper instance.
+		    NormalScaler | None: Fitted scaler class/object instance.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -810,12 +810,12 @@ class NormalScaler( Scaler ):
 		"""Transform with NormalScaler.
 		
 		Purpose:
-		    Transforms the supplied feature matrix with the fitted sklearn preprocessing
-		    estimator and stores the transformed output on the wrapper for later inspection or
+		    Transforms the supplied feature matrix with the fitted preprocessing
+		    estimator and stores the transformed output on the class/object for later inspection or
 		    reuse.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -824,7 +824,7 @@ class NormalScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced by the fitted scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -842,12 +842,12 @@ class NormalScaler( Scaler ):
 		"""Fit and transform with NormalScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix,
+		    Fits the underlying preprocessing estimator to the supplied feature matrix,
 		    transforms the same matrix immediately, and stores the transformed output on the
-		    wrapper.
+		    class/object.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -856,7 +856,7 @@ class NormalScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced after fitting the scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -875,17 +875,17 @@ class NormalScaler( Scaler ):
 		
 		Purpose:
 		    Maps transformed feature values back toward their original scale using the inverse
-		    transformation provided by the underlying sklearn preprocessing estimator.
+		    transformation provided by the underlying preprocessing estimator.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		
 		Returns:
 		    np.ndarray: Feature matrix reconstructed in the original input scale.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails.
 		    NotImplementedError: Raised when the `inverse_transform` operation cannot complete."""
 		try:
@@ -900,18 +900,18 @@ class NormalScaler( Scaler ):
 			raise exception
 
 class MaxAbsScaler( Scaler ):
-	"""Wrap sklearn MaxAbsScaler.
+	"""Provide Max Absolute value feature scaling.
 	
 	Purpose:
 	    Scales each feature by its maximum absolute value while preserving sparsity and
-	    sign. The wrapper stores the sklearn estimator and cached transformed matrix while
+	    sign. The class/object stores the estimator and cached transformed matrix while
 	    preserving a uniform Mathy preprocessing API.
 	
 	Attributes:
-	    model (pp.MaxAbsScaler): Underlying sklearn preprocessing estimator used by the
-	                             wrapper.
+	    model (pp.MaxAbsScaler): Underlying preprocessing estimator used by the
+	                             class/object.
 	    transformed_data (Optional[np.ndarray]): Most recent transformed feature matrix
-	                                             produced by the wrapper."""
+	                                             produced by the class/object."""
 	model: pp.MaxAbsScaler
 	transformed_data: Optional[ np.ndarray ]
 	
@@ -919,7 +919,7 @@ class MaxAbsScaler( Scaler ):
 		"""Initialize MaxAbsScaler.
 		
 		Purpose:
-		    Initializes the MaxAbsScaler wrapper by configuring the underlying sklearn
+		    Initializes the MaxAbsScaler class/object by configuring the underlying sklearn
 		    preprocessing estimator and preparing the transformed-data cache used by later
 		    transformation methods.
 		
@@ -933,11 +933,11 @@ class MaxAbsScaler( Scaler ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the MaxAbsScaler wrapper for interactive
+		    Returns the stable member names exposed by the MaxAbsScaler class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'scaler', 'transformed_data', 'train', 'transform', 'train_transform',
 			'inverse_transform' ]
 	
@@ -945,21 +945,21 @@ class MaxAbsScaler( Scaler ):
 		"""Fit MaxAbsScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix
-		    and returns the current wrapper so callers can chain preprocessing operations
+		    Fits the underlying preprocessing estimator to the supplied feature matrix
+		    and returns the current class/object so callers can chain preprocessing operations
 		    through the Mathy interface.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
 		
 		Returns:
-		    MaxAbsScaler | None: Fitted scaler wrapper instance.
+		    MaxAbsScaler | None: Fitted scaler class/object instance.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -977,12 +977,12 @@ class MaxAbsScaler( Scaler ):
 		"""Transform with MaxAbsScaler.
 		
 		Purpose:
-		    Transforms the supplied feature matrix with the fitted sklearn preprocessing
-		    estimator and stores the transformed output on the wrapper for later inspection or
+		    Transforms the supplied feature matrix with the fitted preprocessing
+		    estimator and stores the transformed output on the class/object for later inspection or
 		    reuse.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -991,7 +991,7 @@ class MaxAbsScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced by the fitted scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -1009,12 +1009,12 @@ class MaxAbsScaler( Scaler ):
 		"""Fit and transform with MaxAbsScaler.
 		
 		Purpose:
-		    Fits the underlying sklearn preprocessing estimator to the supplied feature matrix,
+		    Fits the underlying preprocessing estimator to the supplied feature matrix,
 		    transforms the same matrix immediately, and stores the transformed output on the
-		    wrapper.
+		    class/object.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -1023,7 +1023,7 @@ class MaxAbsScaler( Scaler ):
 		    np.ndarray: Transformed feature matrix produced after fitting the scaler.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )
@@ -1042,17 +1042,17 @@ class MaxAbsScaler( Scaler ):
 		
 		Purpose:
 		    Maps transformed feature values back toward their original scale using the inverse
-		    transformation provided by the underlying sklearn preprocessing estimator.
+		    transformation provided by the underlying preprocessing estimator.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		
 		Returns:
 		    np.ndarray: Feature matrix reconstructed in the original input scale.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails."""
 		try:
 			throw_if( 'X', X )

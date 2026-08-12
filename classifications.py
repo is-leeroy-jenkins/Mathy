@@ -39,7 +39,7 @@
     module centralizes linear classifiers, tree classifiers, ensemble classifiers,
     nearest-neighbor classifiers, support-vector classifiers, neural-network classifiers,
     train/test splitting, prediction, scoring, probability estimation, confusion matrices,
-    ROC calculations, and exploratory plotting behind a consistent wrapper interface.
+    ROC calculations, and exploratory plotting behind a consistent class/object interface.
 </summary>
 ******************************************************************************************
 """
@@ -99,7 +99,7 @@ def throw_if( name: str, value: object ) -> None:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Classifier( ):
-	"""Classifier classifier wrapper.
+	"""Classifier classifier class/object.
 	
 	Purpose:
 	    Defines the shared interface and diagnostic state for Mathy classification wrappers,
@@ -158,7 +158,7 @@ class Classifier( ):
 		"""Initialize Classifier.
 		
 		Purpose:
-		    Initializes the Classifier wrapper by assigning configuration values, constructing
+		    Initializes the Classifier class/object by assigning configuration values, constructing
 		    the underlying sklearn estimator when applicable, and preparing runtime state used
 		    by training, prediction, scoring, and diagnostics.
 		
@@ -207,7 +207,7 @@ class Classifier( ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -226,7 +226,7 @@ class Classifier( ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -404,12 +404,13 @@ class Classifier( ):
 	_correlation_heatmap = correlation_heatmap
 
 class Perceptron( Classifier ):
-	"""Perceptron classifier wrapper.
+	"""Perceptron classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.Perceptron for linear classification with configurable
-	    regularization, learning rate, iteration count, shuffling behavior, and random state
-	    while exposing consistent Mathy training and evaluation methods.
+	    A binary classifier is a function that can decide whether or not an input, represented by a
+	    vector of numbers, belongs to some specific class.[1] It is a type of linear classifier,
+	    i.e. a classification algorithm that makes its predictions based on a linear predictor
+	    function combining a set of weights with the feature vector.
 	
 	Attributes:
 	    model (skc.Perceptron): Underlying sklearn or statsmodels estimator.
@@ -453,7 +454,7 @@ class Perceptron( Classifier ):
 		"""Initialize Perceptron.
 		
 		Purpose:
-		    Initializes the Perceptron wrapper by assigning configuration values, constructing
+		    Initializes the Perceptron class/object by assigning configuration values, constructing
 		    the underlying sklearn estimator when applicable, and preparing runtime state used
 		    by training, prediction, scoring, and diagnostics.
 		
@@ -486,11 +487,11 @@ class Perceptron( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'misclass', 'max_iter', 'random_state', 'decision',
 			'train',
 			'project', 'score', 'analyze', 'penalty', 'shuffle', 'alpha', 'confusion_matrix',
@@ -655,14 +656,14 @@ class Perceptron( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    Perceptron | None: Fitted classifier wrapper instance.
+		    Perceptron | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -686,7 +687,7 @@ class Perceptron( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -851,12 +852,14 @@ class Perceptron( Classifier ):
 			raise exception
 
 class LeastSquares( Classifier ):
-	"""LeastSquares classifier wrapper.
+	"""LeastSquares classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.PassiveAggressiveClassifier-style least-squares
-	    classification behavior for linear margin-based classification with configurable
-	    regularization, learning rate, iteration count, and random state.
+	    Ordinary least squares (OLS) is a type of linear least squares method for choosing the
+	    unknown parameters in a linear regression model by the principle of least squares: minimizing
+	    the sum of the squares of the differences between the observed dependent variable
+	    (values of the variable being observed) in the input dataset and the output of the (linear)
+	    function of the independent variable
 	
 	Attributes:
 	    model (skc.SGDClassifier): Underlying sklearn or statsmodels estimator.
@@ -903,7 +906,7 @@ class LeastSquares( Classifier ):
 		"""Initialize LeastSquares.
 		
 		Purpose:
-		    Initializes the LeastSquares wrapper by assigning configuration values, constructing
+		    Initializes the LeastSquares class/object by assigning configuration values, constructing
 		    the underlying sklearn estimator when applicable, and preparing runtime state used
 		    by training, prediction, scoring, and diagnostics.
 		
@@ -936,11 +939,11 @@ class LeastSquares( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'misclass', 'max_iter', 'random_state', 'decision',
 			'train', 'project', 'score', 'analyze', 'penalty', 'shuffle', 'alpha', 'confusion_matrix',
 			'scatter_plot', 'weights', 'decision_function', 'iterations', 'labels',
@@ -1102,14 +1105,14 @@ class LeastSquares( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    LeastSquares | None: Fitted classifier wrapper instance.
+		    LeastSquares | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -1133,7 +1136,7 @@ class LeastSquares( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -1298,12 +1301,17 @@ class LeastSquares( Classifier ):
 			raise exception
 
 class LogisticRegression( Classifier ):
-	"""LogisticRegression classifier wrapper.
+	"""LogisticRegression classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.LogisticRegression for probabilistic linear
-	    classification with configurable penalty, inverse regularization strength, solver,
-	    multiclass handling, iteration count, and random state.
+	    Estimates the parameters of a logistic model (the coefficients in the linear or non linear
+	    combinations). In binary logistic regression there is a single binary dependent variable,
+	    coded by an indicator variable, where the two values are labeled "0" and "1", while the
+	    independent variables can each be a binary variable (two classes, coded by an indicator
+	    variable) or a continuous variable (any real value). The corresponding probability of the
+	    value labeled "1" can vary between 0 (certainly the value "0") and 1 (certainly the
+	    value "1"), hence the labeling;[2] the function that converts log-odds to probability is
+	    the logistic function, hence the name.
 	
 	Attributes:
 	    model (skc.LogisticRegression): Underlying sklearn or statsmodels estimator.
@@ -1364,7 +1372,7 @@ class LogisticRegression( Classifier ):
 		"""Initialize LogisticRegression.
 		
 		Purpose:
-		    Initializes the LogisticRegression wrapper by assigning configuration values,
+		    Initializes the LogisticRegression class/object by assigning configuration values,
 		    constructing the underlying sklearn estimator when applicable, and preparing runtime
 		    state used by training, prediction, scoring, and diagnostics.
 		
@@ -1393,11 +1401,11 @@ class LogisticRegression( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'penalty', 'solver', 'multi_class', 'random_state', 'max_iter',
 			'predict_probability', 'decision_function', 'train', 'project', 'score', 'analyze',
 			'confusion_matrix', 'roc_curve', 'weights', 'iterations', 'labels', 'accuracy',
@@ -1592,14 +1600,14 @@ class LogisticRegression( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    LogisticRegression | None: Fitted classifier wrapper instance.
+		    LogisticRegression | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -1623,7 +1631,7 @@ class LogisticRegression( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -1836,12 +1844,13 @@ class LogisticRegression( Classifier ):
 			raise exception
 
 class Ridge( Classifier ):
-	"""Ridge classifier wrapper.
+	"""Ridge classifier class/object.
 	
 	Purpose:
-	    Ridge Classifier for linear classification with L2 regularization, solver selection,
-	    iteration control, fitted coefficient access, and Mathy scoring and visualization
-	    helpers.
+	    Ridge regression is a modified form of linear regression that uses L2 regularization to
+	    shrink large coefficient values. By adding a penalty proportional to the sum of squared
+	    coefficients, it reduces model variance and prevents overfitting—especially when features
+	    are highly correlated—at the cost of introducing a small amount of bias
 	
 	Attributes:
 	    model (skc.RidgeClassifier): Underlying sklearn or statsmodels estimator.
@@ -1890,7 +1899,7 @@ class Ridge( Classifier ):
 		"""Initialize Ridge.
 		
 		Purpose:
-		    Initializes the Ridge wrapper by assigning configuration values, constructing the
+		    Initializes the Ridge class/object by assigning configuration values, constructing the
 		    underlying sklearn estimator when applicable, and preparing runtime state used by
 		    training, prediction, scoring, and diagnostics.
 		
@@ -1915,11 +1924,11 @@ class Ridge( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'max_iter', 'random_state', 'alpha', 'solver', 'model', 'train',
 			'project', 'score', 'decision_function', 'analyze', 'weights', 'labels', 'features',
 			'accuracy', 'precision', 'balanced_accuracy', 'f1_score', 'recall', 'testing_score',
@@ -2019,14 +2028,14 @@ class Ridge( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    Ridge | None: Fitted classifier wrapper instance.
+		    Ridge | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -2049,7 +2058,7 @@ class Ridge( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -2204,12 +2213,13 @@ class Ridge( Classifier ):
 			raise exception
 
 class Lasso( Classifier ):
-	"""Lasso classifier wrapper.
+	"""Lasso classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.Lasso-derived classification behavior by thresholding
-	    continuous projections into class predictions while exposing coefficient inspection,
-	    splitting, scoring, and visualization utilities.
+	    Lasso regression (Least Absolute Shrinkage and Selection Operator) is a linear regression
+	    method that uses L₁ regularization. By adding a penalty equal to the absolute value of the
+	    magnitude of the coefficients, it shrinks less important feature coefficients down to
+	    absolute zero, performing automatic feature selection and preventing model overfitting
 	
 	Attributes:
 	    model (skc.Lasso): Underlying sklearn or statsmodels estimator.
@@ -2264,7 +2274,7 @@ class Lasso( Classifier ):
 		"""Initialize Lasso.
 		
 		Purpose:
-		    Initializes the Lasso wrapper by assigning configuration values, constructing the
+		    Initializes the Lasso class/object by assigning configuration values, constructing the
 		    underlying sklearn estimator when applicable, and preparing runtime state used by
 		    training, prediction, scoring, and diagnostics.
 		
@@ -2293,11 +2303,11 @@ class Lasso( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'max_iter', 'random_state', 'alpha', 'selection', 'threshold',
 			'model', 'weights', 'train', 'project', 'score', 'analyze', 'iterations', 'features',
 			'accuracy', 'precision', 'balanced_accuracy', 'f1_score', 'recall', 'testing_score',
@@ -2397,14 +2407,14 @@ class Lasso( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    Lasso | None: Fitted classifier wrapper instance.
+		    Lasso | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -2427,7 +2437,7 @@ class Lasso( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -2557,12 +2567,13 @@ class Lasso( Classifier ):
 			raise exception
 
 class GradientDescent( Classifier ):
-	"""GradientDescent classifier wrapper.
+	"""GradientDescent classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.SGDClassifier for stochastic-gradient linear
-	    classification with configurable loss, regularization, averaging, learning-rate
-	    schedule, and iteration control.
+	    Gradient descent in classification is an iterative optimization algorithm used to find the
+	    best model parameters (weights and biases). It works by minimizing a classification loss
+	    function—such as cross-entropy (log loss)—rather than mean squared error, guiding the
+	    decision boundary to correctly separate different classes
 	
 	Attributes:
 	    model (skc.SGDClassifier): Underlying sklearn or statsmodels estimator.
@@ -2667,11 +2678,11 @@ class GradientDescent( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'max_iter', 'random_state', 'loss', 'regularization', 'alpha',
 			'average', 'model', 'train', 'project', 'score', 'analyze', 'weights', 'iterations',
 			'labels', 'features', 'decision_function', 'predict_probability', 'accuracy',
@@ -2789,14 +2800,14 @@ class GradientDescent( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    GradientDescent | None: Fitted classifier wrapper instance.
+		    GradientDescent | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -2819,7 +2830,7 @@ class GradientDescent( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -3008,12 +3019,13 @@ class GradientDescent( Classifier ):
 			raise exception
 
 class NearestNeighbor( Classifier ):
-	"""NearestNeighbor classifier wrapper.
+	"""NearestNeighbor classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.neighbors.KNeighborsClassifier for instance-based classification using
-	    configurable neighbor count, search algorithm, leaf size, distance metric, and
-	    Minkowski power.
+	    A nearest neighbor classifier (k-NN) is a simple, supervised machine learning method that
+	    categorizes a new data point based on how its closest neighbors are labeled. It uses distance
+	    formulas like Euclidean distance, does not build a complex internal model ahead of time,
+	    and relies on a majority vote from the nearest items.
 	
 	Attributes:
 	    model (skn.KNeighborsClassifier): Underlying sklearn or statsmodels estimator.
@@ -3062,13 +3074,13 @@ class NearestNeighbor( Classifier ):
 		"""Initialize NearestNeighbor.
 		
 		Purpose:
-		    Initializes the NearestNeighbor wrapper by assigning configuration values,
+		    Initializes the NearestNeighbor class/object by assigning configuration values,
 		    constructing the underlying sklearn estimator when applicable, and preparing runtime
 		    state used by training, prediction, scoring, and diagnostics.
 		
 		Args:
 		    num (int): Number of neighbors, estimators, or model components assigned to the
-		               wrapper.
+		               class/object.
 		    algorithm (str): Algorithm option assigned to the estimator.
 		    power (int): Minkowski distance power assigned to the estimator.
 		    metric (str): Distance metric assigned to the estimator.
@@ -3091,11 +3103,11 @@ class NearestNeighbor( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'probability', 'n_neighbors', 'leaf_size', 'power',
 			'algorithm', 'metric', 'train', 'project', 'predict_probability', 'score', 'analyze',
 			'confusion_matrix', 'roc_curve', 'scatter_plot', 'labels', 'features_in', 'samples',
@@ -3234,14 +3246,14 @@ class NearestNeighbor( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    NearestNeighbor | None: Fitted classifier wrapper instance.
+		    NearestNeighbor | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -3265,7 +3277,7 @@ class NearestNeighbor( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -3506,12 +3518,14 @@ class NearestNeighbor( Classifier ):
 			raise exception
 
 class DecisionTree( Classifier ):
-	"""DecisionTree classifier wrapper.
+	"""DecisionTree classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.tree.DecisionTreeClassifier for tree-based classification with
-	    configurable split criterion, splitter strategy, maximum depth, minimum split size,
-	    minimum leaf size, and random state.
+	    A Decision Tree Classifier is a supervised machine learning algorithm used to predict
+	    categorical labels by breaking down a dataset into smaller, increasingly pure subsets
+	    based on simple if-then-else decision rules. Visually, the model looks like an upside-down
+	    tree, starting with a single root question and splitting into branches until it reaches
+	    a final classification at its leaves
 	
 	Attributes:
 	    model (skd.DecisionTreeClassifier): Underlying sklearn or statsmodels estimator.
@@ -3567,7 +3581,7 @@ class DecisionTree( Classifier ):
 		"""Initialize DecisionTree.
 		
 		Purpose:
-		    Initializes the DecisionTree wrapper by assigning configuration values, constructing
+		    Initializes the DecisionTree class/object by assigning configuration values, constructing
 		    the underlying sklearn estimator when applicable, and preparing runtime state used
 		    by training, prediction, scoring, and diagnostics.
 		
@@ -3597,11 +3611,11 @@ class DecisionTree( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'random_state', 'criterion', 'splitter', 'max_depth',
 			'min_samples_split', 'min_samples_leaf', 'model', 'train', 'project',
 			'predict_probability', 'score', 'analyze', 'confusion_matrix', 'roc_curve',
@@ -3778,14 +3792,14 @@ class DecisionTree( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    DecisionTree | None: Fitted classifier wrapper instance.
+		    DecisionTree | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -3809,7 +3823,7 @@ class DecisionTree( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -4051,11 +4065,14 @@ class DecisionTree( Classifier ):
 			raise exception
 
 class RandomForest( Classifier ):
-	"""RandomForest classifier wrapper.
+	"""RandomForest classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.RandomForestClassifier for ensemble tree classification with
-	    configurable estimator count, depth, split criterion, parallelism, and random state.
+	    A Random Forest Classifier is an ensemble machine learning algorithm that combines the
+	    predictions of multiple decision trees to deliver a highly accurate and stable classification.
+	    It operates on the "wisdom of crowds" principle: while individual decision trees are prone
+	    to overfitting and errors, aggregating their outputs cancels out mistakes to arrive at
+	    a superior collective decision.
 	
 	Attributes:
 	    model (ske.RandomForestClassifier): Underlying sklearn or statsmodels estimator.
@@ -4147,11 +4164,11 @@ class RandomForest( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'random_state', 'n_estimators', 'max_depth',
 			'criterion', 'n_jobs', 'model', 'train', 'project', 'predict_probability', 'score',
 			'analyze', 'confusion_matrix', 'roc_curve', 'scatter_plot', 'labels', 'features_in',
@@ -4298,14 +4315,14 @@ class RandomForest( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    RandomForest | None: Fitted classifier wrapper instance.
+		    RandomForest | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -4329,7 +4346,7 @@ class RandomForest( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -4571,12 +4588,13 @@ class RandomForest( Classifier ):
 			raise exception
 
 class GradientBoost( Classifier ):
-	"""GradientBoost classifier wrapper.
+	"""GradientBoost classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.GradientBoostingClassifier for staged additive tree
-	    classification with configurable estimator count, learning rate, tree depth,
-	    criterion, and random state.
+	    A Gradient Boosting Classifier is a powerful ensemble machine learning algorithm used to
+	    predict categorical outcomes by sequentially combining weak learning models (typically
+	    simple decision trees). Unlike algorithms that build trees independently, it trains each
+	    new tree to minimize the errors (pseudo-residuals) of the preceding trees using gradient descent.
 	
 	Attributes:
 	    model (ske.GradientBoostingClassifier): Underlying sklearn or statsmodels estimator.
@@ -4628,13 +4646,13 @@ class GradientBoost( Classifier ):
 		"""Initialize GradientBoost.
 		
 		Purpose:
-		    Initializes the GradientBoost wrapper by assigning configuration values,
+		    Initializes the GradientBoost class/object by assigning configuration values,
 		    constructing the underlying sklearn estimator when applicable, and preparing runtime
 		    state used by training, prediction, scoring, and diagnostics.
 		
 		Args:
 		    estimators (int): Named estimator collection or estimator count assigned to the
-		                      ensemble wrapper.
+		                      ensemble class/object.
 		    rate (float): Learning-rate or boosting-rate value assigned to the estimator.
 		    depth (int): Maximum model depth assigned to the estimator.
 		    criterion (str): Split or impurity criterion assigned to the estimator.
@@ -4657,11 +4675,11 @@ class GradientBoost( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'random_state', 'n_estimators', 'learning_rate',
 			'max_depth', 'criterion', 'model', 'train', 'project', 'predict_probability', 'score',
 			'analyze', 'confusion_matrix', 'roc_curve', 'scatter_plot', 'labels', 'features_in',
@@ -4833,14 +4851,14 @@ class GradientBoost( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    GradientBoost | None: Fitted classifier wrapper instance.
+		    GradientBoost | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -4864,7 +4882,7 @@ class GradientBoost( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -5105,12 +5123,13 @@ class GradientBoost( Classifier ):
 			raise exception
 
 class AdaptiveBoost( Classifier ):
-	"""AdaptiveBoost classifier wrapper.
+	"""AdaptiveBoost classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.AdaBoostClassifier for adaptive ensemble classification with
-	    configurable base estimator, estimator count, learning rate, algorithm, and random
-	    state.
+	    An Adaptive Boosting (AdaBoost) classifier is a machine learning model that combines many
+	    simple, weak models (usually single-split decision trees called decision stumps) into one
+	    high-accuracy strong model. It works step-by-step, giving more weight to data points that
+	    previous models got wrong so the next model fixes those errors
 	
 	Attributes:
 	    model (ske.AdaBoostClassifier): Underlying sklearn or statsmodels estimator.
@@ -5162,14 +5181,14 @@ class AdaptiveBoost( Classifier ):
 		"""Initialize AdaptiveBoost.
 		
 		Purpose:
-		    Initializes the AdaptiveBoost wrapper by assigning configuration values,
+		    Initializes the AdaptiveBoost class/object by assigning configuration values,
 		    constructing the underlying sklearn estimator when applicable, and preparing runtime
 		    state used by training, prediction, scoring, and diagnostics.
 		
 		Args:
-		    base (object): Base estimator supplied to the ensemble wrapper.
+		    base (object): Base estimator supplied to the ensemble class/object.
 		    estimators (int): Named estimator collection or estimator count assigned to the
-		                      ensemble wrapper.
+		                      ensemble class/object.
 		    rate (float): Learning-rate or boosting-rate value assigned to the estimator.
 		    algorithm (str): Algorithm option assigned to the estimator.
 		    random (int): Random seed used for reproducible partitioning or estimator behavior.
@@ -5191,11 +5210,11 @@ class AdaptiveBoost( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'random_state', 'base_estimator', 'n_estimators',
 			'learning_rate', 'algorithm', 'model', 'train', 'project', 'predict_probability',
 			'score', 'analyze', 'confusion_matrix', 'roc_curve', 'scatter_plot', 'labels',
@@ -5378,14 +5397,14 @@ class AdaptiveBoost( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    AdaptiveBoost | None: Fitted classifier wrapper instance.
+		    AdaptiveBoost | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -5409,7 +5428,7 @@ class AdaptiveBoost( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -5651,12 +5670,15 @@ class AdaptiveBoost( Classifier ):
 			raise exception
 
 class BaggingModel( Classifier ):
-	"""BaggingModel classifier wrapper.
+	"""BaggingModel classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.BaggingClassifier for bootstrap-aggregation classification
-	    with configurable base estimator, estimator count, sample fraction, and random
-	    state.
+	    A Bagging classifier is an ensemble meta-estimator that fits base classifiers each on
+	    random subsets of the original dataset and then aggregate their individual predictions
+	    (either by voting or by averaging) to form a final prediction. Such a meta-estimator can
+	    typically be used as a way to reduce the variance of a black-box estimator
+	    (e.g., a decision tree), by introducing randomization into its construction procedure and
+	    then making an ensemble out of it.
 	
 	Attributes:
 	    model (ske.BaggingClassifier): Underlying sklearn or statsmodels estimator.
@@ -5734,11 +5756,11 @@ class BaggingModel( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'random_state', 'base_estimator', 'n_estimators',
 			'max_features', 'train', 'project', 'predict_probability', 'score', 'analyze',
 			'confusion_matrix', 'roc_curve', 'scatter_plot', 'labels', 'features', 'estimators',
@@ -5866,14 +5888,14 @@ class BaggingModel( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    BaggingModel | None: Fitted classifier wrapper instance.
+		    BaggingModel | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -5897,7 +5919,7 @@ class BaggingModel( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -6138,12 +6160,13 @@ class BaggingModel( Classifier ):
 			raise exception
 
 class VotingModel( Classifier ):
-	"""VotingModel classifier wrapper.
+	"""VotingModel classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.VotingClassifier for hard or soft ensemble voting across
-	    named base estimators while exposing common Mathy training, prediction, scoring, and
-	    visualization methods.
+	    A voting classifier is an ensemble machine learning model that combines multiple individual
+	    base models (such as logistic regression, support vector machines, or decision trees) to
+	    forecast a final class label. It aggregates the predictions of each sub-model using either
+	    majority rules or averaged probabilities to improve overall accuracy and stability
 	
 	Attributes:
 	    model (ske.VotingClassifier): Underlying sklearn or statsmodels estimator.
@@ -6188,13 +6211,13 @@ class VotingModel( Classifier ):
 		"""Initialize VotingModel.
 		
 		Purpose:
-		    Initializes the VotingModel wrapper by assigning configuration values, constructing
+		    Initializes the VotingModel class/object by assigning configuration values, constructing
 		    the underlying sklearn estimator when applicable, and preparing runtime state used
 		    by training, prediction, scoring, and diagnostics.
 		
 		Args:
 		    estimators (List[Tuple[str, object]]): Named estimator collection or estimator count
-		                                           assigned to the ensemble wrapper.
+		                                           assigned to the ensemble class/object.
 		    vote (str): Voting strategy assigned to the voting ensemble.
 		
 		Returns:
@@ -6209,11 +6232,11 @@ class VotingModel( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'prediction', 'probability', 'voting', 'estimator_list', 'train',
 			'project', 'predict_probability', 'score', 'analyze', 'scatter_plot', 'labels',
 			'features', 'estimators', 'accuracy', 'precision', 'balanced_accuracy', 'f1_score',
@@ -6311,14 +6334,14 @@ class VotingModel( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    VotingModel | None: Fitted classifier wrapper instance.
+		    VotingModel | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -6341,7 +6364,7 @@ class VotingModel( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -6501,11 +6524,12 @@ class VotingModel( Classifier ):
 			raise exception
 
 class StackingModel( Classifier ):
-	"""StackingModel classifier wrapper.
+	"""StackingModel classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.StackingClassifier for stacked ensemble classification using
-	    named base estimators and an optional final estimator for meta-level prediction.
+	    A machine learning ensemble method that trains multiple base models (level-0) and uses a
+	    final meta-model (level-1) to combine their predictions. Instead of simple averaging, it
+	    learns how to best weigh and use each model's output to make a final, more accurate prediction.
 	
 	Attributes:
 	    model (ske.StackingClassifier): Underlying sklearn or statsmodels estimator.
@@ -6549,7 +6573,7 @@ class StackingModel( Classifier ):
 		"""Initialize StackingModel.
 		
 		Purpose:
-		    Initializes the StackingModel wrapper by assigning configuration values,
+		    Initializes the StackingModel class/object by assigning configuration values,
 		    constructing the underlying sklearn estimator when applicable, and preparing runtime
 		    state used by training, prediction, scoring, and diagnostics.
 		
@@ -6572,11 +6596,11 @@ class StackingModel( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'final_estimator', 'estimator_list', 'model',
 			'train', 'project', 'predict_probability', 'score', 'analyze', 'scatter_plot', 'labels',
 			'features', 'estimators', 'final', 'accuracy', 'precision', 'balanced_accuracy',
@@ -6692,14 +6716,14 @@ class StackingModel( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    StackingModel | None: Fitted classifier wrapper instance.
+		    StackingModel | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -6722,7 +6746,7 @@ class StackingModel( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -6878,11 +6902,13 @@ class StackingModel( Classifier ):
 			raise exception
 
 class SupportVector( Classifier ):
-	"""SupportVector classifier wrapper.
+	"""SupportVector classifier class/object.
 	
 	Purpose:
-	    Wraps sklearn.svm.SVC for support-vector classification with configurable penalty
-	    parameter, kernel, polynomial degree, probability estimation, and random state.
+	    A Support Vector Machine (SVM) is a supervised machine learning algorithm used for
+	    classification and regression tasks. It finds the best dividing line or hyperplane that
+	    separates data points into different groups while making the distance between the groups
+	    as wide as possible.
 	
 	Attributes:
 	    model (skv.SVC): Underlying sklearn or statsmodels estimator.
@@ -6936,7 +6962,7 @@ class SupportVector( Classifier ):
 		"""Initialize SupportVector.
 		
 		Purpose:
-		    Initializes the SupportVector wrapper by assigning configuration values,
+		    Initializes the SupportVector class/object by assigning configuration values,
 		    constructing the underlying sklearn estimator when applicable, and preparing runtime
 		    state used by training, prediction, scoring, and diagnostics.
 		
@@ -6961,11 +6987,11 @@ class SupportVector( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'decision', 'random_state', 'model', 'kernel',
 			'regulation', 'degree', 'train', 'project', 'predict_probability', 'decision_function',
 			'score', 'analyze', 'confusion_matrix', 'roc_curve', 'scatter_plot', 'vectors',
@@ -7150,14 +7176,14 @@ class SupportVector( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    SupportVector | None: Fitted classifier wrapper instance.
+		    SupportVector | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -7181,7 +7207,7 @@ class SupportVector( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
@@ -7451,12 +7477,13 @@ class SupportVector( Classifier ):
 			raise exception
 
 class MultiLayerPerceptron( Classifier ):
-	"""MultiLayerPerceptron classifier wrapper.
+	"""MultiLayerPerceptron classifier class/object.
 	
 	Purpose:
-	    Multi-Layer Perceptron Classifier for feed-forward neural-network classification
-	    with configurable hidden layers, activation, solver, regularization, learning-rate
-	    behavior, and random state.
+	    A Multilayer Perceptron (MLP) for regression is a feedforward artificial neural network
+	    designed to predict continuous numerical values. Unlike classification models that output
+	    class probabilities via a softmax layer, a regression MLP uses a linear output node with
+	    an identity activation function and is optimized using loss functions like mean squared error (MSE).
 	
 	Attributes:
 	    model (snn.MLPClassifier): Underlying sklearn or statsmodels estimator.
@@ -7507,7 +7534,7 @@ class MultiLayerPerceptron( Classifier ):
 		"""Initialize MultiLayerPerceptron.
 		
 		Purpose:
-		    Initializes the MultiLayerPerceptron wrapper by assigning configuration values,
+		    Initializes the MultiLayerPerceptron class/object by assigning configuration values,
 		    constructing the underlying sklearn estimator when applicable, and preparing runtime
 		    state used by training, prediction, scoring, and diagnostics.
 		
@@ -7537,11 +7564,11 @@ class MultiLayerPerceptron( Classifier ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable public members exposed by the wrapper for interactive discovery,
+		    Returns the stable public members exposed by the class/object for interactive discovery,
 		    notebook exploration, and IDE inspection.
 		
 		Returns:
-		    List[str]: Public member names exposed by the wrapper."""
+		    List[str]: Public member names exposed by the class/object."""
 		return [ 'prediction', 'probability', 'random_state', 'hidden_layers',
 			'activation_function', 'solver', 'alpha', 'learning_rate', 'model', 'train', 'project',
 			'predict_probability', 'score', 'analyze', 'labels', 'weights', 'layers', 'outputs',
@@ -7657,14 +7684,14 @@ class MultiLayerPerceptron( Classifier ):
 		
 		Purpose:
 		    Fits the underlying sklearn classifier to aligned feature and target arrays and
-		    returns the current wrapper for chained modeling workflows.
+		    returns the current class/object for chained modeling workflows.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.
 		    y (np.ndarray): Target-label array aligned to the feature matrix.
 		
 		Returns:
-		    MultiLayerPerceptron | None: Fitted classifier wrapper instance.
+		    MultiLayerPerceptron | None: Fitted classifier class/object instance.
 		
 		Raises:
 		    Error: Raised when validation, estimator execution, metric calculation, or plotting
@@ -7687,7 +7714,7 @@ class MultiLayerPerceptron( Classifier ):
 		
 		Purpose:
 		    Generates class predictions from the fitted classifier and stores the predicted
-		    labels on the wrapper for later diagnostics.
+		    labels on the class/object for later diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used by the classifier workflow.

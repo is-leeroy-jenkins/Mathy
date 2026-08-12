@@ -36,9 +36,9 @@
 
 </copyright>
 <summary>
-    Provides imputation wrappers built on sklearn.impute estimators for Mathy data
+    Provides imputation class/object built on scikit estimators for Mathy data
     preparation workflows. The module defines a shared imputer interface and concrete
-    wrappers for mean, nearest-neighbor, iterative, and strategy-based missing-value
+    class/object for mean, nearest-neighbor, iterative, and strategy-based missing-value
     replacement.
 </summary>
 ******************************************************************************************"""
@@ -57,7 +57,7 @@ def throw_if( name: str, value: object ) -> None:
 	    Enforces the presence of required clustering inputs before estimator execution. The
 	    validation accepts populated NumPy arrays and standard Python containers while
 	    rejecting null values and empty collections that would otherwise cause downstream
-	    sklearn operations to fail or produce undefined clustering results.
+	    operations to fail or produce undefined clustering results.
 	
 	Args:
 	    name (str): Argument name used in the validation error message.
@@ -82,22 +82,22 @@ class Imputer( ):
 	"""Define the imputer interface.
 	
 	Purpose:
-	    Defines the shared imputation contract used by Mathy preprocessing wrappers. The
+	    Defines the shared imputation contract used by Mathy preprocessing class/object. The
 	    base class establishes a common transformed-data attribute and requires concrete
 	    subclasses to implement fit, transform, fit-transform, and inverse-transform
-	    behavior where the underlying sklearn imputer supports it.
+	    behavior where the underlying imputer supports it.
 	
 	Attributes:
 	    transformed_data (Optional[np.ndarray]): Most recent imputed matrix produced by a
-	                                             concrete imputer wrapper."""
+	                                             concrete imputer class/object."""
 	transformed_data: Optional[ np.ndarray ]
 	
 	def __init__( self ) -> None:
 		"""Initialize imputer state.
 		
 		Purpose:
-		    Initializes the common transformed-data cache used by concrete imputer wrappers to
-		    store the most recent matrix returned by sklearn imputation operations.
+		    Initializes the common transformed-data cache used by concrete imputer class/object to
+		    store the most recent matrix returned by imputation operations.
 		
 		Returns:
 		    None: This method initializes the object and does not return a value."""
@@ -107,16 +107,16 @@ class Imputer( ):
 		"""Fit an imputer.
 		
 		Purpose:
-		    Defines the required training contract for concrete imputer wrappers. Subclasses
-		    must fit their underlying sklearn imputer to the supplied feature matrix and return
-		    a fitted wrapper or compatible result.
+		    Defines the required training contract for concrete imputer class/object. Subclasses
+		    must fit their underlying  imputer to the supplied feature matrix and return
+		    a fitted class/object or compatible result.
 		
 		Args:
 		    X (np.ndarray): Feature matrix supplied to the concrete imputer implementation.
 		    y (Optional[np.ndarray]): Optional target array accepted for API compatibility.
 		
 		Returns:
-		    object | None: Fitted concrete imputer wrapper or implementation-specific training
+		    object | None: Fitted concrete imputer class/object or implementation-specific training
 		                   result.
 		
 		Raises:
@@ -127,7 +127,7 @@ class Imputer( ):
 		"""Transform missing values.
 		
 		Purpose:
-		    Defines the required transformation contract for concrete imputer wrappers.
+		    Defines the required transformation contract for concrete imputer class/object.
 		    Subclasses must replace missing values in the supplied feature matrix with values
 		    learned during fitting and return the imputed matrix.
 		
@@ -136,7 +136,7 @@ class Imputer( ):
 		    y (Optional[np.ndarray]): Optional target array accepted for API compatibility.
 		
 		Returns:
-		    np.ndarray: Imputed feature matrix produced by the concrete imputer wrapper.
+		    np.ndarray: Imputed feature matrix produced by the concrete imputer class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base method is called directly."""
@@ -146,7 +146,7 @@ class Imputer( ):
 		"""Fit and transform missing values.
 		
 		Purpose:
-		    Defines the required combined fit-transform contract for concrete imputer wrappers.
+		    Defines the required combined fit-transform contract for concrete imputer class/object.
 		    Subclasses must fit their underlying imputer and return the imputed matrix in one
 		    operation.
 		
@@ -156,7 +156,7 @@ class Imputer( ):
 		
 		Returns:
 		    np.ndarray: Imputed feature matrix produced after fitting the concrete imputer
-		                wrapper.
+		                class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base method is called directly."""
@@ -166,16 +166,16 @@ class Imputer( ):
 		"""Invert an imputed matrix.
 		
 		Purpose:
-		    Defines the inverse-transformation contract for concrete imputer wrappers.
+		    Defines the inverse-transformation contract for concrete imputer class/object.
 		    Subclasses must reconstruct a pre-imputation representation when the underlying
-		    sklearn imputer supports inverse transformation.
+		     imputer supports inverse transformation.
 		
 		Args:
 		    X (np.ndarray): Transformed feature matrix supplied to the concrete imputer
 		                    implementation.
 		
 		Returns:
-		    np.ndarray: Reconstructed feature matrix produced by the concrete imputer wrapper.
+		    np.ndarray: Reconstructed feature matrix produced by the concrete imputer class/object.
 		
 		Raises:
 		    NotImplementedError: Raised when the base method is called directly."""
@@ -186,16 +186,16 @@ class MeanImputer( Imputer ):
 	
 	Purpose:
 	    Replaces missing values using the arithmetic mean of each fitted feature column. The
-	    wrapper stores the sklearn SimpleImputer instance, selected strategy, missing-value
+	    class/object stores the  SimpleImputer instance, selected strategy, missing-value
 	    indicator setting, and most recent transformed output.
 	
 	Attributes:
-	    strategy (Optional[str]): Imputation strategy passed to sklearn SimpleImputer.
+	    strategy (Optional[str]): Imputation strategy passed to  SimpleImputer.
 	    add_indicator (bool): Flag indicating whether missing-value indicator columns are
 	                          appended.
-	    imputer (im.SimpleImputer): Underlying sklearn imputer.
+	    imputer (im.SimpleImputer): Underlying  imputer.
 	    transformed_data (Optional[np.ndarray]): Most recent imputed matrix produced by the
-	                                             wrapper."""
+	                                             class/object."""
 	strategy: Optional[ str ]
 	add_indicator: bool
 	imputer: im.SimpleImputer
@@ -205,12 +205,12 @@ class MeanImputer( Imputer ):
 		"""Initialize MeanImputer.
 		
 		Purpose:
-		    Initializes the mean-imputation wrapper by configuring the underlying sklearn
+		    Initializes the mean-imputation class/object by configuring the underlying
 		    SimpleImputer and preparing the transformed-data cache used by later transformation
 		    methods.
 		
 		Args:
-		    strategy (str): Imputation strategy passed to sklearn SimpleImputer.
+		    strategy (str): Imputation strategy passed to  SimpleImputer.
 		    add_indicator (bool): Flag indicating whether missing-value indicator columns are
 		                          appended.
 		
@@ -226,11 +226,11 @@ class MeanImputer( Imputer ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the mean-imputer wrapper for interactive
+		    Returns the stable member names exposed by the mean-imputer class/object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'imputer', 'transformed_data', 'strategy', 'add_indicator', 'train', 'transform',
 			'train_transform', 'inverse_transform' ]
 	
@@ -238,18 +238,18 @@ class MeanImputer( Imputer ):
 		"""Fit MeanImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn SimpleImputer to the supplied feature matrix and returns
-		    the current wrapper for consistent preprocessing chains.
+		    Fits the underlying  SimpleImputer to the supplied feature matrix and returns
+		    the current class/object for consistent preprocessing chains.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to learn imputation statistics.
 		    y (Optional[np.ndarray]): Optional target array accepted for API compatibility.
 		
 		Returns:
-		    MeanImputer | None: Fitted mean-imputer wrapper.
+		    MeanImputer | None: Fitted mean-imputer class/object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or  fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.imputer.fit( X )
@@ -267,7 +267,7 @@ class MeanImputer( Imputer ):
 		
 		Purpose:
 		    Replaces missing values in the supplied feature matrix using mean statistics learned
-		    during fitting and stores the imputed matrix on the wrapper.
+		    during fitting and stores the imputed matrix on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix transformed by the fitted imputer.
@@ -277,7 +277,7 @@ class MeanImputer( Imputer ):
 		    np.ndarray: Imputed feature matrix produced by the fitted mean imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or  transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.transform( X )
@@ -294,8 +294,8 @@ class MeanImputer( Imputer ):
 		"""Fit and transform with MeanImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn SimpleImputer to the supplied feature matrix, imputes
-		    the same matrix immediately, and stores the imputed result on the wrapper.
+		    Fits the underlying  SimpleImputer to the supplied feature matrix, imputes
+		    the same matrix immediately, and stores the imputed result on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting and imputation.
@@ -305,7 +305,7 @@ class MeanImputer( Imputer ):
 		    np.ndarray: Imputed feature matrix produced after fitting the mean imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or  fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.fit_transform( X )
@@ -322,14 +322,14 @@ class MeanImputer( Imputer ):
 		"""Invert MeanImputer output.
 		
 		Purpose:
-		    Reconstructs a feature matrix toward its pre-imputed form using sklearn inverse
+		    Reconstructs a feature matrix toward its pre-imputed form using  inverse
 		    transformation when missing-value indicator columns were included during fitting.
 		
 		Args:
 		    X (np.ndarray): Transformed feature matrix to invert.
 		
 		Returns:
-		    np.ndarray: Reconstructed feature matrix produced by the sklearn imputer.
+		    np.ndarray: Reconstructed feature matrix produced by the  imputer.
 		
 		Raises:
 		    Error: Raised when validation fails, indicator columns are unavailable, or inverse
@@ -340,7 +340,7 @@ class MeanImputer( Imputer ):
 			if not self.add_indicator:
 				raise ValueError(
 					'inverse_transform requires add_indicator=True in the '
-					'underlying sklearn.impute.SimpleImputer.' )
+					'underlying .impute.SimpleImputer.' )
 			return self.imputer.inverse_transform( X )
 		except Exception as e:
 			exception = Error( e )
@@ -354,15 +354,15 @@ class NearestImputer( Imputer ):
 	"""Wrap KNNImputer.
 	
 	Purpose:
-	    Replaces missing values using values from nearest neighboring samples. The wrapper
-	    stores the sklearn KNNImputer instance, neighbor count, and most recent transformed
+	    Replaces missing values using values from nearest neighboring samples. The class/object
+	    stores the  KNNImputer instance, neighbor count, and most recent transformed
 	    output while exposing a consistent Mathy imputation interface.
 	
 	Attributes:
 	    n_neighbors (Optional[int]): Number of neighboring samples used for imputation.
-	    imputer (im.KNNImputer): Underlying sklearn nearest-neighbor imputer.
+	    imputer (im.KNNImputer): Underlying  nearest-neighbor imputer.
 	    transformed_data (Optional[np.ndarray]): Most recent imputed matrix produced by the
-	                                             wrapper."""
+	                                             class/object."""
 	n_neighbors: Optional[ int ]
 	imputer: im.KNNImputer
 	transformed_data: Optional[ np.ndarray ]
@@ -371,8 +371,8 @@ class NearestImputer( Imputer ):
 		"""Initialize NearestImputer.
 		
 		Purpose:
-		    Initializes the nearest-neighbor imputation wrapper by configuring the underlying
-		    sklearn KNNImputer with the requested neighbor count and preparing the
+		    Initializes the nearest-neighbor imputation class/object by configuring the underlying
+		     KNNImputer with the requested neighbor count and preparing the
 		    transformed-data cache.
 		
 		Args:
@@ -389,11 +389,11 @@ class NearestImputer( Imputer ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the nearest-neighbor imputer wrapper for
+		    Returns the stable member names exposed by the nearest-neighbor imputer class/object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'imputer', 'transformed_data', 'n_neighbors', 'train', 'transform',
 			'train_transform' ]
 	
@@ -401,18 +401,18 @@ class NearestImputer( Imputer ):
 		"""Fit NearestImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn KNNImputer to the supplied feature matrix and returns
-		    the current wrapper for consistent preprocessing chains.
+		    Fits the underlying  KNNImputer to the supplied feature matrix and returns
+		    the current class/object for consistent preprocessing chains.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to learn nearest-neighbor imputation structure.
 		    y (Optional[np.ndarray]): Optional target array accepted for API compatibility.
 		
 		Returns:
-		    NearestImputer | None: Fitted nearest-neighbor imputer wrapper.
+		    NearestImputer | None: Fitted nearest-neighbor imputer class/object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.imputer.fit( X )
@@ -430,7 +430,7 @@ class NearestImputer( Imputer ):
 		
 		Purpose:
 		    Replaces missing values in the supplied feature matrix using nearest-neighbor
-		    statistics learned during fitting and stores the imputed matrix on the wrapper.
+		    statistics learned during fitting and stores the imputed matrix on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix transformed by the fitted imputer.
@@ -440,7 +440,7 @@ class NearestImputer( Imputer ):
 		    np.ndarray: Imputed feature matrix produced by the fitted nearest-neighbor imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.transform( X )
@@ -457,8 +457,8 @@ class NearestImputer( Imputer ):
 		"""Fit and transform with NearestImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn KNNImputer to the supplied feature matrix, imputes the
-		    same matrix immediately, and stores the imputed result on the wrapper.
+		    Fits the underlying KNNImputer to the supplied feature matrix, imputes the
+		    same matrix immediately, and stores the imputed result on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting and imputation.
@@ -469,7 +469,7 @@ class NearestImputer( Imputer ):
 		                imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.fit_transform( X )
@@ -488,15 +488,15 @@ class IterativeImputer( Imputer ):
 	Purpose:
 	    Replaces missing values by modeling each feature with missing observations as a
 	    function of the other features and iterating through round-robin imputation rounds.
-	    The wrapper stores iteration configuration, random state, the sklearn
+	    The class/object stores iteration configuration, random state, the sklearn
 	    IterativeImputer instance, and the most recent transformed output.
 	
 	Attributes:
-	    imputer (im.IterativeImputer): Underlying sklearn iterative imputer.
+	    imputer (im.IterativeImputer): Underlying iterative imputer.
 	    max_iter (Optional[int]): Maximum number of imputation rounds.
-	    random_state (Optional[int]): Random seed used by the sklearn imputer.
+	    random_state (Optional[int]): Random seed used by the imputer.
 	    transformed_data (Optional[np.ndarray]): Most recent imputed matrix produced by the
-	                                             wrapper."""
+	                                             class/object."""
 	imputer: im.IterativeImputer
 	max_iter: Optional[ int ]
 	random_state: Optional[ int ]
@@ -506,13 +506,13 @@ class IterativeImputer( Imputer ):
 		"""Initialize IterativeImputer.
 		
 		Purpose:
-		    Initializes the iterative imputation wrapper by configuring maximum imputation
-		    rounds and random state on the underlying sklearn IterativeImputer. The constructor
+		    Initializes the iterative imputation class/object by configuring maximum imputation
+		    rounds and random state on the underlying IterativeImputer. The constructor
 		    prepares the transformed-data cache used by later transformation methods.
 		
 		Args:
 		    max_iter (int): Maximum number of iterative imputation rounds.
-		    random_state (int): Random seed used by the underlying sklearn imputer.
+		    random_state (int): Random seed used by the underlying imputer.
 		
 		Returns:
 		    None: This method initializes the object and does not return a value."""
@@ -527,11 +527,11 @@ class IterativeImputer( Imputer ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the iterative imputer wrapper for
+		    Returns the stable member names exposed by the iterative imputer class/object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'imputer', 'transformed_data', 'max_iter', 'random_state', 'train', 'transform',
 			'train_transform' ]
 	
@@ -539,18 +539,18 @@ class IterativeImputer( Imputer ):
 		"""Fit IterativeImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn IterativeImputer to the supplied feature matrix and
-		    returns the current wrapper for consistent preprocessing chains.
+		    Fits the underlying IterativeImputer to the supplied feature matrix and
+		    returns the current class/object for consistent preprocessing chains.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to learn iterative imputation models.
 		    y (Optional[np.ndarray]): Optional target array accepted for API compatibility.
 		
 		Returns:
-		    IterativeImputer | None: Fitted iterative-imputer wrapper.
+		    IterativeImputer | None: Fitted iterative-imputer class/object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.imputer.fit( X )
@@ -568,7 +568,7 @@ class IterativeImputer( Imputer ):
 		
 		Purpose:
 		    Replaces missing values in the supplied feature matrix using the fitted iterative
-		    imputation model and stores the imputed matrix on the wrapper.
+		    imputation model and stores the imputed matrix on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix transformed by the fitted imputer.
@@ -578,7 +578,7 @@ class IterativeImputer( Imputer ):
 		    np.ndarray: Imputed feature matrix produced by the fitted iterative imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.transform( X )
@@ -595,8 +595,8 @@ class IterativeImputer( Imputer ):
 		"""Fit and transform with IterativeImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn IterativeImputer to the supplied feature matrix, imputes
-		    the same matrix immediately, and stores the imputed result on the wrapper.
+		    Fits the underlying IterativeImputer to the supplied feature matrix, imputes
+		    the same matrix immediately, and stores the imputed result on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting and imputation.
@@ -606,7 +606,7 @@ class IterativeImputer( Imputer ):
 		    np.ndarray: Imputed feature matrix produced after fitting the iterative imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.fit_transform( X )
@@ -623,16 +623,16 @@ class SimpleImputer( Imputer ):
 	"""Wrap strategy-based SimpleImputer.
 	
 	Purpose:
-	    Replaces missing values using sklearn SimpleImputer strategies such as mean, median,
-	    most-frequent, or constant replacement. The wrapper stores imputation configuration,
+	    Replaces missing values using SimpleImputer strategies such as mean, median,
+	    most-frequent, or constant replacement. The class/object stores imputation configuration,
 	    missing-value indicator behavior, empty-feature behavior, and most recent
 	    transformed output.
 	
 	Attributes:
-	    imputer (im.SimpleImputer): Underlying sklearn simple imputer.
+	    imputer (im.SimpleImputer): Underlying simple imputer.
 	    transformed_data (Optional[np.ndarray]): Most recent imputed matrix produced by the
-	                                             wrapper.
-	    strategy (Optional[str]): Imputation strategy used by the sklearn imputer.
+	                                             class/object.
+	    strategy (Optional[str]): Imputation strategy used by the imputer.
 	    fill_value (Optional[object]): Replacement value used for constant imputation.
 	    add_indicator (bool): Flag indicating whether missing-value indicator columns are
 	                          appended.
@@ -650,12 +650,12 @@ class SimpleImputer( Imputer ):
 		"""Initialize SimpleImputer.
 		
 		Purpose:
-		    Initializes the strategy-based imputer wrapper by configuring sklearn SimpleImputer
+		    Initializes the strategy-based imputer class/object by configuring SimpleImputer
 		    with the selected strategy, constant fill value, missing-value indicator setting,
 		    and empty-feature behavior.
 		
 		Args:
-		    strategy (str): Imputation strategy used by sklearn SimpleImputer.
+		    strategy (str): Imputation strategy used by SimpleImputer.
 		    fill_value (object): Replacement value used when `strategy` is `constant`.
 		    add_indicator (bool): Flag indicating whether missing-value indicator columns are
 		                          appended.
@@ -677,11 +677,11 @@ class SimpleImputer( Imputer ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable member names exposed by the simple-imputer wrapper for
+		    Returns the stable member names exposed by the simple-imputer class/object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 		
 		Returns:
-		    list[str]: Public member names exposed by the wrapper."""
+		    list[str]: Public member names exposed by the class/object."""
 		return [ 'imputer', 'transformed_data', 'strategy', 'fill_value', 'add_indicator',
 			'keep_empty_features', 'train', 'transform', 'train_transform', 'inverse_transform' ]
 	
@@ -689,18 +689,18 @@ class SimpleImputer( Imputer ):
 		"""Fit SimpleImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn SimpleImputer to the supplied feature matrix and returns
-		    the current wrapper for consistent preprocessing chains.
+		    Fits the underlying SimpleImputer to the supplied feature matrix and returns
+		    the current class/object for consistent preprocessing chains.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to learn simple imputation statistics.
 		    y (Optional[np.ndarray]): Optional target array accepted for API compatibility.
 		
 		Returns:
-		    SimpleImputer | None: Fitted simple-imputer wrapper.
+		    SimpleImputer | None: Fitted simple-imputer class/object.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fitting fails."""
+		    Error: Raised when validation or fitting fails."""
 		try:
 			throw_if( 'X', X )
 			self.imputer.fit( X )
@@ -718,7 +718,7 @@ class SimpleImputer( Imputer ):
 		
 		Purpose:
 		    Replaces missing values in the supplied feature matrix using fitted strategy-based
-		    statistics or constants and stores the imputed matrix on the wrapper.
+		    statistics or constants and stores the imputed matrix on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix transformed by the fitted imputer.
@@ -728,7 +728,7 @@ class SimpleImputer( Imputer ):
 		    np.ndarray: Imputed feature matrix produced by the fitted simple imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn transformation fails."""
+		    Error: Raised when validation or transformation fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.transform( X )
@@ -745,8 +745,8 @@ class SimpleImputer( Imputer ):
 		"""Fit and transform with SimpleImputer.
 		
 		Purpose:
-		    Fits the underlying sklearn SimpleImputer to the supplied feature matrix, imputes
-		    the same matrix immediately, and stores the imputed result on the wrapper.
+		    Fits the underlying SimpleImputer to the supplied feature matrix, imputes
+		    the same matrix immediately, and stores the imputed result on the class/object.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting and imputation.
@@ -756,7 +756,7 @@ class SimpleImputer( Imputer ):
 		    np.ndarray: Imputed feature matrix produced after fitting the simple imputer.
 		
 		Raises:
-		    Error: Raised when validation or sklearn fit-transform execution fails."""
+		    Error: Raised when validation or fit-transform execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.transformed_data = self.imputer.fit_transform( X )
@@ -773,14 +773,14 @@ class SimpleImputer( Imputer ):
 		"""Invert SimpleImputer output.
 		
 		Purpose:
-		    Reconstructs a feature matrix toward its pre-imputed form using sklearn inverse
+		    Reconstructs a feature matrix toward its pre-imputed form using inverse
 		    transformation when missing-value indicator columns were included during fitting.
 		
 		Args:
 		    X (np.ndarray): Transformed feature matrix to invert.
 		
 		Returns:
-		    np.ndarray: Reconstructed feature matrix produced by the sklearn imputer.
+		    np.ndarray: Reconstructed feature matrix produced by the imputer.
 		
 		Raises:
 		    Error: Raised when validation fails, indicator columns are unavailable, or inverse

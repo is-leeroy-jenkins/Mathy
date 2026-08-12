@@ -36,7 +36,7 @@
 </copyright>
 <summary>
     Provides time-series forecasting, cross-validation, lag-feature modeling, ARIMA,
-    SARIMA, gradient-boosted lag regression, and quantile lag-regression wrappers for
+    SARIMA, gradient-boosted lag-regression, and quantile lag-regression classes for
     Mathy forecasting workflows. The module standardizes training, projection, scoring,
     and residual-diagnostic operations across statsmodels and sklearn estimators.
 </summary>
@@ -690,7 +690,7 @@ class LaggingSeries( TimeSeries ):
 		
 		Purpose:
 		    Fits the forecasting estimator to lagged features generated from the supplied time
-		    series and stores the training matrix and aligned target vector on the wrapper.
+		    series and stores the training matrix and aligned target vector on the class/object.
 		
 		Args:
 		    series (np.ndarray): Ordered univariate series used to train the lag-based
@@ -823,7 +823,7 @@ class LagBoostingSeries( TimeSeries ):
 	
 	Purpose:
 	    Builds lagged supervised-learning matrices and trains a histogram gradient boosting
-	    regressor for nonlinear time-series forecasting. The wrapper exposes the estimator
+	    regressor for nonlinear time-series forecasting. The class/object exposes the estimator
 	    configuration, recursive multi-step projection, and regression diagnostics for the
 	    fitted lag model.
 	
@@ -1031,7 +1031,7 @@ class LagBoostingSeries( TimeSeries ):
 		
 		Purpose:
 		    Fits the forecasting estimator to lagged features generated from the supplied time
-		    series and stores the training matrix and aligned target vector on the wrapper.
+		    series and stores the training matrix and aligned target vector on the class/object.
 		
 		Args:
 		    series (np.ndarray): Ordered univariate series used to train the lag-based
@@ -1186,7 +1186,7 @@ class LagQuantileSeries( TimeSeries ):
 	
 	Purpose:
 	    Builds lagged supervised-learning matrices and trains a quantile regression
-	    estimator for conditional quantile forecasting. The wrapper supports recursive
+	    estimator for conditional quantile forecasting. The class/object supports recursive
 	    projection and regression diagnostics for median, lower-tail, or upper-tail
 	    time-series forecasts.
 	
@@ -1320,7 +1320,7 @@ class LagQuantileSeries( TimeSeries ):
 		
 		Purpose:
 		    Fits the forecasting estimator to lagged features generated from the supplied time
-		    series and stores the training matrix and aligned target vector on the wrapper.
+		    series and stores the training matrix and aligned target vector on the class/object.
 		
 		Args:
 		    series (np.ndarray): Ordered univariate series used to train the lag-based
@@ -1473,7 +1473,7 @@ class ARIMA( TimeSeries ):
 	
 	Purpose:
 	    Wraps statsmodels ARIMA for nonseasonal autoregressive integrated moving-average
-	    forecasting. The wrapper stores the fitted results object, produces forward
+	    forecasting. The class/object stores the fitted results object, produces forward
 	    projections, and reports regression-style diagnostics against fitted in-sample
 	    values.
 	
@@ -1657,7 +1657,7 @@ class SARIMA( TimeSeries ):
 	
 	Purpose:
 	    Wraps statsmodels SARIMAX for seasonal autoregressive integrated moving-average
-	    forecasting. The wrapper stores the fitted seasonal model, produces forward
+	    forecasting. The class/object stores the fitted seasonal model, produces forward
 	    projections, and reports regression-style diagnostics against fitted in-sample
 	    values.
 	
