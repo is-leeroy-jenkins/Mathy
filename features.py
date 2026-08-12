@@ -434,22 +434,21 @@ class VarianceThreshold( Selector ):
 			_retained_count = int( self.transformed_data.shape[ 1 ] )
 			_removed_count = int( _original_count - _retained_count )
 			_metrics = \
-				{
-						'Threshold': [ self.threshold ],
-						'Original Features': [ _original_count ],
-						'Retained Features': [ _retained_count ],
-						'Removed Features': [ _removed_count ],
-						'Selection Ratio': [
-								_retained_count / _original_count if _original_count else 0.0 ],
-						'Removed Ratio': [
-								_removed_count / _original_count if _original_count else 0.0 ],
-						'Minimum Retained Variance': [
-								float( np.min( self.model.variances_[ _support ] ) )
-								if np.any( _support ) else np.nan ],
-						'Maximum Retained Variance': [
-								float( np.max( self.model.variances_[ _support ] ) )
-								if np.any( _support ) else np.nan ],
-				}
+			{
+					'Threshold': [ self.threshold ],
+					'Original Features': [ _original_count ],
+					'Retained Features': [ _retained_count ],
+					'Removed Features': [ _removed_count ],
+					'Selection Ratio': [ _retained_count / _original_count if _original_count else 0.0 ],
+					'Removed Ratio': [
+							_removed_count / _original_count if _original_count else 0.0 ],
+					'Minimum Retained Variance': [
+							float( np.min( self.model.variances_[ _support ] ) )
+							if np.any( _support ) else np.nan ],
+					'Maximum Retained Variance': [
+							float( np.max( self.model.variances_[ _support ] ) )
+							if np.any( _support ) else np.nan ],
+			}
 			return pd.DataFrame( _metrics )
 		except Exception as e:
 			exception = Error( e )
