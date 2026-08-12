@@ -5,7 +5,7 @@
 	--mathy-surface: #1F1F1F;
 	--mathy-surface-2: #2A2A2A;
 	--mathy-border: #565557;
-	--mathy-blue: #0078FC;
+	--mathy-blue: #0352ab;
 	--mathy-blue-dark: #023770;
 	--mathy-text: #FFFFFF;
 	--mathy-muted: #C7C7C7;
@@ -131,7 +131,7 @@
 
 .md-nav__link--active
 {
-	color: #4DA3FF;
+	color: #013e80;
 }
 
 /* Mathy JavaScript feature styling */
