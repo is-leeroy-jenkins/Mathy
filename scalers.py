@@ -55,7 +55,7 @@ def throw_if( name: str, value: object ) -> None:
 	    Enforces the presence of required clustering inputs before estimator execution. The
 	    validation accepts populated NumPy arrays and standard Python containers while
 	    rejecting null values and empty collections that would otherwise cause downstream
-	    sklearn operations to fail or produce undefined clustering results.
+	    operations to fail or produce undefined clustering results.
 	
 	Args:
 	    name (str): Argument name used in the validation error message.
@@ -83,7 +83,7 @@ class Scaler( ):
 	    Defines the shared scaler interface used by all Mathy preprocessing wrappers. The
 	    base class establishes a common transformed-data attribute and requires concrete
 	    subclasses to implement fit, transform, fit-transform, and inverse-transform
-	    operations compatible with sklearn preprocessing estimators.
+	    operations compatible with preprocessing estimators.
 	
 	Attributes:
 	    transformed_data (Optional[np.ndarray]): Most recent transformed matrix produced by
@@ -110,7 +110,7 @@ class Scaler( ):
 		    return the fitted class/object or compatible result.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -120,7 +120,7 @@ class Scaler( ):
 		                   result.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails.
 		    NotImplementedError: Raised when the `train` operation cannot complete."""
 		try:
@@ -143,7 +143,7 @@ class Scaler( ):
 		    preprocessing estimator and return the transformed matrix.
 		
 		Args:
-		    X (np.ndarray): Feature matrix supplied to the underlying sklearn preprocessing
+		    X (np.ndarray): Feature matrix supplied to the underlying preprocessing
 		                    estimator.
 		    y (Optional[np.ndarray]): Optional target array accepted for estimator API
 		                              compatibility and ignored by scaler implementations.
@@ -152,7 +152,7 @@ class Scaler( ):
 		    np.ndarray: Transformed feature matrix produced by the concrete scaler class/object.
 		
 		Raises:
-		    Error: Raised when validation, sklearn preprocessing, or wrapped scaler execution
+		    Error: Raised when validation, preprocessing, or wrapped scaler execution
 		           fails.
 		    NotImplementedError: Raised when the `transform` operation cannot complete."""
 		try:

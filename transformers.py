@@ -96,7 +96,7 @@ class Transformer( ):
 		"""Initialize Transformer.
 		
 		Purpose:
-		    Initializes the transformer with configured sklearn objects, runtime options, and
+		    Initializes the transformer with configured objects, runtime options, and
 		    transformed- output cache required by later preprocessing operations.
 		
 		Returns:
@@ -188,7 +188,7 @@ class Binarizer( Transformer ):
 	    matrix for downstream preprocessing and modeling steps.
 	
 	Attributes:
-	    model (pp.Binarizer): Underlying sklearn estimator or transformer used by the
+	    model (pp.Binarizer): Underlying estimator or transformer used by the
 	                          class/object.
 	    threshold (Optional[float]): Numeric cutoff used to convert values into binary
 	                                 indicators.
@@ -205,7 +205,7 @@ class Binarizer( Transformer ):
 		"""Initialize Binarizer.
 		
 		Purpose:
-		    Initializes the binary-threshold transformer with configured sklearn objects,
+		    Initializes the binary-threshold transformer with configured objects,
 		    runtime options, and transformed-output cache required by later preprocessing
 		    operations.
 		
@@ -251,7 +251,7 @@ class Binarizer( Transformer ):
 		    Binarizer | None: Fitted class/object instance.
 		
 		Raises:
-		    Error: Raised when validation or wrapped sklearn preprocessing execution fails."""
+		    Error: Raised when validation or wrapped preprocessing execution fails."""
 		try:
 			throw_if( 'X', X )
 			self.model.fit( X, y )

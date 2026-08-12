@@ -251,7 +251,7 @@ class VarianceThreshold( Selector ):
 	"""VarianceThreshold feature-selection class/object.
 	
 	Purpose:
-	    Removes low-variance features with sklearn.feature_selection.VarianceThreshold. The
+	    Removes low-variance features with  VarianceThreshold. The
 	    class/object stores the threshold configuration, transformed feature matrix, prediction
 	    state, and train/test scoring metrics used to evaluate the reduced feature space.
 	
