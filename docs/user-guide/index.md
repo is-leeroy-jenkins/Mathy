@@ -1,4 +1,7 @@
 # User Guide
+![](/docs/img/mathy-workflows.png)
+
+___
 
 The Mathy user guide provides task-oriented examples for preparing data, transforming features,
 selecting predictors, training models, detecting outliers, clustering observations, and building
