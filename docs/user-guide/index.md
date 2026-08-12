@@ -1,5 +1,5 @@
 # User Guide
-![](/docs/img/mathy-workflows.png)
+![](../img/mathy-workflows.png)
 
 ___
 
