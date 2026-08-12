@@ -406,6 +406,8 @@ The table below reflects the active imports and runtime features used by the cur
 
 ## 🔒 Workflow Notes
 
+![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-workflows.png)
+
 | Topic                    | Note                                                                                                            |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | Working data             | User-selected modeling data is stored in `df_working`.                                                          |
