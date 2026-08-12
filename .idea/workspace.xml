@@ -6,18 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="36bfb57a-5abe-4c37-b940-845fabab367c" name="Changes" comment="update">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classifications.py" beforeDir="false" afterPath="$PROJECT_DIR$/classifications.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clusters.py" beforeDir="false" afterPath="$PROJECT_DIR$/clusters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/encoders.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/features.py" beforeDir="false" afterPath="$PROJECT_DIR$/features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forecasting.py" beforeDir="false" afterPath="$PROJECT_DIR$/forecasting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/imputers.py" beforeDir="false" afterPath="$PROJECT_DIR$/imputers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/outliers.py" beforeDir="false" afterPath="$PROJECT_DIR$/outliers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/regressions.py" beforeDir="false" afterPath="$PROJECT_DIR$/regressions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scalers.py" beforeDir="false" afterPath="$PROJECT_DIR$/scalers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transformers.py" beforeDir="false" afterPath="$PROJECT_DIR$/transformers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,23 +63,23 @@
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\terry\\AppData\\Roaming\\JetBrains\\PyCharm2025.2\\plugins\\Shell Script\\shellcheck.exe&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/terry/source/repos/Mathy/docs/img&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.smartKeys&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHELLCHECK.PATH": "C:\\Users\\terry\\AppData\\Roaming\\JetBrains\\PyCharm2025.2\\plugins\\Shell Script\\shellcheck.exe",
+    "last_opened_file_path": "C:/Users/terry/source/repos/Mathy/docs/img",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "configurable.group.language",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\terry\source\repos\Mathy\docs\img" />
@@ -157,15 +146,7 @@
       <workItem from="1784641696675" duration="11000" />
       <workItem from="1786134529063" duration="295000" />
       <workItem from="1786491668868" duration="3767000" />
-      <workItem from="1786544515793" duration="9114000" />
-    </task>
-    <task id="LOCAL-00088" summary="update">
-      <option name="closed" value="true" />
-      <created>1778883051228</created>
-      <option name="number" value="00088" />
-      <option name="presentableId" value="LOCAL-00088" />
-      <option name="project" value="LOCAL" />
-      <updated>1778883051228</updated>
+      <workItem from="1786544515793" duration="10800000" />
     </task>
     <task id="LOCAL-00089" summary="update">
       <option name="closed" value="true" />
@@ -551,7 +532,15 @@
       <option name="project" value="LOCAL" />
       <updated>1786553532907</updated>
     </task>
-    <option name="localTasksCounter" value="137" />
+    <task id="LOCAL-00137" summary="update">
+      <option name="closed" value="true" />
+      <created>1786557310224</created>
+      <option name="number" value="00137" />
+      <option name="presentableId" value="LOCAL-00137" />
+      <option name="project" value="LOCAL" />
+      <updated>1786557310224</updated>
+    </task>
+    <option name="localTasksCounter" value="138" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

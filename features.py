@@ -377,7 +377,7 @@ class VarianceThreshold( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Project features with VarianceThreshold.
 		
 		Purpose:
@@ -406,7 +406,7 @@ class VarianceThreshold( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
 		"""Score VarianceThreshold.
 		
 		Purpose:
@@ -459,7 +459,7 @@ class VarianceThreshold( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Transform features with VarianceThreshold.
 		
 		Purpose:
@@ -489,7 +489,7 @@ class VarianceThreshold( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Fit and transform with VarianceThreshold.
 		
 		Purpose:
@@ -546,7 +546,7 @@ class CCA( Selector ):
 	                                evaluation.
 	    training_score (Optional[float]): Estimator score calculated on the training split.
 	    testing_score (Optional[float]): Estimator score calculated on the testing split."""
-	model: Optional[ object ]
+	model: Optional[ CanonicalCorrelationAnalysis ]
 	prediction: Optional[ np.ndarray ]
 	n_components: Optional[ int ]
 	scale: Optional[ bool ]
@@ -556,7 +556,7 @@ class CCA( Selector ):
 	training_score: Optional[ float ]
 	testing_score: Optional[ float ]
 	
-	def __init__( self, num: int = 2, scale: bool = True, size: int = 500 ) -> None:
+	def __init__( self, num: int=2, scale: bool=True, size: int=500 ) -> None:
 		"""Initialize CCA.
 		
 		Purpose:
@@ -632,7 +632,7 @@ class CCA( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Project features with CCA.
 		
 		Purpose:
@@ -741,7 +741,7 @@ class CCA( Selector ):
 			raise exception
 	
 	def transform( self, X: np.ndarray,
-			y: Optional[ np.ndarray ] = None ) -> Tuple[ np.ndarray, np.ndarray ] | np.ndarray:
+			y: Optional[ np.ndarray ]=None ) -> Tuple[ np.ndarray, np.ndarray ] | np.ndarray:
 		"""Transform features with CCA.
 		
 		Purpose:
@@ -775,8 +775,8 @@ class CCA( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train_transform( self, X: np.ndarray, y: np.ndarray ) -> Tuple[
-		                                                             np.ndarray, np.ndarray ] | np.ndarray:
+	def train_transform( self, X: np.ndarray,
+		y: np.ndarray ) -> Tuple[ np.ndarray, np.ndarray ] | np.ndarray:
 		"""Fit and transform with CCA.
 		
 		Purpose:
@@ -830,7 +830,7 @@ class PCA( Selector ):
 	                                evaluation.
 	    training_score (Optional[float]): Estimator score calculated on the training split.
 	    testing_score (Optional[float]): Estimator score calculated on the testing split."""
-	model: Optional[ object ]
+	model: Optional[ PrincipalComponentAnalysis ]
 	prediction: Optional[ np.ndarray ]
 	svd_solver: Optional[ str ]
 	n_components: Optional[ int ]
@@ -877,19 +877,19 @@ class PCA( Selector ):
 			'split_data', 'train', 'project', 'score', 'transform', 'train_transform' ]
 	
 	@property
-	def explained_variance_ratio( self ):
+	def explained_variance_ratio( self ) -> float:
 		"""Performs the `explained_variance_ratio` operation defined by `PCA`.
 		
 		Purpose:
 		    Performs the `explained_variance_ratio` operation defined by `PCA`.
 		
 		Returns:
-		    None: Value produced by the operation."""
+		    float: Value produced by the operation."""
 		if self.model is not None:
 			return self.model.explained_variance_ratio_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split training and testing data.
 		
 		Purpose:
@@ -925,7 +925,7 @@ class PCA( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""Fit PCA.
 		
 		Purpose:
@@ -955,7 +955,7 @@ class PCA( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Project features with PCA.
 		
 		Purpose:
@@ -985,7 +985,7 @@ class PCA( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
 		"""Score PCA.
 		
 		Purpose:
@@ -1030,7 +1030,7 @@ class PCA( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Transform features with PCA.
 		
 		Purpose:
@@ -1060,7 +1060,7 @@ class PCA( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Fit and transform with PCA.
 		
 		Purpose:
@@ -1112,7 +1112,7 @@ class SelectBest( Selector ):
 	                                evaluation.
 	    training_score (Optional[float]): Estimator score calculated on the training split.
 	    testing_score (Optional[float]): Estimator score calculated on the testing split."""
-	model: Optional[ object ]
+	model: Optional[ sf.SelectKBest ]
 	prediction: Optional[ np.ndarray ]
 	score_function: Optional[ object ]
 	n_features: Optional[ int ]
@@ -1157,8 +1157,8 @@ class SelectBest( Selector ):
 			'split_data', 'chi_square', 'train', 'project', 'score', 'transform',
 			'train_transform' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split training and testing data.
 		
 		Purpose:
@@ -1225,7 +1225,7 @@ class SelectBest( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""Fit SelectBest.
 		
 		Purpose:
@@ -1255,7 +1255,7 @@ class SelectBest( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Project features with SelectBest.
 		
 		Purpose:
@@ -1284,7 +1284,7 @@ class SelectBest( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
 		"""Score SelectBest.
 		
 		Purpose:
@@ -1321,7 +1321,7 @@ class SelectBest( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Transform features with SelectBest.
 		
 		Purpose:
@@ -1351,7 +1351,7 @@ class SelectBest( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Fit and transform with SelectBest.
 		
 		Purpose:
@@ -1405,7 +1405,7 @@ class SelectPercent( Selector ):
 	                                evaluation.
 	    training_score (Optional[float]): Estimator score calculated on the training split.
 	    testing_score (Optional[float]): Estimator score calculated on the testing split."""
-	model: Optional[ object ]
+	model: Optional[ sf.SelectPercentile ]
 	prediction: Optional[ np.ndarray ]
 	score_function: Optional[ object ]
 	percentile: Optional[ int ]
@@ -1452,8 +1452,8 @@ class SelectPercent( Selector ):
 			'split_data', 'chi_square', 'train', 'project', 'score', 'transform',
 			'train_transform' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split training and testing data.
 		
 		Purpose:
@@ -1520,7 +1520,7 @@ class SelectPercent( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> object | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> object | None:
 		"""Fit SelectPercent.
 		
 		Purpose:
@@ -1550,7 +1550,7 @@ class SelectPercent( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Project features with SelectPercent.
 		
 		Purpose:
@@ -1579,7 +1579,7 @@ class SelectPercent( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
 		"""Score SelectPercent.
 		
 		Purpose:
@@ -1616,7 +1616,7 @@ class SelectPercent( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Transform features with SelectPercent.
 		
 		Purpose:
@@ -1646,7 +1646,7 @@ class SelectPercent( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def train_transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Fit and transform with SelectPercent.
 		
 		Purpose:
@@ -1718,8 +1718,8 @@ class SBS( Selector ):
 	scores_: Optional[ List[ float ] ]
 	k_score_: Optional[ float ]
 	
-	def __init__( self, classifier: Classifier, k_features: int, scoring: callable = accuracy_score,
-			test_size: float = 0.25, random_state: int = 1 ) -> None:
+	def __init__( self, classifier: Classifier, k_features: int, scoring: callable=accuracy_score,
+			test_size: float=0.25, random_state: int=1 ) -> None:
 		"""Initialize SBS.
 		
 		Purpose:
@@ -1764,8 +1764,8 @@ class SBS( Selector ):
 			'transformed_data', 'indices_', 'subsets_', 'scores_', 'k_score_', 'split_data',
 			'train', 'project', 'score', 'transform', 'train_transform', 'calc_score' ]
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split training and testing data.
 		
 		Purpose:
@@ -1856,7 +1856,7 @@ class SBS( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Project features with SBS.
 		
 		Purpose:
@@ -1886,7 +1886,7 @@ class SBS( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
 		"""Score SBS.
 		
 		Purpose:
@@ -1922,7 +1922,7 @@ class SBS( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Transform features with SBS.
 		
 		Purpose:
@@ -2208,7 +2208,7 @@ class RFE( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Project features with RFE.
 		
 		Purpose:
@@ -2237,7 +2237,7 @@ class RFE( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame:
 		"""Score RFE.
 		
 		Purpose:
@@ -2270,7 +2270,7 @@ class RFE( Selector ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def transform( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Transform features with RFE.
 		
 		Purpose:
