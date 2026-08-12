@@ -96,11 +96,15 @@ def throw_if( name: str, value: object ) -> None:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Regression( ):
-	"""Regression regression class/object.
+	"""Regression base class/object.
 	
 	Purpose:
 	    Defines the shared regression class/object contract and common evaluation-state fields
-	    used by concrete Mathy regressor implementations.
+	    used by concrete Mathy regressor implementations. Regression in machine learning is a type
+	    of supervised learning used to predict continuous numerical values. Unlike classification
+	    models that sort data into distinct categories (like "spam" or "not spam"), regression
+	    algorithms find mathematical relationships between input variables (features) and a target
+	    outcome to forecast specific numbers, such as house prices, stock values, or temperatures
 	
 	Attributes:
 	    max_iter (Optional[int]): Maximum number of estimator iterations.
@@ -262,9 +266,9 @@ class LeastSquares( Regression ):
 	"""LeastSquares regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.LinearRegression for ordinary least-squares regression,
-	    coefficient inspection, prediction, scoring, metric analysis, and diagnostic scatter
-	    plotting.
+	    Least squares regression is a statistical method used to find the best-fit line or curve
+	    for a set of data points by minimizing the sum of the squared differences (residuals)
+	    between actual and predicted values
 	
 	Attributes:
 	    model (skl.LinearRegression): Underlying sklearn regression estimator managed by the
@@ -661,9 +665,10 @@ class Ridge( Regression ):
 	"""Ridge regression class/object.
 	
 	Purpose:
-	    Encapsulates Ridge Regression for L2-regularized linear regression with
-	    coefficient inspection, prediction, scoring, metric analysis, and diagnostic scatter
-	    plotting.
+	    Ridge regression is a modified form of linear regression that uses L2 regularization to
+	    shrink large coefficient values. By adding a penalty proportional to the sum of squared
+	    coefficients, it reduces model variance and prevents overfitting—especially when features
+	    are highly correlated—at the cost of introducing a small amount of bias
 	
 	Attributes:
 	    model (skl.Ridge): Underlying regression estimator managed by the class/object.
@@ -1079,9 +1084,10 @@ class Lasso( Regression ):
 	"""Lasso regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.Lasso for L1-regularized linear regression with sparse
-	    coefficient estimation, prediction, scoring, metric analysis, and diagnostic scatter
-	    plotting.
+	    Lasso regression (Least Absolute Shrinkage and Selection Operator) is a linear regression
+	    method that uses L₁ regularization. By adding a penalty equal to the absolute value of the
+	    magnitude of the coefficients, it shrinks less important feature coefficients down to
+	    absolute zero, performing automatic feature selection and preventing model overfitting
 	
 	Attributes:
 	    model (skl.Lasso): Underlying regression estimator managed by the class/object.
@@ -1491,9 +1497,10 @@ class ElasticNet( Regression ):
 	"""ElasticNet regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.ElasticNet for combined L1 and L2 regularized linear
-	    regression with prediction, scoring, metric analysis, and diagnostic scatter
-	    plotting.
+	    Elastic net regression is a popular regularized linear regression method that linearly
+	    combines both L1 (Lasso) and L2 (Ridge) penalty terms. By merging these two approaches,
+	    it overcomes individual limitations, performs automated feature selection, and effectively
+	    handles groups of correlated variables
 	
 	Attributes:
 	    model (skl.ElasticNet): Underlying regression estimator managed by the
@@ -1923,9 +1930,10 @@ class LeastAngle( Regression ):
 	"""LeastAngle regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.Lars for least-angle regression with
-	    coefficient-path-oriented linear modeling, prediction, scoring, metric analysis, and
-	    diagnostic scatter plotting.
+	    Least Angle Regression (LARS) is a fast and efficient variable-selection algorithm for
+	    high-dimensional linear regression. It works like forward selection, but instead of fully
+	    fitting variables one at a time, LARS increases coefficients equiangularly in directions
+	    equiangular to their correlations with the residual, closely connecting to Lasso.
 	
 	Attributes:
 	    model (skl.Lars): Underlying regression estimator managed by the class/object.
@@ -2236,9 +2244,9 @@ class BayesianRidge( Regression ):
 	"""BayesianRidge regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.BayesianRidge for probabilistic linear regression with
-	    Bayesian regularization, prediction, scoring, metric analysis, and diagnostic
-	    scatter plotting.
+	    Bayesian ridge regression is a probabilistic linear model that treats weights as random
+	    variables and uses L2 regularization to estimate parameter distributions and noise. Key
+	    aspects include Gaussian priors, automatic hyperparameter tuning, and uncertainty estimation.
 	
 	Attributes:
 	    model (skl.BayesianRidge): Underlying regression estimator managed by the
@@ -2672,8 +2680,10 @@ class GradientDescent( Regression ):
 	"""GradientDescent regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.linear_model.SGDRegressor for stochastic-gradient regression with
-	    configurable loss, penalty, learning-rate, convergence, and early-stopping behavior.
+	    Gradient descent regression is an optimization technique that iteratively updates a model's
+	    parameters (weights and bias) to minimize prediction error, typically measured by Mean Squared Error (MSE).
+	    Instead of calculating parameters in a single step like Ordinary Least Squares, it uses the
+	    gradient (slope) of the loss function to step downhill toward the global minimum
 	
 	Attributes:
 	    random_state (Optional[int]): Random seed or random-state configuration used by the
@@ -3158,8 +3168,9 @@ class NearestNeighbor( Regression ):
 	"""NearestNeighbor regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.neighbors.KNeighborsRegressor for neighbor-based continuous-value
-	    prediction, model scoring, metric analysis, and diagnostic scatter plotting.
+	    Nearest neighbor regression (KNN regression) is a simple machine learning method that
+	    predicts a number for a new data point. It finds the closest known points in the data and
+	    calculates their average value
 	
 	Attributes:
 	    model (skn.KNeighborsRegressor): Underlying regression estimator managed by
@@ -3537,8 +3548,11 @@ class DecisionTree( Regression ):
 	"""DecisionTree regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.tree.DecisionTreeRegressor for non-parametric tree-based regression,
-	    prediction, scoring, metric analysis, and diagnostic scatter plotting.
+	    Decision tree regression is a supervised machine learning algorithm that predicts continuous
+	    numerical outcomes by recursively partitioning data into smaller, more homogeneous subsets.
+	    Unlike classification trees that output labels, a regression tree divides the feature space
+	    into distinct regions and outputs a single numeric value—typically the average (mean) of
+	    the target values belonging to that specific region.
 	
 	Attributes:
 	    model (skd.DecisionTreeRegressor): Underlying regression estimator managed
@@ -3852,8 +3866,10 @@ class ExtraTreesModel( Regression ):
 	"""ExtraTreesModel regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.ExtraTreesRegressor for randomized ensemble tree regression,
-	    feature metadata inspection, prediction, scoring, and metric analysis.
+	    Extra Tree Regression (Extremely Randomized Trees Regressor) is an ensemble machine learning
+	    algorithm that builds multiple unpruned decision trees. It differs from Random Forest by
+	    choosing split points completely at random for each feature rather than searching for the
+	    optimal split, which speeds up training and reduces variance
 	
 	Attributes:
 	    model (ske.ExtraTreesRegressor): Underlying regression estimator managed by
@@ -4291,8 +4307,11 @@ class RandomForest( Regression ):
 	"""RandomForest regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.RandomForestRegressor for bagged ensemble tree regression,
-	    feature metadata inspection, prediction, scoring, and metric analysis.
+	    Random Forest Regression is a powerful ensemble learning technique that builds a multitude
+	    of independent decision trees during training and averages their outputs to predict a
+	    continuous numerical value. By combining predictions from many individual trees, it
+	    drastically reduces the risk of overfitting, making it much more robust and accurate
+	    than a single decision tree.
 	
 	Attributes:
 	    model (ske.RandomForestRegressor): Underlying regression estimator managed
@@ -4731,8 +4750,10 @@ class GradientBoost( Regression ):
 	"""GradientBoost regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.GradientBoostingRegressor for stage-wise boosted tree
-	    regression, prediction, scoring, metric analysis, and diagnostic scatter plotting.
+	    Gradient Boosting Regression is a powerful machine learning technique that builds an ensemble
+	    of weak prediction models, typically small decision trees, in a sequential manner. Each new
+	    tree targets and predicts the residual errors of the combined sequence of prior trees,
+	    gradually minimizing a chosen loss function to yield high predictive accuracy.
 	
 	Attributes:
 	    model (ske.GradientBoostingRegressor): Underlying regression estimator
@@ -5184,8 +5205,10 @@ class AdaptiveBoost( Regression ):
 	"""AdaptiveBoost regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.AdaBoostRegressor for adaptive boosted regression using a
-	    configurable base estimator and loss function.
+	    Adaptive boosting regression (AdaBoost regression) is a machine learning technique that
+	    builds a strong numerical prediction model by sequentially combining multiple weak models,
+	    typically small decision trees. It adjusts data point weights after each step, forcing later
+	    models to focus heavily on previously hard-to-predict data points
 	
 	Attributes:
 	    model (ske.AdaBoostRegressor): Underlying regression estimator managed by
@@ -5567,8 +5590,10 @@ class BaggingModel( Regression ):
 	"""BaggingModel regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.BaggingRegressor for bootstrap-aggregated regression over
-	    configurable base estimators, samples, features, and parallel execution.
+	    Bagging regression (Bootstrap Aggregating) is a machine learning ensemble method that
+	    reduces model variance and prevents overfitting. It creates random subsets of data with
+	    replacement, trains a base regression model (like a decision tree) on each subset
+	    independently, and averages all the individual numerical predictions
 	
 	Attributes:
 	    model (ske.BaggingRegressor): Underlying regression estimator managed by the
@@ -5983,8 +6008,10 @@ class VotingModel( Regression ):
 	"""VotingModel regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.VotingRegressor for averaging predictions from multiple named
-	    regression estimators with optional weights.
+	    A voting regressor is a machine learning ensemble meta-estimator that combines distinct
+	    base regression models to predict continuous numerical values. It fits multiple models on
+	    the entire dataset and computes a final prediction by taking the average or the weighted
+	    average of all individual model predictions
 	
 	Attributes:
 	    model (ske.VotingRegressor): Underlying regression estimator managed by the
@@ -6364,8 +6391,11 @@ class StackingModel( Regression ):
 	"""StackingModel regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.ensemble.StackingRegressor for stacked generalization using base
-	    regressors, a final estimator, cross-validation, and optional passthrough features.
+	    Stacking regression is an advanced machine learning ensemble technique that combines
+	    multiple base regression models (like linear regression, support vector regression, or
+	    random forests) using a final meta-model. Instead of taking a simple average, the meta-model
+	    learns how to best weigh and combine the predictions of the base models to output a final,
+	    more accurate prediction.
 	
 	Attributes:
 	    model (ske.StackingRegressor): Underlying regression estimator managed by
@@ -6767,8 +6797,10 @@ class SupportVector( Regression ):
 	"""SupportVector regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.svm.SVR for kernel-based support-vector regression with configurable
-	    kernel, regularization, tolerance, epsilon, and cache behavior.
+	    Support Vector Regression (SVR) is a machine learning algorithm that predicts continuous
+	    numbers. Instead of minimizing all errors like normal regression, SVR builds a flexible
+	    error boundary (tube) around the data. It ignores errors smaller than a set limit (ε)
+	    and focuses only on hard points outside the boundary
 	
 	Attributes:
 	    model (skv.SVR): Underlying regression estimator managed by the class/object.
@@ -7160,9 +7192,10 @@ class GaussianProcess( Regression ):
 	"""GaussianProcess regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.gaussian_process.GaussianProcessRegressor for kernel-based
-	    probabilistic regression with optimizer, alpha, restart, and normalization
-	    configuration.
+	    Gaussian Process Regression (GPR) is a non-parametric, probabilistic machine learning method.
+	    Instead of outputting a single estimated value, GPR predicts a complete probability distribution
+	    over all possible functions. It provides both a predicted mean value and an explicit measure
+	    of uncertainty for every data point
 	
 	Attributes:
 	    model (GaussianProcessRegressor): Underlying regression estimator managed by
@@ -7500,9 +7533,10 @@ class MultiLayerPerceptron( Regression ):
 	"""MultiLayerPerceptron regression class/object.
 	
 	Purpose:
-	    Wraps sklearn.neural_network.MLPRegressor for feed-forward neural-network regression
-	    with configurable architecture, activation, solver, regularization, and learning
-	    behavior.
+	    A Multilayer Perceptron (MLP) for regression is a feedforward artificial neural network
+	    designed to predict continuous numerical values. Unlike classification models that output
+	    class probabilities via a softmax layer, a regression MLP uses a linear output node with
+	    an identity activation function and is optimized using loss functions like mean squared error (MSE)
 	
 	Attributes:
 	    model (skm.MLPRegressor): Underlying regression estimator managed by the

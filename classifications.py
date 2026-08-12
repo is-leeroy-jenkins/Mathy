@@ -7480,10 +7480,10 @@ class MultiLayerPerceptron( Classifier ):
 	"""MultiLayerPerceptron classifier class/object.
 	
 	Purpose:
-	    A Multilayer Perceptron (MLP) for regression is a feedforward artificial neural network
-	    designed to predict continuous numerical values. Unlike classification models that output
-	    class probabilities via a softmax layer, a regression MLP uses a linear output node with
-	    an identity activation function and is optimized using loss functions like mean squared error (MSE).
+	    A Multilayer Perceptron Classifier (MLP) is a feedforward artificial neural network that
+	    maps sets of input data onto a set of appropriate outputs. It consists of an input layer,
+	    one or more hidden layers, and an output layer, using backpropagation for supervised
+	    training to categorize complex, non-linear data.
 	
 	Attributes:
 	    model (snn.MLPClassifier): Underlying sklearn or statsmodels estimator.
