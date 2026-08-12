@@ -301,7 +301,6 @@ class Classifier( ):
 			throw_if( 'y', y )
 			y_pred = self.project( X )
 			self.testing_score = float( self.model.score( X, y ) )
-			
 			if self.training_score is None:
 				self.training_score = self.testing_score
 			
@@ -316,7 +315,6 @@ class Classifier( ):
 				zero_division=0 )
 			
 			self.confusion_matrix_values = confusion_matrix( y, y_pred )
-			
 			_metrics = { 'Training Score': self.training_score, 'Testing Score':
 				self.testing_score,
 				'Mis-Classifications': self.misclass, 'Precision Score': self.precision,
@@ -451,8 +449,7 @@ class Perceptron( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
 	def __init__( self, alpha: float=0.001, eta: float=1.0, iters: int=1000,
-			shuffle: bool=False, penalty: Optional[ str ] = None,
-			random: int=42 ) -> None:
+			shuffle: bool=False, penalty: Optional[ str ]=None, random: int=42 ) -> None:
 		"""Initialize Perceptron.
 		
 		Purpose:
@@ -834,25 +831,11 @@ class Perceptron( Classifier ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -915,9 +898,8 @@ class LeastSquares( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=0.0001, eta: float=0.01, iters: int=1000,
-			shuffle: bool=False, penalty: Optional[ str ] = 'l2',
-			random: int=42 ) -> None:
+	def __init__( self, alpha: float=0.0001, eta: float=0.01, iters: int=1000, shuffle: bool=False,
+		penalty: Optional[ str ] = 'l2', random: int=42 ) -> None:
 		"""Initialize LeastSquares.
 		
 		Purpose:
@@ -1377,9 +1359,8 @@ class LogisticRegression( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, C: float=1.0, penalty: str = 'l2', iters: int=1000,
-			multiclass: str = 'multinomial', solver: str = 'lbfgs',
-			random: int=42 ) -> None:
+	def __init__( self, C: float=1.0, penalty: str='l2', iters: int=1000,
+		multiclass: str='multinomial', solver: str='lbfgs', random: int=42 ) -> None:
 		"""Initialize LogisticRegression.
 		
 		Purpose:
@@ -1790,7 +1771,6 @@ class LogisticRegression( Classifier ):
 			probability = self.predict_probability( X )
 			fpr, tpr, _ = roc_curve( y, probability[ :, 1 ], pos_label=classes[ 1 ] )
 			roc_auc = auc( fpr, tpr )
-			
 			plt.plot( fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.4f})' )
 			plt.plot( [ 0, 1 ], [ 0, 1 ], linestyle='--', label='Random Guess' )
 			plt.xlim( [ -0.01, 1.01 ] )
@@ -1836,25 +1816,11 @@ class LogisticRegression( Classifier ):
 			_text = f'Training Score = {_training:.1%}\nTesting Score = {_testing:.1%}\n'
 			y_pred = self.project( X )
 			plt.figure( figsize=(8, 6) )
-			sns.regplot(
-				x=y,
-				y=y_pred,
-				scatter_kws={ 'alpha': 0.6 },
-				line_kws={ 'color': 'red' }
-			)
-			plt.plot(
-				[ y.min( ), y.max( ) ],
-				[ y.min( ), y.max( ) ],
-				'k--',
-				label='Perfect Prediction'
-			)
-			plt.text(
-				x=y.min( ),
-				y=y.max( ) * 0.95,
-				s=_text,
-				fontsize=8,
-				bbox=dict( facecolor='white', alpha=0.7 )
-			)
+			sns.regplot( x=y, y=y_pred, scatter_kws={ 'alpha': 0.6 }, line_kws={ 'color': 'red' } )
+			plt.plot( [ y.min( ), y.max( ) ], [ y.min( ), y.max( ) ], 'k--',
+				label='Perfect Prediction' )
+			plt.text( x=y.min( ), y=y.max( ) * 0.95, s=_text, fontsize=8,
+				bbox=dict( facecolor='white', alpha=0.7 ) )
 			plt.xlabel( 'Observations' )
 			plt.ylabel( 'Estimates' )
 			plt.title( 'Observations vs Estimates' )
@@ -1919,8 +1885,8 @@ class Ridge( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=1.0, solver: str = 'auto', iters: int=1000,
-			rando: int=42 ) -> None:
+	def __init__( self, alpha: float=1.0, solver: str='auto', iters: int=1000,
+		rando: int=42 ) -> None:
 		"""Initialize Ridge.
 		
 		Purpose:
@@ -2293,9 +2259,8 @@ class Lasso( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42,
-			threshold: float=0.5,
-			selection: str = 'random' ) -> None:
+	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42, threshold: float=0.5,
+			selection: str='random' ) -> None:
 		"""Initialize Lasso.
 		
 		Purpose:
@@ -2651,12 +2616,9 @@ class GradientDescent( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'hinge', iters: int=100,
-			reg: str = 'l2', alpha: float=0.00001,
-			ave: bool=True, rate: str = 'optimal',
-			penalty: str | None = None, shuffle: bool=True,
-			eta: float=0.0, learning: str | None = None,
-			power: float=0.5, epsilon: float=0.1,
+	def __init__( self, loss: str = 'hinge', iters: int=100, reg: str = 'l2', alpha: float=0.00001,
+			ave: bool=True, rate: str = 'optimal', penalty: str | None = None, shuffle: bool=True,
+			eta: float=0.0, learning: str | None = None, power: float=0.5, epsilon: float=0.1,
 			rando: int | None = 42 ) -> None:
 		"""Initialize the stochastic-gradient classifier.
 		
@@ -4142,10 +4104,9 @@ class RandomForest( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int=100, depth: Optional[ int ] = None,
-			criterion: str = 'gini', jobs: int=-1, random: int=42,
-			n_estimators: Optional[ int ] = None, min_split: int=2,
-			min_leaf: int=1 ) -> None:
+	def __init__( self, estimators: int=100, depth: Optional[ int ]=None, criterion: str='gini',
+		jobs: int=-1, random: int=42, n_estimators: Optional[ int ]=None, min_split: int=2,
+		min_leaf: int=1 ) -> None:
 		"""Initialize the random-forest classifier.
 		
 		Purpose:
@@ -4177,15 +4138,10 @@ class RandomForest( Classifier ):
 		self.min_samples_split = min_split
 		self.min_samples_leaf = min_leaf
 		self.validate_configuration( )
-		self.model = ske.RandomForestClassifier(
-			n_estimators=self.n_estimators,
-			max_depth=self.max_depth,
-			criterion=self.criterion,
-			n_jobs=self.n_jobs,
-			random_state=self.random_state,
-			min_samples_split=self.min_samples_split,
-			min_samples_leaf=self.min_samples_leaf
-		)
+		self.model = ske.RandomForestClassifier( n_estimators=self.n_estimators,
+			max_depth=self.max_depth, criterion=self.criterion, n_jobs=self.n_jobs,
+			random_state=self.random_state, min_samples_split=self.min_samples_split,
+			min_samples_leaf=self.min_samples_leaf )
 	
 	def __dir__( self ) -> List[ str ]:
 		"""List public members.
@@ -4368,7 +4324,7 @@ class RandomForest( Classifier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Generate classifier predictions.
 		
 		Purpose:
@@ -5201,9 +5157,8 @@ class AdaptiveBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, estimators: int=50,
-			rate: float=1.0, algorithm: str = 'SAMME',
-			random: int=42 ) -> None:
+	def __init__( self, base: object=None, estimators: int=50, rate: float=1.0,
+		algorithm: str = 'SAMME', random: int=42 ) -> None:
 		"""Initialize AdaptiveBoost.
 		
 		Purpose:
@@ -5744,10 +5699,8 @@ class BaggingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, num: int=10,
-			max: int | float = 1.0, rando: int=42,
-			estimators: Optional[ int ] = None,
-			random: Optional[ int ] = None ) -> None:
+	def __init__( self, base: object=None, num: int=10, max: int | float=1.0, rando: int=42,
+			estimators: Optional[ int ]=None, random: Optional[ int ]=None ) -> None:
 		"""Initialize BaggingModel.
 		
 		Purpose:
@@ -5873,9 +5826,8 @@ class BaggingModel( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 		
 		Purpose:
@@ -5940,7 +5892,7 @@ class BaggingModel( Classifier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray:
 		"""Generate classifier predictions.
 		
 		Purpose:
@@ -6319,9 +6271,8 @@ class VotingModel( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,
-	                                                  np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+		random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""Split feature and target data.
 		
 		Purpose:
@@ -6594,7 +6545,7 @@ class StackingModel( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, est: List[ Tuple[ str, ClassifierMixin ] ],
-			final: ClassifierMixin = None ) -> None:
+		final: ClassifierMixin=None ) -> None:
 		"""Initialize StackingModel.
 		
 		Purpose:
@@ -6980,7 +6931,7 @@ class SupportVector( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	degree: int
 	
-	def __init__( self, C: float=1.0, kernel: str = 'rbf', degree: int=3,
+	def __init__( self, C: float=1.0, kernel: str='rbf', degree: int=3,
 			random: int=42 ) -> None:
 		"""Initialize SupportVector.
 		

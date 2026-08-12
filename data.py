@@ -56,27 +56,51 @@ from typing import Dict, Optional, List, Any
 from boogr import Error, Logger
 from encoders import Encoder, LabelEncoder, TargetEncoder, OrdinalEncoder, OneHotEncoder
 
-def throw_if( name: str, value: object ):
+def throw_if( name: str, value: object ) -> None:
+	"""Validate a required clustering argument.
+	
+	Purpose:
+	    Enforces the presence of required clustering inputs before estimator execution. The
+	    validation accepts populated NumPy arrays and standard Python containers while
+	    rejecting null values and empty collections that would otherwise cause downstream
+	    sklearn operations to fail or produce undefined clustering results.
+	
+	Args:
+	    name (str): Argument name used in the validation error message.
+	    value (object): Argument value checked for a null or empty state.
+	
+	Returns:
+	    None: This function performs its work through side effects and does not return a
+	          value.
+	
+	Raises:
+	    ValueError: Raised when `value` is None or empty."""
 	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, np.ndarray ) and value.size == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, (str, list, tuple, dict, set) ) and len( value ) == 0:
 		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 def entropy( y: np.ndarray ) -> float | None:
 	"""Calculate label entropy.
 	
 	Purpose:
-		Computes Shannon entropy for a one-dimensional label distribution. The calculation
-		converts observed class counts into probabilities and returns a non-negative impurity
-		measure suitable for split evaluation, decision-tree criteria, and information-gain
-		calculations.
+	    Computes Shannon entropy for a one-dimensional label distribution. The calculation
+	    converts observed class counts into probabilities and returns a non-negative
+	    impurity measure suitable for split evaluation, decision-tree criteria, and
+	    information-gain calculations.
 	
 	Args:
-		y (np.ndarray): Class-label array used to estimate empirical class probabilities.
+	    y (np.ndarray): Class-label array used to estimate empirical class probabilities.
 	
 	Returns:
-		Entropy value for the observed label distribution.
+	    float | None: Entropy value for the observed label distribution.
 	
 	Raises:
-		Error: Raised when argument validation or entropy calculation fails."""
+	    Error: Raised when argument validation or entropy calculation fails."""
 	try:
 		throw_if( 'y', y )
 		unique, counts = np.unique( y, return_counts=True )
@@ -95,21 +119,23 @@ def information_gain( X_column: np.ndarray, y: np.ndarray, threshold: float ) ->
 	"""Compute information gain.
 	
 	Purpose:
-		Calculates the reduction in entropy achieved by splitting a target label vector on a
-		single feature threshold. The result supports decision-tree split selection by comparing
-		parent entropy against the weighted entropy of the left and right partitions.
+	    Calculates the reduction in entropy achieved by splitting a target label vector on a
+	    single feature threshold. The result supports decision-tree split selection by
+	    comparing parent entropy against the weighted entropy of the left and right
+	    partitions.
 	
 	Args:
-		X_column (np.ndarray): One-dimensional feature array used to form the threshold split.
-		y (np.ndarray): Target-label array aligned to `X_column`.
-		threshold (float): Split value used to separate left and right partitions.
+	    X_column (np.ndarray): One-dimensional feature array used to form the threshold
+	                           split.
+	    y (np.ndarray): Target-label array aligned to `X_column`.
+	    threshold (float): Split value used to separate left and right partitions.
 	
 	Returns:
-		Information-gain value for the requested split, or zero when the split produces an empty
-		partition.
+	    float | None: Information-gain value for the requested split, or zero when the split
+	                  produces an empty partition.
 	
 	Raises:
-		Error: Raised when entropy calculation or threshold partitioning fails."""
+	    Error: Raised when entropy calculation or threshold partitioning fails."""
 	try:
 		parent_entropy = entropy( y )
 		left_idx = X_column <= threshold
@@ -135,20 +161,23 @@ def best_split( X: np.ndarray, y: np.ndarray, number: int = 10 ) -> Tuple[ int, 
 	"""Find the best entropy split.
 	
 	Purpose:
-	    Searches each feature column across evenly spaced candidate thresholds and selects the
-	    feature-threshold pair with the highest information gain. The returned pair is suitable
-	    for constructing a simple decision rule or one-level decision-tree stump.
+	    Searches each feature column across evenly spaced candidate thresholds and selects
+	    the feature-threshold pair with the highest information gain. The returned pair is
+	    suitable for constructing a simple decision rule or one-level decision-tree stump.
 	
 	Args:
-	    X (np.ndarray): Feature matrix with rows as samples and columns as candidate split features.
+	    X (np.ndarray): Feature matrix with rows as samples and columns as candidate split
+	                    features.
 	    y (np.ndarray): Target-label array aligned to the rows of `X`.
 	    number (int): Number of candidate thresholds evaluated per feature.
 	
 	Returns:
-	    Tuple containing the selected feature index and threshold value.
+	    Tuple[int, float] | None: Tuple containing the selected feature index and threshold
+	                              value.
 	
 	Raises:
-	    Error: Raised when validation, threshold generation, or information-gain scoring fails."""
+	    Error: Raised when validation, threshold generation, or information-gain scoring
+	           fails."""
 	try:
 		throw_if( 'X', X )
 		throw_if( 'y', y )
@@ -178,14 +207,14 @@ def gini_impurity( p: float ) -> float | None:
 	
 	Purpose:
 	    Computes the Gini impurity for a binary class distribution represented by a success
-	    probability. The value measures expected classification impurity and is valid only for
-	    probabilities in the inclusive range from zero to one.
+	    probability. The value measures expected classification impurity and is valid only
+	    for probabilities in the inclusive range from zero to one.
 	
 	Args:
 	    p (float): Success probability for the positive class.
 	
 	Returns:
-	    Gini impurity value for the supplied Bernoulli probability.
+	    float | None: Gini impurity value for the supplied Bernoulli probability.
 	
 	Raises:
 	    Error: Raised when the probability is missing or outside the valid range."""
@@ -207,20 +236,23 @@ def decision_tree_stump( X: np.ndarray, y: np.ndarray, num_thresholds: int = 10 
 	"""Build a one-level decision stump.
 	
 	Purpose:
-	    Creates a single-feature classification rule by selecting the feature and threshold with
-	    maximum information gain. The resulting dictionary stores the selected split and majority
-	    labels for the left and right partitions.
+	    Creates a single-feature classification rule by selecting the feature and threshold
+	    with maximum information gain. The resulting dictionary stores the selected split
+	    and majority labels for the left and right partitions.
 	
 	Args:
-	    X (np.ndarray): Feature matrix containing normalized or comparable numeric feature values.
+	    X (np.ndarray): Feature matrix containing normalized or comparable numeric feature
+	                    values.
 	    y (np.ndarray): Integer class-label array aligned to the rows of `X`.
 	    num_thresholds (int): Number of candidate thresholds evaluated per feature.
 	
 	Returns:
-	    Dictionary describing the decision stump, or `None` when no valid split is identified.
+	    Dict[str, Any]: Dictionary describing the decision stump, or `None` when no valid
+	                    split is identified.
 	
 	Raises:
-	    Error: Raised when split selection, partitioning, or majority-label calculation fails."""
+	    Error: Raised when split selection, partitioning, or majority-label calculation
+	           fails."""
 	try:
 		field, depth = best_split( X, y, num_thresholds )
 		if field is None or depth is None:
@@ -249,19 +281,21 @@ def euclidian_distance( X: np.ndarray, centroids: np.ndarray ) -> np.ndarray:
 	"""Compute distances to centroids.
 	
 	Purpose:
-		Calculates Euclidean distances from each sample row to each centroid row. The resulting
-		distance matrix supports assignment steps in K-Means-style clustering workflows by
-		identifying the nearest centroid for every sample.
+	    Calculates Euclidean distances from each sample row to each centroid row. The
+	    resulting distance matrix supports assignment steps in K-Means-style clustering
+	    workflows by identifying the nearest centroid for every sample.
 	
 	Args:
-		X (np.ndarray): Feature matrix with rows as samples and columns as features.
-		centroids (np.ndarray): Centroid matrix with rows as cluster centers and columns as features.
+	    X (np.ndarray): Feature matrix with rows as samples and columns as features.
+	    centroids (np.ndarray): Centroid matrix with rows as cluster centers and columns as
+	                            features.
 	
 	Returns:
-		Distance matrix where each row corresponds to a sample and each column corresponds to a centroid.
+	    np.ndarray: Distance matrix where each row corresponds to a sample and each column
+	                corresponds to a centroid.
 	
 	Raises:
-		Error: Raised when validation or distance-matrix construction fails."""
+	    Error: Raised when validation or distance-matrix construction fails."""
 	try:
 		throw_if( 'X', X )
 		throw_if( 'centroids', centroids )
@@ -281,21 +315,23 @@ def k_means( X: np.ndarray, k: int, iters=10 ) -> Tuple[ np.ndarray, np.ndarray 
 	"""Cluster samples with K-Means.
 	
 	Purpose:
-	    Performs a compact manual K-Means clustering loop using random centroid initialization,
-	    Euclidean-distance assignment, centroid recomputation, and early stopping when centroids
-	    stabilize. The routine provides a lightweight clustering implementation independent of
-	    sklearn estimator classes.
+	    Performs a compact manual K-Means clustering loop using random centroid
+	    initialization, Euclidean-distance assignment, centroid recomputation, and early
+	    stopping when centroids stabilize. The routine provides a lightweight clustering
+	    implementation independent of sklearn estimator classes.
 	
 	Args:
 	    X (np.ndarray): Feature matrix with rows as samples and columns as numeric features.
 	    k (int): Number of clusters to form.
-	    iters (int): Maximum number of assignment and centroid-update iterations.
+	    iters (object): Maximum number of assignment and centroid-update iterations.
 	
 	Returns:
-	    Tuple containing the assigned cluster labels and final centroid matrix.
+	    Tuple[np.ndarray, np.ndarray] | None: Tuple containing the assigned cluster labels
+	                                          and final centroid matrix.
 	
 	Raises:
-	    Error: Raised when validation, centroid initialization, distance calculation, or updates fail."""
+	    Error: Raised when validation, centroid initialization, distance calculation, or
+	           updates fail."""
 	try:
 		throw_if( 'X', X )
 		centroids = X[ np.random.choice( X.shape[ 0 ], k, replace=False ) ]
@@ -328,18 +364,18 @@ def misclassification_error( p: float ) -> float | None:
 	"""Calculate Bernoulli misclassification error.
 	
 	Purpose:
-		Computes binary misclassification error from a class probability by subtracting the larger
-		class probability from one. The value supports impurity comparisons for simple binary split
-		criteria.
+	    Computes binary misclassification error from a class probability by subtracting the
+	    larger class probability from one. The value supports impurity comparisons for
+	    simple binary split criteria.
 	
 	Args:
-		p (float): Success probability for the positive class.
+	    p (float): Success probability for the positive class.
 	
 	Returns:
-		Misclassification error rate for the supplied probability.
+	    float | None: Misclassification error rate for the supplied probability.
 	
 	Raises:
-		Error: Raised when validation or error-rate calculation fails."""
+	    Error: Raised when validation or error-rate calculation fails."""
 	try:
 		throw_if( 'p', p )
 		_errors = 1 - np.max( [ p, 1 - p ] )
@@ -356,18 +392,19 @@ def sigmoid( z: float ) -> float | None:
 	"""Calculate the logistic sigmoid.
 	
 	Purpose:
-		Maps a real-valued input onto the interval from zero to one using the logistic sigmoid
-		transformation. The input is clipped to a stable exponent range before evaluating the
-		exponential expression.
+	    Maps a real-valued input onto the interval from zero to one using the logistic
+	    sigmoid transformation. The input is clipped to a stable exponent range before
+	    evaluating the exponential expression.
 	
 	Args:
-		z (float): Real-valued input to transform.
+	    z (float): Real-valued input to transform.
 	
 	Returns:
-		Logistic sigmoid value for the supplied input.
+	    float | None: Logistic sigmoid value for the supplied input.
 	
 	Raises:
-		Error: Raised when validation, numeric conversion, clipping, or exponentiation fails."""
+	    Error: Raised when validation, numeric conversion, clipping, or exponentiation
+	           fails."""
 	try:
 		throw_if( 'z', z )
 		z = float( np.clip( z, -709, 709 ) )
@@ -385,33 +422,55 @@ class DataSource( ):
 	"""Prepare tabular modeling data.
 	
 	Purpose:
-	    Wraps a pandas DataFrame with derived metadata, descriptive statistics, train/test splits,
-	    categorical and numeric partitions, encoding hooks, scaling hooks, pivot creation, export,
-	    and profiling utilities. The wrapper preserves the selected target column and maintains
-	    synchronized feature, target, numeric, categorical, and split attributes after supported
-	    transformations.
+	    Wraps a pandas DataFrame with derived metadata, descriptive statistics, train/test
+	    splits, categorical and numeric partitions, encoding hooks, scaling hooks, pivot
+	    creation, export, and profiling utilities. The wrapper preserves the selected target
+	    column and maintains synchronized feature, target, numeric, categorical, and split
+	    attributes after supported transformations.
 	
 	Attributes:
 	    data (pd.DataFrame): Working dataframe used by transformation and analysis methods.
 	    size (float): Test-set proportion used for train/test splitting.
 	    seed (int): Random seed used by the splitter.
 	    scaler (Optional[Scaler]): Most recent scaler wrapper used by scaling methods.
-	    label_encoder (Optional[OrdinalEncoder]): Most recent label or ordinal encoder wrapper.
-	    target_encoder (Optional[TargetEncoder]): Target encoder reserved for target-aware encoding.
+	    label_encoder (Optional[OrdinalEncoder]): Most recent label or ordinal encoder
+	                                              wrapper.
+	    target_encoder (Optional[TargetEncoder]): Target encoder reserved for target-aware
+	                                              encoding.
 	    target (Optional[str]): Name of the selected target column.
 	    targets (Optional[np.ndarray]): Current target values from the working dataframe.
-	    n_samples (Optional[int]): Number of rows in the working dataframe at initialization.
+	    n_samples (Optional[int]): Number of rows in the working dataframe at
+	                               initialization.
 	    n_features (Optional[int]): Number of non-target columns at initialization.
+	    percentiles (Optional[List[float]]): Percentile boundaries used to summarize numeric
+	                                         distributions.
+	    scaling_factor (Optional[int]): Multiplicative factor applied during data scaling.
 	    feature_names (Optional[List[str]]): Current non-target feature column names.
 	    target_names (Optional[np.ndarray]): Sorted unique target values.
 	    categorical_columns (Optional[List[str]]): Current categorical column names.
 	    numeric_columns (Optional[List[str]]): Current numeric column names.
 	    numeric_data (Optional[pd.DataFrame]): Current numeric-column dataframe slice.
-	    categorical_data (Optional[pd.DataFrame]): Current categorical-column dataframe slice.
-	    datatuple (Optional[List[Tuple[str, Encoder, List[str]]]]): ColumnTransformer definitions.
-	    numeric_metrics (Optional[pd.DataFrame]): Descriptive statistics for numeric columns.
-	    pivot_table (Optional[pd.DataFrame]): Most recent pivot table generated by `create_pivot`.
-	    column_transformer (Optional[ColumnTransformer]): Most recent fitted column transformer.
+	    categorical_data (Optional[pd.DataFrame]): Current categorical-column dataframe
+	                                               slice.
+	    datatuple (Optional[List[Tuple[str, Encoder, List[str]]]]): ColumnTransformer
+	                                                                definitions.
+	    numeric_metrics (Optional[pd.DataFrame]): Descriptive statistics for numeric
+	                                              columns.
+	    pivot_table (Optional[pd.DataFrame]): Most recent pivot table generated by
+	                                          `create_pivot`.
+	    mean_standard_error (Optional[pd.DataFrame]): Standard error calculated from the
+	                                                  feature means.
+	    average (Optional[pd.Series]): Averaging strategy or calculated arithmetic-mean
+	                                   values.
+	    kurtosis (Optional[pd.Series]): Calculated kurtosis values for numeric features.
+	    skew (Optional[pd.Series]): Calculated skewness values for numeric features.
+	    variance (Optional[pd.Series]): Calculated variance values for numeric features.
+	    covariance (Optional[pd.DataFrame]): Calculated covariance matrix for numeric
+	                                         features.
+	    standard_deviation (Optional[pd.Series]): Calculated standard-deviation values for
+	                                              numeric features.
+	    column_transformer (Optional[ColumnTransformer]): Most recent fitted column
+	                                                      transformer.
 	    X_training (Optional[pd.DataFrame]): Feature training split.
 	    X_testing (Optional[pd.DataFrame]): Feature testing split.
 	    y_training (Optional[pd.Series]): Target training split.
@@ -454,16 +513,20 @@ class DataSource( ):
 		"""Initialize the data source.
 		
 		Purpose:
-		    Copies the source dataframe, validates the requested target column, derives feature and
-		    target metadata, partitions numeric and categorical columns, computes descriptive
-		    statistics, initializes transformation state, and creates the initial train/test split
-		    used by downstream modeling wrappers.
+		    Copies the source dataframe, validates the requested target column, derives feature
+		    and target metadata, partitions numeric and categorical columns, computes
+		    descriptive statistics, initializes transformation state, and creates the initial
+		    train/test split used by downstream modeling wrappers.
 		
 		Args:
-		    df (pd.DataFrame): Source dataframe containing feature columns and the target column.
+		    df (pd.DataFrame): Source dataframe containing feature columns and the target
+		                       column.
 		    target (str): Name of the target column in `df`.
 		    size (float): Proportion of rows reserved for the testing split.
 		    rando (int): Random seed used by the train/test splitter.
+		
+		Returns:
+		    None: This method initializes the object and does not return a value.
 		
 		Raises:
 		    ArgumentError: Raised when the requested target column is not present in `df`.
@@ -510,64 +573,31 @@ class DataSource( ):
 		"""List public members.
 		
 		Purpose:
-		    Returns the stable set of attribute and method names exposed by the data-source wrapper
-		    for interactive discovery, IDE inspection, and notebook-oriented exploration.
+		    Returns the stable set of attribute and method names exposed by the data-source
+		    wrapper for interactive discovery, IDE inspection, and notebook-oriented
+		    exploration.
 		
 		Returns:
-		    Public member names exposed by the wrapper."""
-		return [ 'data',
-		         'target',
-		         'size',
-		         'seed',
-		         'scaler',
-		         'n_samples',
-		         'n_features',
-		         'targets',
-		         'target_names',
-		         'feature_names',
-		         'label_encoder',
-		         'target_encoder',
-		         'categorical_columns',
-		         'numeric_columns',
-		         'pivot_table',
-		         'mean_standard_error',
-		         'average',
-		         'kurtosis',
-		         'skew',
-		         'variance',
-		         'covariance',
-		         'numeric_data',
-		         'numeric_metrics',
-		         'standard_deviation',
-		         'categorical_data',
-		         'column_transformer',
-		         'datatuple',
-		         'X_training',
-		         'X_testing',
-		         'y_training',
-		         'y_testing',
-		         # Methods
-		         'export_excel',
-		         'create_heatmap',
-		         'transform_columns',
-		         'maxminize',
-		         'normalize',
-		         'standardize',
-		         'encode_targets',
-		         'encode_labels',
-		         'encode_features',
-		         'create_pivot',
-		         'create_histogram', ]
+		    None: Public member names exposed by the wrapper."""
+		return [ 'data', 'target', 'size', 'seed', 'scaler', 'n_samples', 'n_features', 'targets',
+			'target_names', 'feature_names', 'label_encoder', 'target_encoder',
+			'categorical_columns', 'numeric_columns', 'pivot_table', 'mean_standard_error',
+			'average', 'kurtosis', 'skew', 'variance', 'covariance', 'numeric_data',
+			'numeric_metrics', 'standard_deviation', 'categorical_data', 'column_transformer',
+			'datatuple', 'X_training', 'X_testing', 'y_training', 'y_testing', # Methods
+			'export_excel', 'create_heatmap', 'transform_columns', 'maxminize', 'normalize',
+			'standardize', 'encode_targets', 'encode_labels', 'encode_features', 'create_pivot',
+			'create_histogram', ]
 	
 	def transform_columns( self, name: str, encoder: Encoder,
 			columns: List[ str ] ) -> pd.DataFrame:
 		"""Transform selected columns.
 		
 		Purpose:
-		    Adds a named encoder definition to the internal ColumnTransformer, fits the transformer
-		    against current feature columns, rebuilds the working dataframe with transformed and
-		    passthrough columns, preserves the target values, refreshes metadata, and recreates the
-		    train/test split from the transformed dataset.
+		    Adds a named encoder definition to the internal ColumnTransformer, fits the
+		    transformer against current feature columns, rebuilds the working dataframe with
+		    transformed and passthrough columns, preserves the target values, refreshes
+		    metadata, and recreates the train/test split from the transformed dataset.
 		
 		Args:
 		    name (str): Transformer name used inside the ColumnTransformer definition.
@@ -575,10 +605,11 @@ class DataSource( ):
 		    columns (List[str]): Column names transformed by the supplied encoder.
 		
 		Returns:
-		    Updated working dataframe after column transformation.
+		    pd.DataFrame: Updated working dataframe after column transformation.
 		
 		Raises:
-		    Error: Raised when validation, transformation, dataframe reconstruction, or split refresh fails."""
+		    Error: Raised when validation, transformation, dataframe reconstruction, or split
+		           refresh fails."""
 		try:
 			throw_if( 'name', name )
 			throw_if( 'encoder', encoder )
@@ -617,12 +648,13 @@ class DataSource( ):
 		"""Standardize numeric data.
 		
 		Purpose:
-		    Applies the sklearn StandardScaler wrapper to the current numeric dataframe slice and returns the
-		    standardized numeric matrix. The fitted scaler is stored on the instance for later inspection
-		    or inverse transformation when supported by the scaler wrapper.
+		    Applies the sklearn StandardScaler wrapper to the current numeric dataframe slice
+		    and returns the standardized numeric matrix. The fitted scaler is stored on the
+		    instance for later inspection or inverse transformation when supported by the scaler
+		    wrapper.
 		
 		Returns:
-		    Standardized numeric data produced by the scaler wrapper.
+		    pd.DataFrame: Standardized numeric data produced by the scaler wrapper.
 		
 		Raises:
 		    Error: Raised when scaler construction or numeric transformation fails."""
@@ -642,12 +674,12 @@ class DataSource( ):
 		"""Scale numeric data to a bounded range.
 		
 		Purpose:
-		    Applies the MinMaxScaler wrapper to the current numeric dataframe slice and returns the
-		    scaled numeric matrix. The fitted scaler is stored on the instance so the scaling operation
-		    remains discoverable after execution.
+		    Applies the MinMaxScaler wrapper to the current numeric dataframe slice and returns
+		    the scaled numeric matrix. The fitted scaler is stored on the instance so the
+		    scaling operation remains discoverable after execution.
 		
 		Returns:
-		    Min-max scaled numeric data produced by the scaler wrapper.
+		    pd.DataFrame: Min-max scaled numeric data produced by the scaler wrapper.
 		
 		Raises:
 		    Error: Raised when scaler construction or numeric transformation fails."""
@@ -668,11 +700,11 @@ class DataSource( ):
 		
 		Purpose:
 		    Applies the NormalScaler to the current numeric dataframe slice and returns the
-		    normalized numeric matrix. The fitted scaler is stored on the instance for consistent access
-		    after the normalization operation completes.
+		    normalized numeric matrix. The fitted scaler is stored on the instance for
+		    consistent access after the normalization operation completes.
 		
 		Returns:
-		    Normalized numeric data produced by the scaler wrapper.
+		    pd.DataFrame: Normalized numeric data produced by the scaler wrapper.
 		
 		Raises:
 		    Error: Raised when scaler construction or numeric transformation fails."""
@@ -692,18 +724,19 @@ class DataSource( ):
 		"""Encode a label column.
 		
 		Purpose:
-		    Fits a LabelEncoder wrapper to the specified dataframe column, writes encoded labels back
-		    into the working dataframe, and refreshes target, numeric, or categorical cached slices when
-		    the encoded column participates in those instance attributes.
+		    Fits a LabelEncoder wrapper to the specified dataframe column, writes encoded labels
+		    back into the working dataframe, and refreshes target, numeric, or categorical
+		    cached slices when the encoded column participates in those instance attributes.
 		
 		Args:
 		    col (str): Name of the dataframe column to label-encode.
 		
 		Returns:
-		    Encoded label array produced by the label encoder.
+		    np.ndarray: Encoded label array produced by the label encoder.
 		
 		Raises:
-		    Error: Raised when validation, encoder fitting, transformation, or cache refresh fails."""
+		    Error: Raised when validation, encoder fitting, transformation, or cache refresh
+		           fails."""
 		try:
 			throw_if( 'col', col )
 			self.label_encoder = LabelEncoder( )
@@ -729,15 +762,16 @@ class DataSource( ):
 		"""Encode feature columns.
 		
 		Purpose:
-		    Applies an OrdinalEncoder wrapper to every non-target column, rebuilds the working dataframe
-		    with encoded features and the unchanged target column, refreshes metadata and cached slices,
-		    and recreates the train/test split from the encoded feature set.
+		    Applies an OrdinalEncoder wrapper to every non-target column, rebuilds the working
+		    dataframe with encoded features and the unchanged target column, refreshes metadata
+		    and cached slices, and recreates the train/test split from the encoded feature set.
 		
 		Returns:
-		    Updated working dataframe with encoded feature columns.
+		    pd.DataFrame: Updated working dataframe with encoded feature columns.
 		
 		Raises:
-		    Error: Raised when feature collection, encoding, dataframe reconstruction, or split refresh fails."""
+		    Error: Raised when feature collection, encoding, dataframe reconstruction, or split
+		           refresh fails."""
 		try:
 			features = [ ]
 			self.label_encoder = OrdinalEncoder( )
@@ -747,11 +781,7 @@ class DataSource( ):
 			
 			values = self.data[ features ].values
 			encoded_features = self.label_encoder.train_transform( values )
-			df_encoded = pd.DataFrame(
-				encoded_features,
-				columns=features,
-				index=self.data.index
-			)
+			df_encoded = pd.DataFrame( encoded_features, columns=features, index=self.data.index )
 			df_encoded[ self.target ] = self.data[ self.target ].values
 			self.data = df_encoded
 			self.feature_names = [ c for c in self.data.columns if c != self.target ]
@@ -762,11 +792,8 @@ class DataSource( ):
 			self.categorical_data = self.data[ self.categorical_columns ].copy( )
 			self.targets = self.data[ self.target ].values
 			self.X_training, self.X_testing, self.y_training, self.y_testing = split(
-				self.data[ self.feature_names ],
-				self.data[ self.target ],
-				test_size=self.size,
-				random_state=self.seed
-			)
+				self.data[ self.feature_names ], self.data[ self.target ], test_size=self.size,
+				random_state=self.seed )
 			return self.data
 		except Exception as e:
 			exception = Error( e )
@@ -780,12 +807,12 @@ class DataSource( ):
 		"""Encode target values.
 		
 		Purpose:
-		    Fits a LabelEncoder wrapper to the current target values, writes encoded targets back into
-		    the working dataframe, refreshes target arrays and target names, and recreates the train/test
-		    split with the encoded target column.
+		    Fits a LabelEncoder wrapper to the current target values, writes encoded targets
+		    back into the working dataframe, refreshes target arrays and target names, and
+		    recreates the train/test split with the encoded target column.
 		
 		Returns:
-		    Encoded target array produced by the label encoder.
+		    np.ndarray: Encoded target array produced by the label encoder.
 		
 		Raises:
 		    Error: Raised when target encoding, metadata refresh, or split recreation fails."""
@@ -796,11 +823,8 @@ class DataSource( ):
 			self.targets = self.data[ self.target ].values
 			self.target_names = np.array( sorted( np.unique( self.targets ) ) )
 			self.X_training, self.X_testing, self.y_training, self.y_testing = split(
-				self.data[ self.feature_names ],
-				self.data[ self.target ],
-				test_size=self.size,
-				random_state=self.seed
-			)
+				self.data[ self.feature_names ], self.data[ self.target ], test_size=self.size,
+				random_state=self.seed )
 			return encoded_targets
 		except Exception as e:
 			exception = Error( e )
@@ -814,9 +838,9 @@ class DataSource( ):
 		"""Create a pivot table.
 		
 		Purpose:
-		    Builds a spreadsheet-style pivot table from the working dataframe using explicit row-index,
-		    column-axis, and value-column selections. The generated pivot is cached on the instance for
-		    later access by reporting or inspection code.
+		    Builds a spreadsheet-style pivot table from the working dataframe using explicit
+		    row-index, column-axis, and value-column selections. The generated pivot is cached
+		    on the instance for later access by reporting or inspection code.
 		
 		Args:
 		    cols (List): Columns used to define the pivot-table column axis.
@@ -824,7 +848,7 @@ class DataSource( ):
 		    idx (List): Columns used to define the pivot-table row index.
 		
 		Returns:
-		    Pivot table generated from the working dataframe.
+		    pd.DataFrame: Pivot table generated from the working dataframe.
 		
 		Raises:
 		    Error: Raised when validation or pivot-table creation fails."""
@@ -847,12 +871,16 @@ class DataSource( ):
 		"""Export data to Excel.
 		
 		Purpose:
-		    Writes the current working dataframe to an Excel workbook at the supplied file path. The
-		    method delegates file creation to pandas and preserves the dataframe exactly as stored on
-		    the instance at export time.
+		    Writes the current working dataframe to an Excel workbook at the supplied file path.
+		    The method delegates file creation to pandas and preserves the dataframe exactly as
+		    stored on the instance at export time.
 		
 		Args:
 		    filepath (str): Output workbook path passed to pandas `to_excel`.
+		
+		Returns:
+		    None: This function performs its work through side effects and does not return a
+		          value.
 		
 		Raises:
 		    Error: Raised when validation or workbook export fails."""
@@ -871,8 +899,13 @@ class DataSource( ):
 		"""Render a numeric histogram.
 		
 		Purpose:
-		    Aggregates numeric dataframe columns, plots their distribution with seaborn, and renders the
-		    histogram through matplotlib for exploratory review of numeric feature totals.
+		    Aggregates numeric dataframe columns, plots their distribution with seaborn, and
+		    renders the histogram through matplotlib for exploratory review of numeric feature
+		    totals.
+		
+		Returns:
+		    None: This function performs its work through side effects and does not return a
+		          value.
 		
 		Raises:
 		    Error: Raised when numeric aggregation or plot rendering fails."""
@@ -896,12 +929,16 @@ class DataSource( ):
 		"""Render a correlation heatmap.
 		
 		Purpose:
-		    Computes the Pearson correlation matrix for the working dataframe and renders a seaborn
-		    heatmap for exploratory analysis of numeric relationships. The `numeric` flag controls
-		    pandas correlation handling for numeric-only selection.
+		    Computes the Pearson correlation matrix for the working dataframe and renders a
+		    seaborn heatmap for exploratory analysis of numeric relationships. The `numeric`
+		    flag controls pandas correlation handling for numeric-only selection.
 		
 		Args:
 		    numeric (bool): Flag passed to pandas correlation logic for numeric-only behavior.
+		
+		Returns:
+		    None: This function performs its work through side effects and does not return a
+		          value.
 		
 		Raises:
 		    Error: Raised when correlation calculation or heatmap rendering fails."""
@@ -923,16 +960,16 @@ class DataSource( ):
 		"""Return a clean numeric series.
 		
 		Purpose:
-		    Converts the selected dataframe column to numeric values, coerces invalid entries to missing
-		    values, drops missing observations, and returns a one-dimensional float array suitable for
-		    descriptive statistics and distribution profiling.
+		    Converts the selected dataframe column to numeric values, coerces invalid entries to
+		    missing values, drops missing observations, and returns a one-dimensional float
+		    array suitable for descriptive statistics and distribution profiling.
 		
 		Args:
 		    df (pd.DataFrame): Source dataframe containing the requested column.
 		    col (str): Column name converted to numeric values.
 		
 		Returns:
-		    One-dimensional float array with invalid and missing values removed."""
+		    np.ndarray: One-dimensional float array with invalid and missing values removed."""
 		v = pd.to_numeric( df[ col ], errors="coerce" ).dropna( ).values.astype( float )
 		return v
 	
@@ -940,18 +977,19 @@ class DataSource( ):
 		"""Create a numeric feature profile.
 		
 		Purpose:
-		    Computes an extended descriptive statistics profile for selected numeric columns, including
-		    missing-rate, count, mean, standard deviation, variance, percentile, interquartile range,
-		    median absolute deviation, skewness, kurtosis, zero-rate, outlier-rate, and normality fields.
-		    The returned profile is sorted to prioritize complete columns with higher IQR-based outlier
-		    rates.
+		    Computes an extended descriptive statistics profile for selected numeric columns,
+		    including missing-rate, count, mean, standard deviation, variance, percentile,
+		    interquartile range, median absolute deviation, skewness, kurtosis, zero-rate,
+		    outlier-rate, and normality fields. The returned profile is sorted to prioritize
+		    complete columns with higher IQR-based outlier rates.
 		
 		Args:
 		    df (pd.DataFrame): Source dataframe containing the columns to profile.
 		    cols (List[str]): Numeric column names included in the profile.
 		
 		Returns:
-		    Dataframe containing one profile row per numeric feature with descriptive and quality metrics."""
+		    pd.DataFrame: Dataframe containing one profile row per numeric feature with
+		                  descriptive and quality metrics."""
 		rows: List[ Dict[ str, Any ] ] = [ ]
 		n = df.shape[ 0 ]
 		percentiles = [ 0, 1, 5, 10, 25, 50, 75, 90, 95, 99, 100 ]
@@ -999,40 +1037,17 @@ class DataSource( ):
 			except Exception:
 				normal_p = None
 			
-			rows.append(
-				{
-						"feature": c,
-						"count": int( v.size ),
-						"missing_pct": float( (missing / n) * 100.0 ) if n else 0.0,
-						"mean": mean,
-						"std": std,
-						"var": var,
-						"min": float( q[ 0 ] ),
-						"p01": float( q[ 1 ] ),
-						"p05": float( q[ 5 ] ),
-						"p10": float( q[ 10 ] ),
-						"q1": float( q[ 25 ] ),
-						"median": float( q[ 50 ] ),
-						"q3": float( q[ 75 ] ),
-						"p90": float( q[ 90 ] ),
-						"p95": float( q[ 95 ] ),
-						"p99": float( q[ 99 ] ),
-						"max": float( q[ 100 ] ),
-						"iqr": iqr,
-						"range": rng,
-						"mad": mad,
-						"skew": skew,
-						"kurtosis": kurt,
-						"zero_pct": zero_pct,
-						"outlier_iqr_pct": out_iqr,
-						"outlier_z3_pct": out_z3,
-						"normality_p": normal_p,
-				}
-			)
+			rows.append( { "feature": c, "count": int( v.size ),
+				"missing_pct": float( (missing / n) * 100.0 ) if n else 0.0, "mean": mean,
+				"std": std, "var": var, "min": float( q[ 0 ] ), "p01": float( q[ 1 ] ),
+				"p05": float( q[ 5 ] ), "p10": float( q[ 10 ] ), "q1": float( q[ 25 ] ),
+				"median": float( q[ 50 ] ), "q3": float( q[ 75 ] ), "p90": float( q[ 90 ] ),
+				"p95": float( q[ 95 ] ), "p99": float( q[ 99 ] ), "max": float( q[ 100 ] ),
+				"iqr": iqr, "range": rng, "mad": mad, "skew": skew, "kurtosis": kurt,
+				"zero_pct": zero_pct, "outlier_iqr_pct": out_iqr, "outlier_z3_pct": out_z3,
+				"normality_p": normal_p, } )
 		
 		out = pd.DataFrame( rows )
 		if out.empty:
 			return out
-		return out.sort_values(
-			[ "missing_pct", "outlier_iqr_pct" ], ascending=[ True, False ]
-		)
+		return out.sort_values( [ "missing_pct", "outlier_iqr_pct" ], ascending=[ True, False ] )

@@ -19974,8 +19974,7 @@ elif mode == 'SQL Console':
 						last_saved_table.lower( ), None )
 					
 					if tracked_table is None:
-						st.session_state[
-							'sql_console_last_saved_table' ] = None
+						st.session_state[ 'sql_console_last_saved_table' ] = None
 						
 						st.warning(
 							f'Table "{last_saved_table}" no longer exists in the database.' )

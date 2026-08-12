@@ -66,26 +66,55 @@ from sklearn.metrics import classification_report
 from boogr import Error, Logger
 
 def throw_if( name: str, value: object ) -> None:
+	"""Validate a required clustering argument.
+	
+	Purpose:
+	    Enforces the presence of required clustering inputs before estimator execution. The
+	    validation accepts populated NumPy arrays and standard Python containers while
+	    rejecting null values and empty collections that would otherwise cause downstream
+	    sklearn operations to fail or produce undefined clustering results.
+	
+	Args:
+	    name (str): Argument name used in the validation error message.
+	    value (object): Argument value checked for a null or empty state.
+	
+	Returns:
+	    None: This function performs its work through side effects and does not return a
+	          value.
+	
+	Raises:
+	    ValueError: Raised when `value` is None or empty."""
 	if value is None:
-		raise Exception( f'Argument "{name}" cannot be empty!' )
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, np.ndarray ) and value.size == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, (str, list, tuple, dict, set) ) and len( value ) == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 class Outlier( ):
 	"""Outlier-analysis interface.
 	
 	Purpose:
-	    Establishes the common contract implemented by anomaly-detection wrappers in this module.
-	    The interface defines shared runtime attributes for predictions, anomaly scores, inlier
-	    counts, and outlier counts while requiring concrete estimators to provide training,
-	    projection, scoring, and analysis behavior.
+	    Establishes the common contract implemented by anomaly-detection wrappers in this
+	    module. The interface defines shared runtime attributes for predictions, anomaly
+	    scores, inlier counts, and outlier counts while requiring concrete estimators to
+	    provide training, projection, scoring, and analysis behavior.
 	
 	Attributes:
 	    prediction (Optional[np.ndarray]): Most recent inlier/outlier prediction vector.
-	    probability (Optional[np.ndarray]): Optional probability output retained for interface compatibility.
-	    decision (Optional[np.ndarray]): Optional decision-function output retained for interface compatibility.
-	    max_depth (Optional[int]): Optional model-depth metadata retained for interface compatibility.
-	    random_state (Optional[int]): Optional random-state metadata retained for interface compatibility.
+	    probability (Optional[np.ndarray]): Optional probability output retained for
+	                                        interface compatibility.
+	    decision (Optional[np.ndarray]): Optional decision-function output retained for
+	                                     interface compatibility.
+	    max_depth (Optional[int]): Optional model-depth metadata retained for interface
+	                               compatibility.
+	    random_state (Optional[int]): Optional random-state metadata retained for interface
+	                                  compatibility.
 	    anomaly_scores (Optional[float]): Most recent anomaly-score output or summary value.
-	    learning_rate (Optional[float]): Optional learning-rate metadata retained for interface compatibility.
+	    learning_rate (Optional[float]): Optional learning-rate metadata retained for
+	                                     interface compatibility.
 	    outliers (Optional[float]): Count of samples predicted as outliers.
 	    inliers (Optional[float]): Count of samples predicted as inliers."""
 	prediction: Optional[ np.ndarray ]
@@ -99,6 +128,13 @@ class Outlier( ):
 	inliers: Optional[ float ]
 	
 	def __init__( self ):
+		"""Initializes a `Outlier` instance and its runtime state.
+		
+		Purpose:
+		    Initializes a `Outlier` instance and its runtime state.
+		
+		Returns:
+		    None: This method initializes the object and does not return a value."""
 		self.outliers = 0.0
 		self.inliers = 0.0
 	
@@ -106,16 +142,16 @@ class Outlier( ):
 		"""Fit an outlier detector.
 		
 		Purpose:
-		    Defines the required training contract for concrete anomaly-detection wrappers. Implementations
-		    must fit the wrapped estimator to a feature matrix and return the fitted wrapper when training
-		    completes.
+		    Defines the required training contract for concrete anomaly-detection wrappers.
+		    Implementations must fit the wrapped estimator to a feature matrix and return the
+		    fitted wrapper when training completes.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to fit the detector.
 		    y (np.ndarray): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Fitted concrete detector wrapper.
+		    object | None: Fitted concrete detector wrapper.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -126,14 +162,16 @@ class Outlier( ):
 		
 		Purpose:
 		    Defines the required projection contract for concrete anomaly-detection wrappers.
-		    Implementations must return a vector of inlier and outlier labels for the supplied samples.
+		    Implementations must return a vector of inlier and outlier labels for the supplied
+		    samples.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to generate predictions.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Prediction vector where `1` denotes inlier samples and `-1` denotes outlier samples.
+		    np.ndarray: Prediction vector where `1` denotes inlier samples and `-1` denotes
+		                outlier samples.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -143,15 +181,16 @@ class Outlier( ):
 		"""Score anomaly predictions.
 		
 		Purpose:
-		    Defines the required scoring contract for concrete anomaly-detection wrappers. Implementations
-		    must return estimator-specific score output suitable for per-sample review or model diagnostics.
+		    Defines the required scoring contract for concrete anomaly-detection wrappers.
+		    Implementations must return estimator-specific score output suitable for per-sample
+		    review or model diagnostics.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute anomaly scores.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Estimator-specific anomaly score output.
+		    float: Estimator-specific anomaly score output.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -161,16 +200,18 @@ class Outlier( ):
 		"""Analyze anomaly results.
 		
 		Purpose:
-		    Defines the required analysis contract for concrete anomaly-detection wrappers. Implementations
-		    must summarize inlier and outlier counts, calculate quality or contamination metrics, and return
-		    a compact analysis object for downstream reporting.
+		    Defines the required analysis contract for concrete anomaly-detection wrappers.
+		    Implementations must summarize inlier and outlier counts, calculate quality or
+		    contamination metrics, and return a compact analysis object for downstream
+		    reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to generate the analysis.
 		    y (np.ndarray): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Dictionary or dataframe containing aggregate anomaly-detection metrics.
+		    Dict[str, float] | None: Dictionary or dataframe containing aggregate
+		                             anomaly-detection metrics.
 		
 		Raises:
 		    NotImplementedError: Raised when the base interface method is called directly."""
@@ -180,10 +221,10 @@ class IsolationForest( Outlier ):
 	"""Wrap sklearn IsolationForest.
 	
 	Purpose:
-	    Detects anomalies by fitting an ensemble of randomized isolation trees and identifying samples
-	    that require fewer splits to isolate. The wrapper stores the fitted estimator, contamination
-	    setting, prediction vector, anomaly scores, and aggregate inlier/outlier counts for consistent
-	    downstream analysis.
+	    Detects anomalies by fitting an ensemble of randomized isolation trees and
+	    identifying samples that require fewer splits to isolate. The wrapper stores the
+	    fitted estimator, contamination setting, prediction vector, anomaly scores, and
+	    aggregate inlier/outlier counts for consistent downstream analysis.
 	
 	Attributes:
 	    model (en.IsolationForest): Underlying sklearn isolation-forest estimator.
@@ -199,31 +240,36 @@ class IsolationForest( Outlier ):
 		"""Initialize IsolationForest.
 		
 		Purpose:
-		    Configures the sklearn IsolationForest estimator with the expected contamination rate and
-		    initializes prediction and anomaly-score caches for later training and scoring operations.
+		    Configures the sklearn IsolationForest estimator with the expected contamination
+		    rate and initializes prediction and anomaly-score caches for later training and
+		    scoring operations.
 		
 		Args:
-		    contamination (float): Expected proportion of outliers in the input data."""
+		    contamination (float): Expected proportion of outliers in the input data.
+		
+		Returns:
+		    None: This method initializes the object and does not return a value."""
 		super( ).__init__( )
 		self.contamination = contamination
 		self.model = en.IsolationForest( contamination=self.contamination )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> IsolationForest | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> IsolationForest | None:
 		"""Fit the IsolationForest detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix, fits the underlying IsolationForest estimator, refreshes
-		    prediction and anomaly-score state when the estimator exposes training-set predictions, and
-		    updates aggregate inlier and outlier counts for downstream scoring and reporting.
+		    Validates the supplied feature matrix, fits the underlying IsolationForest
+		    estimator, refreshes prediction and anomaly-score state when the estimator exposes
+		    training-set predictions, and updates aggregate inlier and outlier counts for
+		    downstream scoring and reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to fit the anomaly-detection estimator.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Fitted IsolationForest wrapper instance.
+		    IsolationForest | None: Fitted IsolationForest wrapper instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -243,20 +289,21 @@ class IsolationForest( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""Predict with the IsolationForest detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix and generates inlier/outlier labels with the fitted
-		    IsolationForest estimator. The prediction vector is cached on the wrapper for later scoring,
-		    analysis, and inspection.
+		    Validates the supplied feature matrix and generates inlier/outlier labels with the
+		    fitted IsolationForest estimator. The prediction vector is cached on the wrapper for
+		    later scoring, analysis, and inspection.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to generate inlier and outlier predictions.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Prediction vector where `1` denotes inlier samples and `-1` denotes outlier samples.
+		    np.ndarray | None: Prediction vector where `1` denotes inlier samples and `-1`
+		                       denotes outlier samples.
 		
 		Raises:
 		    Error: Raised when validation or estimator prediction fails."""
@@ -272,24 +319,26 @@ class IsolationForest( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Create per-sample IsolationForest scores.
 		
 		Purpose:
-		    Validates the supplied feature matrix, generates or refreshes inlier/outlier predictions,
-		    computes estimator-specific anomaly scores, updates aggregate inlier and outlier counts, and
-		    returns a dataframe containing prediction, anomaly, inlier, and outlier columns for sample-level
-		    review.
+		    Validates the supplied feature matrix, generates or refreshes inlier/outlier
+		    predictions, computes estimator-specific anomaly scores, updates aggregate inlier
+		    and outlier counts, and returns a dataframe containing prediction, anomaly, inlier,
+		    and outlier columns for sample-level review.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute predictions and anomaly scores.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Dataframe containing per-sample predictions, anomaly scores, inlier flags, and outlier flags.
+		    pd.DataFrame | None: Dataframe containing per-sample predictions, anomaly scores,
+		                         inlier flags, and outlier flags.
 		
 		Raises:
-		    Error: Raised when validation, prediction, score calculation, or dataframe construction fails."""
+		    Error: Raised when validation, prediction, score calculation, or dataframe
+		           construction fails."""
 		try:
 			throw_if( 'X', X )
 			y_pred = self.project( X, y )
@@ -310,36 +359,37 @@ class IsolationForest( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Summarize IsolationForest anomaly results.
 		
 		Purpose:
-		    Validates the supplied feature matrix, builds per-sample score output, creates aggregate inlier,
-		    outlier, contamination, and quality metrics where supported, renders an inlier-versus-outlier
-		    bar chart, and returns the summary dataframe for reporting.
+		    Validates the supplied feature matrix, builds per-sample score output, creates
+		    aggregate inlier, outlier, contamination, and quality metrics where supported,
+		    renders an inlier-versus-outlier bar chart, and returns the summary dataframe for
+		    reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute anomaly-analysis output.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Summary dataframe containing aggregate anomaly-detection metrics.
+		    pd.DataFrame | None: Summary dataframe containing aggregate anomaly-detection
+		                         metrics.
 		
 		Raises:
-		    Error: Raised when validation, scoring, summary construction, or chart rendering fails."""
+		    Error: Raised when validation, scoring, summary construction, or chart rendering
+		           fails."""
 		try:
 			throw_if( 'X', X )
 			df_scores = self.score( X, y )
-			df_summary = pd.DataFrame(
-				{
+			df_summary = pd.DataFrame( {
 						'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
 						'Value': [ float( self.inliers ), float( self.outliers ),
 						           float( self.model.contamination ),
 						           float( round( self.inliers / len( df_scores ), 4 ) ) ]
 				} )
 			
-			df_plot = pd.DataFrame(
-				{
+			df_plot = pd.DataFrame( {
 						'Label': [ 'Inliers', 'Outliers' ],
 						'Count': [ float( self.inliers ), float( self.outliers ) ]
 				} )
@@ -365,13 +415,15 @@ class OneClass( Outlier ):
 	"""Wrap sklearn OneClassSVM.
 	
 	Purpose:
-	    Detects novelty and outliers by learning the support of the normal data distribution with a
-	    one-class support-vector machine. The wrapper stores kernel configuration, the fitted estimator,
-	    prediction labels, anomaly scores, and aggregate inlier/outlier counts for consistent reporting.
+	    Detects novelty and outliers by learning the support of the normal data distribution
+	    with a one-class support-vector machine. The wrapper stores kernel configuration,
+	    the fitted estimator, prediction labels, anomaly scores, and aggregate
+	    inlier/outlier counts for consistent reporting.
 	
 	Attributes:
 	    model (Optional[sv.OneClassSVM]): Underlying sklearn One-Class SVM estimator.
-	    data (Optional[np.ndarray]): Optional fitted-data cache retained for interface compatibility.
+	    data (Optional[np.ndarray]): Optional fitted-data cache retained for interface
+	                                 compatibility.
 	    prediction (Optional[np.ndarray]): Most recent inlier/outlier prediction vector.
 	    anomaly_scores (Optional[np.ndarray]): Most recent One-Class SVM decision scores.
 	    kernel (Optional[str]): Kernel used by the underlying One-Class SVM estimator."""
@@ -385,33 +437,39 @@ class OneClass( Outlier ):
 		"""Initialize OneClassSVM.
 		
 		Purpose:
-		    Configures the sklearn One-Class SVM estimator with kernel, nu, and gamma settings and initializes
-		    prediction and anomaly-score caches for novelty and outlier-detection workflows.
+		    Configures the sklearn One-Class SVM estimator with kernel, nu, and gamma settings
+		    and initializes prediction and anomaly-score caches for novelty and
+		    outlier-detection workflows.
 		
 		Args:
 		    kernel (str): Kernel type used by the underlying One-Class SVM estimator.
-		    nu (float): Upper bound on the fraction of training errors and lower bound on support vectors.
-		    gamma (str): Kernel coefficient used by supported kernel functions."""
+		    nu (float): Upper bound on the fraction of training errors and lower bound on
+		                support vectors.
+		    gamma (str): Kernel coefficient used by supported kernel functions.
+		
+		Returns:
+		    None: This method initializes the object and does not return a value."""
 		super( ).__init__( )
 		self.kernel = kernel
 		self.model = sv.OneClassSVM( kernel=kernel, nu=nu, gamma=gamma )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> OneClass | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OneClass | None:
 		"""Fit the One-Class SVM detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix, fits the underlying One-Class SVM estimator, refreshes
-		    prediction and anomaly-score state when the estimator exposes training-set predictions, and
-		    updates aggregate inlier and outlier counts for downstream scoring and reporting.
+		    Validates the supplied feature matrix, fits the underlying One-Class SVM estimator,
+		    refreshes prediction and anomaly-score state when the estimator exposes training-set
+		    predictions, and updates aggregate inlier and outlier counts for downstream scoring
+		    and reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to fit the anomaly-detection estimator.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Fitted OneClass wrapper instance.
+		    OneClass | None: Fitted OneClass wrapper instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -431,20 +489,21 @@ class OneClass( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""Predict with the One-Class SVM detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix and generates inlier/outlier labels with the fitted
-		    One-Class SVM estimator. The prediction vector is cached on the wrapper for later scoring,
-		    analysis, and inspection.
+		    Validates the supplied feature matrix and generates inlier/outlier labels with the
+		    fitted One-Class SVM estimator. The prediction vector is cached on the wrapper for
+		    later scoring, analysis, and inspection.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to generate inlier and outlier predictions.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Prediction vector where `1` denotes inlier samples and `-1` denotes outlier samples.
+		    np.ndarray | None: Prediction vector where `1` denotes inlier samples and `-1`
+		                       denotes outlier samples.
 		
 		Raises:
 		    Error: Raised when validation or estimator prediction fails."""
@@ -460,31 +519,32 @@ class OneClass( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Create per-sample One-Class SVM scores.
 		
 		Purpose:
-		    Validates the supplied feature matrix, generates or refreshes inlier/outlier predictions,
-		    computes estimator-specific anomaly scores, updates aggregate inlier and outlier counts, and
-		    returns a dataframe containing prediction, anomaly, inlier, and outlier columns for sample-level
-		    review.
+		    Validates the supplied feature matrix, generates or refreshes inlier/outlier
+		    predictions, computes estimator-specific anomaly scores, updates aggregate inlier
+		    and outlier counts, and returns a dataframe containing prediction, anomaly, inlier,
+		    and outlier columns for sample-level review.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute predictions and anomaly scores.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Dataframe containing per-sample predictions, anomaly scores, inlier flags, and outlier flags.
+		    pd.DataFrame | None: Dataframe containing per-sample predictions, anomaly scores,
+		                         inlier flags, and outlier flags.
 		
 		Raises:
-		    Error: Raised when validation, prediction, score calculation, or dataframe construction fails."""
+		    Error: Raised when validation, prediction, score calculation, or dataframe
+		           construction fails."""
 		try:
 			throw_if( 'X', X )
 			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = float( np.sum( y_pred == -1 ) )
 			self.inliers = float( np.sum( y_pred == 1 ) )
-			
 			df_scores = pd.DataFrame( )
 			df_scores[ 'Prediction' ] = y_pred
 			df_scores[ 'Anomaly' ] = self.anomaly_scores
@@ -499,35 +559,35 @@ class OneClass( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Summarize One-Class SVM anomaly results.
 		
 		Purpose:
-		    Validates the supplied feature matrix, builds per-sample score output, creates aggregate inlier,
-		    outlier, contamination, and quality metrics where supported, renders an inlier-versus-outlier
-		    bar chart, and returns the summary dataframe for reporting.
+		    Validates the supplied feature matrix, builds per-sample score output, creates
+		    aggregate inlier, outlier, contamination, and quality metrics where supported,
+		    renders an inlier-versus-outlier bar chart, and returns the summary dataframe for
+		    reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute anomaly-analysis output.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Summary dataframe containing aggregate anomaly-detection metrics.
+		    pd.DataFrame | None: Summary dataframe containing aggregate anomaly-detection
+		                         metrics.
 		
 		Raises:
-		    Error: Raised when validation, scoring, summary construction, or chart rendering fails."""
+		    Error: Raised when validation, scoring, summary construction, or chart rendering
+		           fails."""
 		try:
 			throw_if( 'X', X )
 			df_scores = self.score( X, y )
-			df_summary = pd.DataFrame(
-				{
+			df_summary = pd.DataFrame( {
 						'Metric': [ 'Inliers', 'Outliers', 'Quality' ],
 						'Value': [ float( self.inliers ), float( self.outliers ),
 						           float( round( self.inliers / len( df_scores ), 4 ) ) ]
-				} )
-			
-			df_plot = pd.DataFrame(
-				{
+				} )			
+			df_plot = pd.DataFrame( {
 						'Label': [ 'Inliers', 'Outliers' ],
 						'Count': [ float( self.inliers ), float( self.outliers ) ]
 				} )
@@ -553,14 +613,16 @@ class OutlierFactor( Outlier ):
 	"""Wrap sklearn LocalOutlierFactor.
 	
 	Purpose:
-	    Detects density-based anomalies by comparing each sample's local density with the local density
-	    of neighboring samples. The wrapper supports both novelty and fit-predict behavior while storing
-	    predictions, anomaly scores, neighborhood settings, contamination settings, and aggregate counts.
+	    Detects density-based anomalies by comparing each sample's local density with the
+	    local density of neighboring samples. The wrapper supports both novelty and
+	    fit-predict behavior while storing predictions, anomaly scores, neighborhood
+	    settings, contamination settings, and aggregate counts.
 	
 	Attributes:
 	    model (nn.LocalOutlierFactor): Underlying sklearn Local Outlier Factor estimator.
 	    prediction (Optional[np.ndarray]): Most recent inlier/outlier prediction vector.
-	    anomaly_scores (Optional[np.ndarray]): Most recent local outlier scores or decision scores.
+	    anomaly_scores (Optional[np.ndarray]): Most recent local outlier scores or decision
+	                                           scores.
 	    neighbors (Optional[int]): Number of neighbors used for local density estimation.
 	    contamination (Optional[float]): Expected proportion of outliers in the data.
 	    novelty (Optional[bool]): Flag indicating whether novelty detection is enabled."""
@@ -571,44 +633,46 @@ class OutlierFactor( Outlier ):
 	contamination: Optional[ float ]
 	novelty: Optional[ bool ]
 	
-	def __init__( self, n_neighbors: int = 20, contamination: float = 0.1,
-			novelty: bool = True ) -> None:
+	def __init__( self, n_neighbors: int=20, contamination: float=0.1, novelty: bool=True ) -> None:
 		"""Initialize LocalOutlierFactor.
 		
 		Purpose:
-		    Configures the sklearn Local Outlier Factor estimator with neighborhood, contamination, and
-		    novelty-detection settings and initializes prediction and anomaly-score caches.
+		    Configures the sklearn Local Outlier Factor estimator with neighborhood,
+		    contamination, and novelty-detection settings and initializes prediction and
+		    anomaly-score caches.
 		
 		Args:
 		    n_neighbors (int): Number of neighbors used for local density estimation.
 		    contamination (float): Expected proportion of outliers in the input data.
-		    novelty (bool): Flag indicating whether novelty detection is enabled for unseen samples."""
+		    novelty (bool): Flag indicating whether novelty detection is enabled for unseen
+		                    samples.
+		
+		Returns:
+		    None: This method initializes the object and does not return a value."""
 		super( ).__init__( )
 		self.neighbors = n_neighbors
 		self.contamination = contamination
 		self.novelty = novelty
-		self.model = nn.LocalOutlierFactor(
-			n_neighbors=self.neighbors,
-			contamination=self.contamination,
-			novelty=self.novelty
-		)
+		self.model = nn.LocalOutlierFactor( n_neighbors=self.neighbors,
+			contamination=self.contamination, novelty=self.novelty )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> OutlierFactor | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> OutlierFactor | None:
 		"""Fit the Local Outlier Factor detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix, fits the underlying Local Outlier Factor estimator, refreshes
-		    prediction and anomaly-score state when the estimator exposes training-set predictions, and
-		    updates aggregate inlier and outlier counts for downstream scoring and reporting.
+		    Validates the supplied feature matrix, fits the underlying Local Outlier Factor
+		    estimator, refreshes prediction and anomaly-score state when the estimator exposes
+		    training-set predictions, and updates aggregate inlier and outlier counts for
+		    downstream scoring and reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to fit the anomaly-detection estimator.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Fitted OutlierFactor wrapper instance.
+		    OutlierFactor | None: Fitted OutlierFactor wrapper instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -632,20 +696,21 @@ class OutlierFactor( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""Predict with the Local Outlier Factor detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix and generates inlier/outlier labels with the fitted
-		    Local Outlier Factor estimator. The prediction vector is cached on the wrapper for later scoring,
-		    analysis, and inspection.
+		    Validates the supplied feature matrix and generates inlier/outlier labels with the
+		    fitted Local Outlier Factor estimator. The prediction vector is cached on the
+		    wrapper for later scoring, analysis, and inspection.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to generate inlier and outlier predictions.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Prediction vector where `1` denotes inlier samples and `-1` denotes outlier samples.
+		    np.ndarray | None: Prediction vector where `1` denotes inlier samples and `-1`
+		                       denotes outlier samples.
 		
 		Raises:
 		    Error: Raised when validation or estimator prediction fails."""
@@ -664,24 +729,26 @@ class OutlierFactor( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Create per-sample Local Outlier Factor scores.
 		
 		Purpose:
-		    Validates the supplied feature matrix, generates or refreshes inlier/outlier predictions,
-		    computes estimator-specific anomaly scores, updates aggregate inlier and outlier counts, and
-		    returns a dataframe containing prediction, anomaly, inlier, and outlier columns for sample-level
-		    review.
+		    Validates the supplied feature matrix, generates or refreshes inlier/outlier
+		    predictions, computes estimator-specific anomaly scores, updates aggregate inlier
+		    and outlier counts, and returns a dataframe containing prediction, anomaly, inlier,
+		    and outlier columns for sample-level review.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute predictions and anomaly scores.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Dataframe containing per-sample predictions, anomaly scores, inlier flags, and outlier flags.
+		    pd.DataFrame | None: Dataframe containing per-sample predictions, anomaly scores,
+		                         inlier flags, and outlier flags.
 		
 		Raises:
-		    Error: Raised when validation, prediction, score calculation, or dataframe construction fails."""
+		    Error: Raised when validation, prediction, score calculation, or dataframe
+		           construction fails."""
 		try:
 			throw_if( 'X', X )
 			if self.novelty:
@@ -694,7 +761,6 @@ class OutlierFactor( Outlier ):
 			
 			self.outliers = float( np.sum( y_pred == -1 ) )
 			self.inliers = float( np.sum( y_pred == 1 ) )
-			
 			df_scores = pd.DataFrame( )
 			df_scores[ 'Prediction' ] = y_pred
 			df_scores[ 'Anomaly' ] = self.anomaly_scores
@@ -709,39 +775,36 @@ class OutlierFactor( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Summarize Local Outlier Factor anomaly results.
 		
 		Purpose:
-		    Validates the supplied feature matrix, builds per-sample score output, creates aggregate inlier,
-		    outlier, contamination, and quality metrics where supported, renders an inlier-versus-outlier
-		    bar chart, and returns the summary dataframe for reporting.
+		    Validates the supplied feature matrix, builds per-sample score output, creates
+		    aggregate inlier, outlier, contamination, and quality metrics where supported,
+		    renders an inlier-versus-outlier bar chart, and returns the summary dataframe for
+		    reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute anomaly-analysis output.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Summary dataframe containing aggregate anomaly-detection metrics.
+		    pd.DataFrame | None: Summary dataframe containing aggregate anomaly-detection
+		                         metrics.
 		
 		Raises:
-		    Error: Raised when validation, scoring, summary construction, or chart rendering fails."""
+		    Error: Raised when validation, scoring, summary construction, or chart rendering
+		           fails."""
 		try:
 			throw_if( 'X', X )
 			df_scores = self.score( X, y )
-			df_summary = pd.DataFrame(
-				{
-						'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
-						'Value': [ float( self.inliers ), float( self.outliers ),
-						           float( self.contamination ),
-						           float( round( self.inliers / len( df_scores ), 4 ) ) ]
-				} )
+			df_summary = pd.DataFrame( 	{ 'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
+					'Value': [ float( self.inliers ), float( self.outliers ),
+						float( self.contamination ),
+						float( round( self.inliers / len( df_scores ), 4 ) ) ] } )
 			
-			df_plot = pd.DataFrame(
-				{
-						'Label': [ 'Inliers', 'Outliers' ],
-						'Count': [ float( self.inliers ), float( self.outliers ) ]
-				} )
+			df_plot = pd.DataFrame( { 'Label': [ 'Inliers', 'Outliers' ],
+				'Count': [ float( self.inliers ), float( self.outliers ) ] } )
 			
 			plt.figure( figsize=(8, 6) )
 			sns.barplot( data=df_plot, x='Label', y='Count' )
@@ -764,9 +827,10 @@ class EllipticSquare( Outlier ):
 	"""Wrap sklearn EllipticEnvelope.
 	
 	Purpose:
-	    Detects multivariate outliers by fitting a robust covariance estimate and identifying samples
-	    outside the learned elliptical data envelope. The wrapper stores the fitted estimator,
-	    contamination setting, prediction labels, anomaly scores, and aggregate inlier/outlier counts.
+	    Detects multivariate outliers by fitting a robust covariance estimate and
+	    identifying samples outside the learned elliptical data envelope. The wrapper stores
+	    the fitted estimator, contamination setting, prediction labels, anomaly scores, and
+	    aggregate inlier/outlier counts.
 	
 	Attributes:
 	    model (cv.EllipticEnvelope): Underlying sklearn robust covariance estimator.
@@ -778,35 +842,40 @@ class EllipticSquare( Outlier ):
 	anomaly_scores: Optional[ np.ndarray ]
 	contamination: Optional[ float ]
 	
-	def __init__( self, contamination: float = 0.1 ) -> None:
+	def __init__( self, contamination: float=0.1 ) -> None:
 		"""Initialize EllipticEnvelope.
 		
 		Purpose:
-		    Configures the sklearn EllipticEnvelope estimator with the expected contamination rate and
-		    initializes prediction and anomaly-score caches for robust covariance outlier detection.
+		    Configures the sklearn EllipticEnvelope estimator with the expected contamination
+		    rate and initializes prediction and anomaly-score caches for robust covariance
+		    outlier detection.
 		
 		Args:
-		    contamination (float): Expected proportion of outliers in the input data."""
+		    contamination (float): Expected proportion of outliers in the input data.
+		
+		Returns:
+		    None: This method initializes the object and does not return a value."""
 		super( ).__init__( )
 		self.contamination = contamination
 		self.model = cv.EllipticEnvelope( contamination=contamination )
 		self.prediction = None
 		self.anomaly_scores = None
 	
-	def train( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> EllipticSquare | None:
+	def train( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> EllipticSquare | None:
 		"""Fit the EllipticEnvelope detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix, fits the underlying EllipticEnvelope estimator, refreshes
-		    prediction and anomaly-score state when the estimator exposes training-set predictions, and
-		    updates aggregate inlier and outlier counts for downstream scoring and reporting.
+		    Validates the supplied feature matrix, fits the underlying EllipticEnvelope
+		    estimator, refreshes prediction and anomaly-score state when the estimator exposes
+		    training-set predictions, and updates aggregate inlier and outlier counts for
+		    downstream scoring and reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to fit the anomaly-detection estimator.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Fitted EllipticSquare wrapper instance.
+		    EllipticSquare | None: Fitted EllipticSquare wrapper instance.
 		
 		Raises:
 		    Error: Raised when validation or estimator fitting fails."""
@@ -826,20 +895,21 @@ class EllipticSquare( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def project( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> np.ndarray | None:
+	def project( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> np.ndarray | None:
 		"""Predict with the EllipticEnvelope detector.
 		
 		Purpose:
-		    Validates the supplied feature matrix and generates inlier/outlier labels with the fitted
-		    EllipticEnvelope estimator. The prediction vector is cached on the wrapper for later scoring,
-		    analysis, and inspection.
+		    Validates the supplied feature matrix and generates inlier/outlier labels with the
+		    fitted EllipticEnvelope estimator. The prediction vector is cached on the wrapper
+		    for later scoring, analysis, and inspection.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to generate inlier and outlier predictions.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Prediction vector where `1` denotes inlier samples and `-1` denotes outlier samples.
+		    np.ndarray | None: Prediction vector where `1` denotes inlier samples and `-1`
+		                       denotes outlier samples.
 		
 		Raises:
 		    Error: Raised when validation or estimator prediction fails."""
@@ -855,31 +925,32 @@ class EllipticSquare( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def score( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def score( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Create per-sample EllipticEnvelope scores.
 		
 		Purpose:
-		    Validates the supplied feature matrix, generates or refreshes inlier/outlier predictions,
-		    computes estimator-specific anomaly scores, updates aggregate inlier and outlier counts, and
-		    returns a dataframe containing prediction, anomaly, inlier, and outlier columns for sample-level
-		    review.
+		    Validates the supplied feature matrix, generates or refreshes inlier/outlier
+		    predictions, computes estimator-specific anomaly scores, updates aggregate inlier
+		    and outlier counts, and returns a dataframe containing prediction, anomaly, inlier,
+		    and outlier columns for sample-level review.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute predictions and anomaly scores.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Dataframe containing per-sample predictions, anomaly scores, inlier flags, and outlier flags.
+		    pd.DataFrame | None: Dataframe containing per-sample predictions, anomaly scores,
+		                         inlier flags, and outlier flags.
 		
 		Raises:
-		    Error: Raised when validation, prediction, score calculation, or dataframe construction fails."""
+		    Error: Raised when validation, prediction, score calculation, or dataframe
+		           construction fails."""
 		try:
 			throw_if( 'X', X )
 			y_pred = self.project( X, y )
 			self.anomaly_scores = self.model.decision_function( X )
 			self.outliers = float( np.sum( y_pred == -1 ) )
 			self.inliers = float( np.sum( y_pred == 1 ) )
-			
 			df_scores = pd.DataFrame( )
 			df_scores[ 'Prediction' ] = y_pred
 			df_scores[ 'Anomaly' ] = self.anomaly_scores
@@ -894,40 +965,36 @@ class EllipticSquare( Outlier ):
 			Logger( ).write( exception )
 			raise exception
 	
-	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ] = None ) -> pd.DataFrame | None:
+	def analyze( self, X: np.ndarray, y: Optional[ np.ndarray ]=None ) -> pd.DataFrame | None:
 		"""Summarize EllipticEnvelope anomaly results.
 		
 		Purpose:
-		    Validates the supplied feature matrix, builds per-sample score output, creates aggregate inlier,
-		    outlier, contamination, and quality metrics where supported, renders an inlier-versus-outlier
-		    bar chart, and returns the summary dataframe for reporting.
+		    Validates the supplied feature matrix, builds per-sample score output, creates
+		    aggregate inlier, outlier, contamination, and quality metrics where supported,
+		    renders an inlier-versus-outlier bar chart, and returns the summary dataframe for
+		    reporting.
 		
 		Args:
 		    X (np.ndarray): Feature matrix used to compute anomaly-analysis output.
 		    y (Optional[np.ndarray]): Optional target vector accepted for interface consistency.
 		
 		Returns:
-		    Summary dataframe containing aggregate anomaly-detection metrics.
+		    pd.DataFrame | None: Summary dataframe containing aggregate anomaly-detection
+		                         metrics.
 		
 		Raises:
-		    Error: Raised when validation, scoring, summary construction, or chart rendering fails."""
+		    Error: Raised when validation, scoring, summary construction, or chart rendering
+		           fails."""
 		try:
 			throw_if( 'X', X )
 			df_scores = self.score( X, y )
-			df_summary = pd.DataFrame(
-				{
-						'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
-						'Value': [ float( self.inliers ), float( self.outliers ),
-						           float( self.contamination ),
-						           float( round( self.inliers / len( df_scores ), 4 ) ) ]
-				} )
+			df_summary = pd.DataFrame( { 'Metric': [ 'Inliers', 'Outliers', 'Contamination', 'Quality' ],
+					'Value': [ float( self.inliers ), float( self.outliers ),
+						float( self.contamination ),
+						float( round( self.inliers / len( df_scores ), 4 ) ) ] } )
 			
-			df_plot = pd.DataFrame(
-				{
-						'Label': [ 'Inliers', 'Outliers' ],
-						'Count': [ float( self.inliers ), float( self.outliers ) ]
-				} )
-			
+			df_plot = pd.DataFrame( { 'Label': [ 'Inliers', 'Outliers' ],
+				'Count': [ float( self.inliers ), float( self.outliers ) ] } )
 			plt.figure( figsize=(8, 6) )
 			sns.barplot( data=df_plot, x='Label', y='Count' )
 			plt.title( 'EllipticEnvelope Detection Summary' )
