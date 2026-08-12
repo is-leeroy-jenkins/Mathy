@@ -437,9 +437,9 @@ class Perceptron( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 0.001, eta: float = 1.0, iters: int = 1000,
-			shuffle: bool = False, penalty: Optional[ str ] = None,
-			random: int = 42 ) -> None:
+	def __init__( self, alpha: float=0.001, eta: float=1.0, iters: int=1000,
+			shuffle: bool=False, penalty: Optional[ str ] = None,
+			random: int=42 ) -> None:
 		"""Initialize Perceptron.
 
 				Purpose:
@@ -592,7 +592,7 @@ class Perceptron( Classifier ):
 		return self.model.classes_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
+			size: float=0.2, random: int=42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
@@ -899,9 +899,9 @@ class LeastSquares( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 0.0001, eta: float = 0.01, iters: int = 1000,
-			shuffle: bool = False, penalty: Optional[ str ] = 'l2',
-			random: int = 42 ) -> None:
+	def __init__( self, alpha: float=0.0001, eta: float=0.01, iters: int=1000,
+			shuffle: bool=False, penalty: Optional[ str ] = 'l2',
+			random: int=42 ) -> None:
 		"""Initialize LeastSquares.
 
 				Purpose:
@@ -940,27 +940,10 @@ class LeastSquares( Classifier ):
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [ 'model',
-		         'prediction',
-		         'misclass',
-		         'max_iter',
-		         'random_state',
-		         'decision',
-		         'train',
-		         'project',
-		         'score',
-		         'analyze',
-		         'penalty',
-		         'shuffle',
-		         'alpha',
-		         'confusion_matrix',
-		         'scatter_plot',
-		         'weights',
-		         'decision_function',
-		         'iterations',
-		         'labels',
-		         'testing_score',
-		         'training_score' ]
+		return [ 'model', 'prediction', 'misclass', 'max_iter', 'random_state', 'decision', 
+			'train', 'project', 'score', 'analyze', 'penalty', 'shuffle', 'alpha', 'confusion_matrix',
+			'scatter_plot', 'weights', 'decision_function', 'iterations', 'labels', 
+			'testing_score', 'training_score' ]
 	
 	def validate_configuration( self ) -> None:
 		"""Validate classifier configuration.
@@ -973,8 +956,7 @@ class LeastSquares( Classifier ):
 				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
 		"""
 		try:
-			_valid_penalties = { None, 'l2', 'l1', 'elasticnet' }
-			
+			_valid_penalties = { None, 'l2', 'l1', 'elasticnet' }			
 			if self.penalty not in _valid_penalties:
 				raise ValueError( f'Unsupported penalty: {self.penalty}' )
 			
@@ -1047,9 +1029,8 @@ class LeastSquares( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.classes_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
-		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, 
+		size: float=0.2, random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
 				Purpose:
@@ -1063,7 +1044,8 @@ class LeastSquares( Classifier ):
 				    random: Random seed used for reproducible partitioning or estimator behavior.
 
 				Returns:
-				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, testing features, training labels, and testing labels.
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Training features, 
+				        testing features, training labels, and testing labels.
 
 				Raises:
 				    Error: Raised when validation, estimator execution, metric calculation, or plotting fails.
@@ -1355,9 +1337,9 @@ class LogisticRegression( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, C: float = 1.0, penalty: str = 'l2', iters: int = 1000,
+	def __init__( self, C: float=1.0, penalty: str = 'l2', iters: int=1000,
 			multiclass: str = 'multinomial', solver: str = 'lbfgs',
-			random: int = 42 ) -> None:
+			random: int=42 ) -> None:
 		"""Initialize LogisticRegression.
 
 				Purpose:
@@ -1505,8 +1487,8 @@ class LogisticRegression( Classifier ):
 			raise AttributeError( 'The model has not been trained!' )
 		return self.model.n_iter_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
 				Purpose:
@@ -1893,8 +1875,8 @@ class Ridge( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, solver: str = 'auto', iters: int = 1000,
-			rando: int = 42 ) -> None:
+	def __init__( self, alpha: float=1.0, solver: str = 'auto', iters: int=1000,
+			rando: int=42 ) -> None:
 		"""Initialize Ridge.
 
 				Purpose:
@@ -2004,8 +1986,8 @@ class Ridge( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""Split feature and target data.
 
 				Purpose:
@@ -2265,8 +2247,8 @@ class Lasso( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, alpha: float = 1.0, iters: int = 500, rando: int = 42,
-			threshold: float = 0.5,
+	def __init__( self, alpha: float=1.0, iters: int=500, rando: int=42,
+			threshold: float=0.5,
 			selection: str = 'random' ) -> None:
 		"""Initialize Lasso.
 
@@ -2377,8 +2359,8 @@ class Lasso( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""Split feature and target data.
 
 				Purpose:
@@ -2615,12 +2597,12 @@ class GradientDescent( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix: Optional[ np.ndarray ]
 	
-	def __init__( self, loss: str = 'hinge', iters: int = 100,
-			reg: str = 'l2', alpha: float = 0.00001,
-			ave: bool = True, rate: str = 'optimal',
-			penalty: str | None = None, shuffle: bool = True,
-			eta: float = 0.0, learning: str | None = None,
-			power: float = 0.5, epsilon: float = 0.1,
+	def __init__( self, loss: str = 'hinge', iters: int=100,
+			reg: str = 'l2', alpha: float=0.00001,
+			ave: bool=True, rate: str = 'optimal',
+			penalty: str | None = None, shuffle: bool=True,
+			eta: float=0.0, learning: str | None = None,
+			power: float=0.5, epsilon: float=0.1,
 			rando: int | None = 42 ) -> None:
 		"""Initialize the stochastic-gradient classifier.
 
@@ -2778,8 +2760,8 @@ class GradientDescent( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_features_in_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""Split feature and target data.
 
 				Purpose:
@@ -3069,8 +3051,8 @@ class NearestNeighbor( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, num: int = 5, algorithm: str = 'auto',
-			power: int = 2, metric: str = 'minkowski', leafs: int = 30 ) -> None:
+	def __init__( self, num: int=5, algorithm: str = 'auto',
+			power: int=2, metric: str = 'minkowski', leafs: int=30 ) -> None:
 		"""Initialize NearestNeighbor.
 
 				Purpose:
@@ -3218,8 +3200,8 @@ class NearestNeighbor( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_samples_fit_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
 				Purpose:
@@ -3582,8 +3564,8 @@ class DecisionTree( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
 	def __init__( self, criterion: str = 'gini', splitter: str = 'best',
-			depth: Optional[ int ] = None, min_split: int = 2,
-			min_leaf: int = 1, random: int = 42 ) -> None:
+			depth: Optional[ int ] = None, min_split: int=2,
+			min_leaf: int=1, random: int=42 ) -> None:
 		"""Initialize DecisionTree.
 
 				Purpose:
@@ -3775,7 +3757,7 @@ class DecisionTree( Classifier ):
 		return self.model.n_outputs_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
+			size: float=0.2, random: int=42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
@@ -4136,10 +4118,10 @@ class RandomForest( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, depth: Optional[ int ] = None,
-			criterion: str = 'gini', jobs: int = -1, random: int = 42,
-			n_estimators: Optional[ int ] = None, min_split: int = 2,
-			min_leaf: int = 1 ) -> None:
+	def __init__( self, estimators: int=100, depth: Optional[ int ] = None,
+			criterion: str = 'gini', jobs: int=-1, random: int=42,
+			n_estimators: Optional[ int ] = None, min_split: int=2,
+			min_leaf: int=1 ) -> None:
 		"""Initialize the random-forest classifier.
 
 				Purpose:
@@ -4310,8 +4292,8 @@ class RandomForest( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_outputs_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
 				Purpose:
@@ -4670,8 +4652,8 @@ class GradientBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, estimators: int = 100, rate: float = 0.1, depth: int = 3,
-			criterion: str = 'friedman_mse', random: int = 42 ) -> None:
+	def __init__( self, estimators: int=100, rate: float=0.1, depth: int=3,
+			criterion: str = 'friedman_mse', random: int=42 ) -> None:
 		"""Initialize GradientBoost.
 
 				Purpose:
@@ -4854,8 +4836,8 @@ class GradientBoost( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimators_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
 				Purpose:
@@ -5200,9 +5182,9 @@ class AdaptiveBoost( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, estimators: int = 50,
-			rate: float = 1.0, algorithm: str = 'SAMME',
-			random: int = 42 ) -> None:
+	def __init__( self, base: object = None, estimators: int=50,
+			rate: float=1.0, algorithm: str = 'SAMME',
+			random: int=42 ) -> None:
 		"""Initialize AdaptiveBoost.
 
 				Purpose:
@@ -5398,8 +5380,8 @@ class AdaptiveBoost( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.estimator_errors_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
 				Purpose:
@@ -5491,7 +5473,7 @@ class AdaptiveBoost( Classifier ):
 			raise exception
 	
 	def predict_probability( self, X: np.ndarray ) -> np.ndarray:
-		"""Calculate class probabilities.
+		"""Calculate class-membership probabilities.
 
 				Purpose:
 				    Calculates class-membership probabilities from the fitted classifier and stores the
@@ -5741,8 +5723,8 @@ class BaggingModel( Classifier ):
 	classification_report: Optional[ Dict[ str, Any ] ]
 	confusion_matrix_values: Optional[ np.ndarray ]
 	
-	def __init__( self, base: object = None, num: int = 10,
-			max: int | float = 1.0, rando: int = 42,
+	def __init__( self, base: object = None, num: int=10,
+			max: int | float = 1.0, rando: int=42,
 			estimators: Optional[ int ] = None,
 			random: Optional[ int ] = None ) -> None:
 		"""Initialize BaggingModel.
@@ -5781,30 +5763,11 @@ class BaggingModel( Classifier ):
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [ 'prediction',
-		         'probability',
-		         'random_state',
-		         'base_estimator',
-		         'n_estimators',
-		         'max_features',
-		         'train',
-		         'project',
-		         'predict_probability',
-		         'score',
-		         'analyze',
-		         'confusion_matrix',
-		         'roc_curve',
-		         'scatter_plot',
-		         'labels',
-		         'features',
-		         'estimators',
-		         'accuracy',
-		         'precision',
-		         'balanced_accuracy',
-		         'f1_score',
-		         'recall',
-		         'testing_score',
-		         'training_score' ]
+		return [ 'prediction', 'probability', 'random_state', 'base_estimator', 'n_estimators',
+			'max_features', 'train', 'project', 'predict_probability', 'score', 'analyze',
+			'confusion_matrix', 'roc_curve', 'scatter_plot', 'labels', 'features', 'estimators',
+			'accuracy', 'precision', 'balanced_accuracy', 'f1_score', 'recall', 'testing_score',
+			'training_score' ]
 	
 	def validate_configuration( self ) -> None:
 		"""Validate classifier configuration.
@@ -5882,7 +5845,7 @@ class BaggingModel( Classifier ):
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> Tuple[
+			size: float=0.2, random: int=42 ) -> Tuple[
 		np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
@@ -6253,27 +6216,10 @@ class VotingModel( Classifier ):
 				Returns:
 				    List[str]: Public member names exposed by the wrapper.
 		"""
-		return [ 'model',
-		         'prediction',
-		         'probability',
-		         'voting',
-		         'estimator_list',
-		         'train',
-		         'project',
-		         'predict_probability',
-		         'score',
-		         'analyze',
-		         'scatter_plot',
-		         'labels',
-		         'features',
-		         'estimators',
-		         'accuracy',
-		         'precision',
-		         'balanced_accuracy',
-		         'f1_score',
-		         'recall',
-		         'testing_score',
-		         'training_score', ]
+		return [ 'model', 'prediction', 'probability', 'voting', 'estimator_list', 'train',
+			'project', 'predict_probability', 'score', 'analyze', 'scatter_plot', 'labels',
+			'features', 'estimators', 'accuracy', 'precision', 'balanced_accuracy', 'f1_score',
+			'recall', 'testing_score', 'training_score', ]
 	
 	@property
 	def labels( self ) -> np.ndarray:
@@ -6327,7 +6273,7 @@ class VotingModel( Classifier ):
 		return self.model.estimators_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
+			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,
 	                                                  np.ndarray):
 		"""Split feature and target data.
 
@@ -6705,7 +6651,7 @@ class StackingModel( Classifier ):
 		return self.model.final_estimator_
 	
 	def split_data( self, X: np.ndarray, y: np.ndarray,
-			size: float = 0.2, random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray,
+			size: float=0.2, random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray,
 	                                                  np.ndarray):
 		"""Split feature and target data.
 
@@ -6965,8 +6911,8 @@ class SupportVector( Classifier ):
 	confusion_matrix_values: Optional[ np.ndarray ]
 	degree: int
 	
-	def __init__( self, C: float = 1.0, kernel: str = 'rbf', degree: int = 3,
-			random: int = 42 ) -> None:
+	def __init__( self, C: float=1.0, kernel: str = 'rbf', degree: int=3,
+			random: int=42 ) -> None:
 		"""Initialize SupportVector.
 
 				Purpose:
@@ -7162,8 +7108,8 @@ class SupportVector( Classifier ):
 			raise AttributeError( 'The model data has not been trained!' )
 		return self.model.n_support_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> Tuple[ np.ndarray, np.ndarray, np.ndarray, np.ndarray ]:
 		"""Split feature and target data.
 
 				Purpose:
@@ -7554,7 +7500,7 @@ class MultiLayerPerceptron( Classifier ):
 	confusion_matrix: Optional[ np.ndarray ]
 	
 	def __init__( self, hidden=(100,), activation='logistic', solver='lbfgs', alpha=0.0001,
-			learning: str = 'constant', rando: int = 42 ) -> None:
+			learning: str = 'constant', rando: int=42 ) -> None:
 		"""Initialize MultiLayerPerceptron.
 
 				Purpose:
@@ -7686,8 +7632,8 @@ class MultiLayerPerceptron( Classifier ):
 			raise AttributeError( 'The data has not been trained!' )
 		return self.model.n_outputs_
 	
-	def split_data( self, X: np.ndarray, y: np.ndarray, size: float = 0.2,
-			random: int = 42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
+	def split_data( self, X: np.ndarray, y: np.ndarray, size: float=0.2,
+			random: int=42 ) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
 		"""Split feature and target data.
 
 				Purpose:

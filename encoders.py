@@ -164,7 +164,7 @@ class OneHotEncoder( Encoder ):
 	"""Wrap sklearn OneHotEncoder.
 
 	Purpose:
-	    Encodes categorical feature columns as a one-hot numeric representation. The wrapper
+	    Encodes categorical feature columns as a one-hot numeric representation. The class
 	    configures sparse-output behavior and unknown-category handling while preserving a uniform
 	    Mathy encoder interface for training, transformation, and inverse transformation.
 
@@ -178,11 +178,11 @@ class OneHotEncoder( Encoder ):
 	model: pp.OneHotEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, sparse: bool = False, unknown: str = 'ignore' ) -> None:
+	def __init__( self, sparse: bool=False, unknown: str='ignore' ) -> None:
 		"""Initialize OneHotEncoder.
 
 		Purpose:
-		    Initializes the one-hot encoder wrapper with sklearn sparse-output and unknown-category
+		    Initializes the one-hot encoder class with sklearn sparse-output and unknown-category
 		    configuration. The constructor prepares the backing sklearn model without fitting it to
 		    any data.
 
@@ -199,22 +199,13 @@ class OneHotEncoder( Encoder ):
 		"""List public members.
 
 		Purpose:
-		    Returns the stable set of member names exposed by the one-hot encoder wrapper for
+		    Returns the stable set of member names exposed by the one-hot encoder class for
 		    interactive inspection, notebook exploration, and IDE discovery.
 
 		Returns:
-		    Public member names exposed by the wrapper."""
-		return [
-				'unknown',
-				'model',
-				'categories',
-				'transformed_data',
-				'sparse',
-				'train',
-				'transform',
-				'train_transform',
-				'inverse_transform',
-		]
+		    Public member names exposed by the class."""
+		return [ 'unknown', 'model', 'categories', 'transformed_data', 'sparse', 'train',
+			'transform', 'train_transform', 'inverse_transform', ]
 	
 	@property
 	def categories( self ) -> List[ Any ]:
@@ -240,13 +231,13 @@ class OneHotEncoder( Encoder ):
 
 		Purpose:
 		    Fits the underlying sklearn one-hot encoder to a categorical input matrix and returns the
-		    wrapper instance for consistent preprocessing chains.
+		    class instance for consistent preprocessing chains.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix used to learn category levels.
 
 		Returns:
-		    Fitted one-hot encoder wrapper.
+		    Fitted one-hot encoder class.
 
 		Raises:
 		    Error: Raised when validation or sklearn fitting fails."""
@@ -267,7 +258,7 @@ class OneHotEncoder( Encoder ):
 
 		Purpose:
 		    Encodes the supplied categorical matrix using category levels learned during fitting and
-		    stores the encoded output on the wrapper for later inspection.
+		    stores the encoded output on the class for later inspection.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix transformed by the fitted encoder.
@@ -294,7 +285,7 @@ class OneHotEncoder( Encoder ):
 
 		Purpose:
 		    Fits the underlying one-hot encoder to the supplied categorical matrix and returns the
-		    encoded matrix in one operation. The encoded output is cached on the wrapper.
+		    encoded matrix in one operation. The encoded output is cached on the class.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix used for fitting and transformation.
@@ -347,12 +338,12 @@ class OrdinalEncoder( Encoder ):
 
 	Purpose:
 	    Converts categorical feature values into integer-like ordinal codes ranging from zero to
-	    one less than the number of observed categories. The wrapper exposes sklearn ordinal
+	    one less than the number of observed categories. The object exposes sklearn ordinal
 	    encoding through the shared Mathy encoder interface.
 
 	Attributes:
 	    model (pp.OrdinalEncoder): Underlying sklearn preprocessing estimator.
-	    transformed_data (Optional[np.ndarray]): Most recent encoded output produced by the wrapper."""
+	    transformed_data (Optional[np.ndarray]): Most recent encoded output produced by the object."""
 	model: pp.OrdinalEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
@@ -360,7 +351,7 @@ class OrdinalEncoder( Encoder ):
 		"""Initialize OrdinalEncoder.
 
 		Purpose:
-		    Initializes the ordinal encoder wrapper by constructing the underlying sklearn encoder and
+		    Initializes the ordinal encoder object by constructing the underlying sklearn encoder and
 		    preparing the transformed-data cache used by later transformation methods."""
 		super( ).__init__( )
 		self.model = pp.OrdinalEncoder( )
@@ -370,20 +361,13 @@ class OrdinalEncoder( Encoder ):
 		"""List public members.
 
 		Purpose:
-		    Returns the stable set of member names exposed by the ordinal encoder wrapper for
+		    Returns the stable set of member names exposed by the ordinal encoder object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 
 		Returns:
-		    Public member names exposed by the wrapper."""
-		return [
-				'model',
-				'categories',
-				'transformed_data',
-				'train',
-				'transform',
-				'train_transform',
-				'inverse_transform',
-		]
+		    Public member names exposed by the object."""
+		return [ 'model', 'categories', 'transformed_data', 'train', 'transform',
+			'train_transform', 'inverse_transform', ]
 	
 	@property
 	def categories( self ) -> List[ Any ]:
@@ -409,13 +393,13 @@ class OrdinalEncoder( Encoder ):
 
 		Purpose:
 		    Fits the underlying sklearn ordinal encoder to a categorical input matrix and returns the
-		    wrapper instance for consistent preprocessing chains.
+		    object instance for consistent preprocessing chains.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix used to learn category levels.
 
 		Returns:
-		    Fitted ordinal encoder wrapper.
+		    Fitted ordinal encoder object.
 
 		Raises:
 		    Error: Raised when validation or sklearn fitting fails."""
@@ -436,7 +420,7 @@ class OrdinalEncoder( Encoder ):
 
 		Purpose:
 		    Encodes the supplied categorical matrix using ordinal category codes learned during
-		    fitting and stores the encoded output on the wrapper.
+		    fitting and stores the encoded output on the object.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix transformed by the fitted encoder.
@@ -463,7 +447,7 @@ class OrdinalEncoder( Encoder ):
 
 		Purpose:
 		    Fits the underlying ordinal encoder to the supplied categorical matrix and returns the
-		    encoded matrix in one operation. The encoded output is cached on the wrapper.
+		    encoded matrix in one operation. The encoded output is cached on the object.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix used for fitting and transformation.
@@ -516,12 +500,12 @@ class LabelEncoder( Encoder ):
 
 	Purpose:
 	    Encodes one-dimensional target labels as integer values from zero to one less than the
-	    number of observed classes. The wrapper exposes sklearn label encoding through the shared
+	    number of observed classes. The object exposes sklearn label encoding through the shared
 	    Mathy encoder interface.
 
 	Attributes:
 	    model (pp.LabelEncoder): Underlying sklearn preprocessing estimator.
-	    transformed_data (Optional[np.ndarray]): Most recent encoded label vector produced by the wrapper."""
+	    transformed_data (Optional[np.ndarray]): Most recent encoded label vector produced by the object."""
 	model: pp.LabelEncoder
 	transformed_data: Optional[ np.ndarray ]
 	
@@ -529,7 +513,7 @@ class LabelEncoder( Encoder ):
 		"""Initialize LabelEncoder.
 
 		Purpose:
-		    Initializes the label encoder wrapper by constructing the underlying sklearn encoder and
+		    Initializes the label encoder object by constructing the underlying sklearn encoder and
 		    preparing the transformed-data cache used by later label transformation methods."""
 		super( ).__init__( )
 		self.model = pp.LabelEncoder( )
@@ -539,20 +523,13 @@ class LabelEncoder( Encoder ):
 		"""List public members.
 
 		Purpose:
-		    Returns the stable set of member names exposed by the label encoder wrapper for interactive
+		    Returns the stable set of member names exposed by the label encoder object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 
 		Returns:
-		    Public member names exposed by the wrapper."""
-		return [
-				'model',
-				'classes',
-				'transformed_data',
-				'train',
-				'transform',
-				'train_transform',
-				'inverse_transform',
-		]
+		    Public member names exposed by the object."""
+		return [ 'model', 'classes', 'transformed_data', 'train', 'transform', 'train_transform',
+			'inverse_transform', ]
 	
 	@property
 	def classes( self ) -> Any:
@@ -577,13 +554,13 @@ class LabelEncoder( Encoder ):
 
 		Purpose:
 		    Fits the underlying sklearn label encoder to a one-dimensional label vector and returns the
-		    wrapper instance for consistent preprocessing chains.
+		    object instance for consistent preprocessing chains.
 
 		Args:
 		    X (np.ndarray): Target-label vector used to learn class labels.
 
 		Returns:
-		    Fitted label encoder wrapper.
+		    Fitted label encoder object.
 
 		Raises:
 		    Error: Raised when validation or sklearn fitting fails."""
@@ -604,7 +581,7 @@ class LabelEncoder( Encoder ):
 
 		Purpose:
 		    Encodes the supplied target-label vector using class labels learned during fitting and
-		    stores the encoded output on the wrapper.
+		    stores the encoded output on the object.
 
 		Args:
 		    X (np.ndarray): Target-label vector transformed by the fitted encoder.
@@ -631,7 +608,7 @@ class LabelEncoder( Encoder ):
 
 		Purpose:
 		    Fits the underlying label encoder to the supplied target vector and returns the encoded
-		    label vector in one operation. The encoded output is cached on the wrapper.
+		    label vector in one operation. The encoded output is cached on the object.
 
 		Args:
 		    X (np.ndarray): Target-label vector used for fitting and transformation.
@@ -680,16 +657,16 @@ class LabelEncoder( Encoder ):
 			raise exception
 
 class TargetEncoder( Encoder ):
-	"""Wrap sklearn TargetEncoder.
+	"""Encodes categorical feature values
 
 	Purpose:
 	    Encodes categorical feature values with target-conditioned statistics learned from paired
-	    features and target values. The wrapper exposes sklearn target encoding through the shared
+	    features and target values. The object exposes sklearn target encoding through the shared
 	    Mathy encoder interface and caches transformed output for downstream modeling workflows.
 
 	Attributes:
 	    model (pp.TargetEncoder): Underlying sklearn preprocessing estimator.
-	    transformed_data (Optional[np.ndarray]): Most recent target-encoded matrix produced by the wrapper.
+	    transformed_data (Optional[np.ndarray]): Most recent target-encoded matrix produced by the object.
 	    categories (Optional[str]): Category configuration metadata retained for interface compatibility.
 	    smoothing (Optional[str]): Smoothing configuration metadata retained for interface compatibility.
 	    target_type (Optional[str]): Target-type metadata retained for interface compatibility."""
@@ -703,7 +680,7 @@ class TargetEncoder( Encoder ):
 		"""Initialize TargetEncoder.
 
 		Purpose:
-		    Initializes the target encoder wrapper by constructing the underlying sklearn encoder and
+		    Initializes the target encoder object by constructing the underlying sklearn encoder and
 		    preparing the transformed-data cache used by later target-aware transformations."""
 		super( ).__init__( )
 		self.model = pp.TargetEncoder( )
@@ -713,22 +690,13 @@ class TargetEncoder( Encoder ):
 		"""List public members.
 
 		Purpose:
-		    Returns the stable set of member names exposed by the target encoder wrapper for interactive
+		    Returns the stable set of member names exposed by the target encoder object for interactive
 		    inspection, notebook exploration, and IDE discovery.
 
 		Returns:
-		    Public member names exposed by the wrapper."""
-		return [
-				'model',
-				'classes',
-				'encodings',
-				'features_in',
-				'categories',
-				'transformed_data',
-				'train',
-				'transform',
-				'train_transform',
-		]
+		    Public member names exposed by the object."""
+		return [ 'model', 'classes', 'encodings', 'features_in', 'categories', 'transformed_data',
+			'train', 'transform', 'train_transform', ]
 	
 	@property
 	def classes( self ) -> Any:
@@ -816,7 +784,7 @@ class TargetEncoder( Encoder ):
 		    y (np.ndarray): Target vector aligned to the rows of `X`.
 
 		Returns:
-		    Fitted target encoder wrapper.
+		    Fitted target encoder object.
 
 		Raises:
 		    Error: Raised when validation or sklearn fitting fails."""
@@ -838,7 +806,7 @@ class TargetEncoder( Encoder ):
 
 		Purpose:
 		    Applies learned target encodings to the supplied categorical feature matrix and stores the
-		    target-encoded output on the wrapper.
+		    target-encoded output on the object.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix transformed by the fitted target encoder.
@@ -866,7 +834,7 @@ class TargetEncoder( Encoder ):
 		Purpose:
 		    Fits the underlying target encoder and returns target-encoded training data in one
 		    operation. The method uses sklearn target encoding behavior for paired feature and target
-		    arrays and caches the transformed result on the wrapper.
+		    arrays and caches the transformed result on the object.
 
 		Args:
 		    X (np.ndarray): Categorical feature matrix used for fitting and transformation.
@@ -894,25 +862,25 @@ class PolynomialFeatures( Encoder ):
 	"""Wrap sklearn PolynomialFeatures.
 
 	Purpose:
-	    Generates polynomial and interaction terms from numeric input features. The wrapper exposes
-	    sklearn polynomial feature expansion through the shared Mathy encoder interface and retains
+	    Generates polynomial and interaction terms from numeric input features. The object exposes
+	    sklearn polynomial feature expansion through the shared encoder interface and retains
 	    the generated output for downstream modeling workflows.
 
 	Attributes:
 	    degree (Optional[int]): Maximum polynomial degree generated by the transformer.
 	    interaction_only (Optional[bool]): Flag indicating whether only interaction terms are generated.
 	    model (pp.PolynomialFeatures): Underlying sklearn preprocessing estimator.
-	    transformed_data (Optional[np.ndarray]): Most recent polynomial feature matrix produced by the wrapper."""
+	    transformed_data (Optional[np.ndarray]): Most recent polynomial feature matrix produced by the object."""
 	degree: Optional[ int ]
 	interaction_only: Optional[ bool ]
 	model: pp.PolynomialFeatures
 	transformed_data: Optional[ np.ndarray ]
 	
-	def __init__( self, degree: int = 2, interaction: bool = True ) -> None:
+	def __init__( self, degree: int = 2, interaction: bool=True ) -> None:
 		"""Initialize PolynomialFeatures.
 
 		Purpose:
-		    Initializes the polynomial feature wrapper by configuring maximum degree and interaction-only
+		    Initializes the polynomial feature object by configuring maximum degree and interaction-only
 		    behavior on the underlying sklearn transformer. The constructor prepares the model without
 		    fitting it to any data.
 
@@ -929,21 +897,13 @@ class PolynomialFeatures( Encoder ):
 		"""List public members.
 
 		Purpose:
-		    Returns the stable set of member names exposed by the polynomial feature wrapper for
+		    Returns the stable set of member names exposed by the polynomial feature object for
 		    interactive inspection, notebook exploration, and IDE discovery.
 
 		Returns:
-		    Public member names exposed by the wrapper."""
-		return [
-				'model',
-				'degree',
-				'powers',
-				'interaction_only',
-				'transformed_data',
-				'train',
-				'transform',
-				'train_transform',
-		]
+		    Public member names exposed by the object."""
+		return [ 'model', 'degree', 'powers', 'interaction_only', 'transformed_data', 'train',
+			'transform', 'train_transform', ]
 	
 	@property
 	def powers( self ) -> np.ndarray:
@@ -968,13 +928,13 @@ class PolynomialFeatures( Encoder ):
 
 		Purpose:
 		    Fits the underlying sklearn polynomial feature transformer to the supplied feature matrix
-		    and returns the wrapper instance for consistent preprocessing chains.
+		    and returns the object instance for consistent preprocessing chains.
 
 		Args:
 		    X (np.ndarray): Feature matrix used to establish polynomial feature metadata.
 
 		Returns:
-		    Fitted polynomial feature wrapper.
+		    Fitted polynomial feature object.
 
 		Raises:
 		    Error: Raised when validation or sklearn fitting fails."""
@@ -995,7 +955,7 @@ class PolynomialFeatures( Encoder ):
 
 		Purpose:
 		    Expands the supplied feature matrix into the polynomial feature space learned or configured
-		    by the underlying sklearn transformer and caches the transformed matrix on the wrapper.
+		    by the underlying sklearn transformer and caches the transformed matrix on the object.
 
 		Args:
 		    X (np.ndarray): Feature matrix transformed into polynomial feature space.
@@ -1022,7 +982,7 @@ class PolynomialFeatures( Encoder ):
 
 		Purpose:
 		    Fits the polynomial feature transformer to the supplied feature matrix and returns the
-		    polynomially expanded output in one operation. The expanded matrix is cached on the wrapper.
+		    polynomially expanded output in one operation. The expanded matrix is cached on the object.
 
 		Args:
 		    X (np.ndarray): Feature matrix used for fitting and polynomial expansion.

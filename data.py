@@ -450,7 +450,7 @@ class DataSource( ):
 	y_training: Optional[ pd.Series ]
 	y_testing: Optional[ pd.Series ]
 	
-	def __init__( self, df: pd.DataFrame, target: str, size: float = 0.25, rando: int = 42 ):
+	def __init__( self, df: pd.DataFrame, target: str, size: float=0.25, rando: int=42 ):
 		"""Initialize the data source.
 		
 		Purpose:
@@ -584,19 +584,14 @@ class DataSource( ):
 			throw_if( 'encoder', encoder )
 			throw_if( 'columns', columns )
 			self.datatuple.append( (name, encoder, columns) )
-			self.column_transformer = ColumnTransformer(
-				transformers=self.datatuple,
-				remainder='passthrough'
-			)
+			self.column_transformer = ColumnTransformer( transformers=self.datatuple,
+				remainder='passthrough' )
 			values = self.data[ self.feature_names ]
 			transformed = self.column_transformer.fit_transform( values )
 			passthrough = [ c for c in self.feature_names if c not in columns ]
 			feature_names = columns + passthrough
-			df_transformed = pd.DataFrame(
-				transformed,
-				columns=feature_names,
-				index=self.data.index
-			)
+			df_transformed = pd.DataFrame( transformed, columns=feature_names,
+				index=self.data.index )
 			df_transformed[ self.target ] = self.data[ self.target ].values
 			self.data = df_transformed
 			self.feature_names = [ c for c in self.data.columns if c != self.target ]
@@ -607,11 +602,8 @@ class DataSource( ):
 			self.categorical_data = self.data[ self.categorical_columns ].copy( )
 			self.targets = self.data[ self.target ].values
 			self.X_training, self.X_testing, self.y_training, self.y_testing = split(
-				self.data[ self.feature_names ],
-				self.data[ self.target ],
-				test_size=self.size,
-				random_state=self.seed
-			)
+				self.data[ self.feature_names ], self.data[ self.target ], test_size=self.size,
+				random_state=self.seed )
 			return self.data
 		except Exception as e:
 			exception = Error( e )
@@ -625,7 +617,7 @@ class DataSource( ):
 		"""Standardize numeric data.
 		
 		Purpose:
-		    Applies the StandardScaler wrapper to the current numeric dataframe slice and returns the
+		    Applies the sklearn StandardScaler wrapper to the current numeric dataframe slice and returns the
 		    standardized numeric matrix. The fitted scaler is stored on the instance for later inspection
 		    or inverse transformation when supported by the scaler wrapper.
 		
@@ -675,7 +667,7 @@ class DataSource( ):
 		"""Normalize numeric data.
 		
 		Purpose:
-		    Applies the NormalScaler wrapper to the current numeric dataframe slice and returns the
+		    Applies the NormalScaler to the current numeric dataframe slice and returns the
 		    normalized numeric matrix. The fitted scaler is stored on the instance for consistent access
 		    after the normalization operation completes.
 		

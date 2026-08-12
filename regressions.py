@@ -6937,7 +6937,7 @@ class SupportVector( Regression ):
 				    regression estimator and caches the prediction array on the wrapper.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
+				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric
 				    evaluation.
 
 				Returns:
@@ -7005,13 +7005,13 @@ class SupportVector( Regression ):
 				    including error, explained-variance, and coefficient-of-determination measures.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
-				    evaluation.
-				    y: Target vector aligned to the rows of `X`.
+				    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring,
+				        or metric evaluation.
+				    y (np.ndarray): Target vector aligned to the rows of `X`.
 
 				Returns:
 				    pd.DataFrame | None: Dataframe containing regression metrics computed from 
-				    observed and predicted target values.
+				        observed and predicted target values.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7027,7 +7027,6 @@ class SupportVector( Regression ):
 			self.explained_variance_score = explained_variance_score( y, self.prediction )
 			self.median_absolute_error = median_absolute_error( y, self.prediction )
 			self.max_error = max_error( y, self.prediction )
-			
 			df_metrics = pd.DataFrame( {
 				'Metric': [ 'Training Score', 'Testing Score', 'R-Squared', 'MAE', 'MSE', 'RMSE',
 					'EVS', 'Median AE', 'MAX' ],
@@ -7054,9 +7053,9 @@ class SupportVector( Regression ):
 				    predictions from the fitted SupportVector regression estimator.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
-				    evaluation.
-				    y: Target vector aligned to the rows of `X`.
+				    X (np.ndarray): Feature matrix used for fitting, prediction, splitting, scoring,
+				        or metric evaluation.
+				    y (np.ndarray): Target vector aligned to the rows of `X`.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7111,7 +7110,7 @@ class GaussianProcess( Regression ):
 		    r2_score: Most recent coefficient-of-determination metric.
 		    explained_variance_score: Most recent explained-variance metric.
 		    median_absolute_error: Estimator configuration or runtime state retained by the 
-		    wrapper.
+		        wrapper.
 		    max_error: Most recent maximum residual error metric.
 		    testing_score: Most recent estimator score on the testing split.
 		    training_score: Most recent estimator score on the training split.
@@ -7141,7 +7140,7 @@ class GaussianProcess( Regression ):
 		"""Initialize instance.
 
 				Purpose:
-				    Initializes the GaussianProcess wrapper with estimator configuration, runtime 
+				    Initializes the GaussianProcess class with estimator configuration, runtime
 				    state, cached prediction fields, and regression metric fields required by 
 				    training and evaluation workflows.
 
@@ -7202,15 +7201,15 @@ class GaussianProcess( Regression ):
 				    using sklearn.model_selection.train_test_split with wrapper defaults.
 
 				Args:
-				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
-				    evaluation.
-				    y: Target vector aligned to the rows of `X`.
-				    size: Testing-set proportion used by train/test splitting.
-				    random: Random seed used by train/test splitting.
+				    X (np.ndarray): Feature matrix used for fitting, prediction, splitting,
+				        scoring, or metric evaluation.
+				    y (np.ndarray): Target vector aligned to the rows of `X`.
+				    size (float): Testing-set proportion used by train/test splitting.
+				    random (int): Random seed used by train/test splitting.
 
 				Returns:
-				    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing 
-				    training features, testing features, training targets, and testing targets.
+				    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Tuple containing
+				        training features, testing features, training targets, and testing targets.
 
 				Raises:
 				    Error: Raised when validation or wrapped regression estimator execution fails.
@@ -7564,7 +7563,7 @@ class MultiLayerPerceptron( Regression ):
 
 				Args:
 				    X: Feature matrix used for fitting, prediction, splitting, scoring, or metric 
-				    evaluation.
+				        evaluation.
 				    y: Target vector aligned to the rows of `X`.
 
 				Returns:
