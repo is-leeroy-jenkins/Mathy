@@ -1508,7 +1508,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		fig = go.Figure( data=[ go.Histogram( x=values ) ] )
 		fig.update_layout( xaxis_title=col, yaxis_title='Count' )
-		st.plotly_chart( fig, use_container_width=True )
+		render_mathy_plotly_chart( fig, 'data_visualization_histogram_chart',
+			'mathy_data_histogram', f'Histogram — {col}', 500 )
 	
 	elif chart == 'Bar':
 		if not numeric_cols:
@@ -1523,7 +1524,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		fig = go.Figure( data=[ go.Bar( x=x_values, y=y_values ) ] )
 		fig.update_layout( xaxis_title=x, yaxis_title=y )
-		st.plotly_chart( fig, use_container_width=True )
+		render_mathy_plotly_chart( fig, 'data_visualization_bar_chart',
+			'mathy_data_bar', f'{y} by {x}', 500 )
 	
 	elif chart == 'Line':
 		if not numeric_cols:
@@ -1538,7 +1540,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		fig = go.Figure( data=[ go.Scatter( x=x_values, y=y_values, mode='lines' ) ] )
 		fig.update_layout( xaxis_title=x, yaxis_title=y )
-		st.plotly_chart( fig, use_container_width=True )
+		render_mathy_plotly_chart( fig, 'data_visualization_line_chart',
+			'mathy_data_line', f'{y} by {x}', 500 )
 	
 	elif chart == 'Scatter':
 		if len( numeric_cols ) < 2:
@@ -1557,7 +1560,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		fig = go.Figure( data=[ go.Scatter( x=x_values, y=y_values, mode='markers' ) ] )
 		fig.update_layout( xaxis_title=x, yaxis_title=y )
-		st.plotly_chart( fig, use_container_width=True )
+		render_mathy_plotly_chart( fig, 'data_visualization_scatter_chart',
+			'mathy_data_scatter', f'{y} vs {x}', 500 )
 	
 	elif chart == 'Box':
 		if not numeric_cols:
@@ -1569,7 +1573,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		fig = go.Figure( data=[ go.Box( y=values, name=col ) ] )
 		fig.update_layout( yaxis_title=col )
-		st.plotly_chart( fig, use_container_width=True )
+		render_mathy_plotly_chart( fig, 'data_visualization_box_chart',
+			'mathy_data_box', f'Box Plot — {col}', 500 )
 	
 	elif chart == 'Pie':
 		if not categorical_columns:
@@ -1581,7 +1586,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		fig = go.Figure(
 			data=[ go.Pie( labels=counts.index.tolist( ), values=counts.values.tolist( ) ) ] )
-		st.plotly_chart( fig, use_container_width=True )
+		render_mathy_plotly_chart( fig, 'data_visualization_pie_chart',
+			'mathy_data_pie', f'Category Share — {col}', 500 )
 	
 	elif chart == 'Correlation':
 		if len( numeric_cols ) < 2:
@@ -1596,7 +1602,8 @@ def create_visualization( df: pd.DataFrame ) -> None:
 		
 		fig = go.Figure( data=[ go.Heatmap( z=corr.values.tolist( ), x=corr.columns.tolist( ),
 			y=corr.index.tolist( ) ) ] )
-		st.plotly_chart( fig, use_container_width=True )
+		render_mathy_plotly_chart( fig, 'data_visualization_correlation_chart',
+			'mathy_data_correlation', 'Correlation Heatmap', 550 )
 
 def convert_dataframe( table_name: str, df: pd.DataFrame ):
 	"""Create a SQLite table from a dataframe schema.
@@ -2365,8 +2372,8 @@ def apply_mathy_plotly_theme( figure: go.Figure, title: str = '',
 		title={ 'text': title, 'x': 0.01, 'xanchor': 'left' },
 		height=height,
 		autosize=True,
-		paper_bgcolor='rgba(0,0,0,0)',
-		plot_bgcolor='rgba(0,0,0,0)',
+		paper_bgcolor='#171A1F',
+		plot_bgcolor='#1B2028',
 		font={ 'family': 'Arial, sans-serif', 'size': 13, 'color': '#E2E8F0' },
 		margin={ 'l': 55, 'r': 30, 't': 70 if title else 35, 'b': 55 },
 		legend={ 'orientation': 'h', 'yanchor': 'bottom', 'y': 1.02,
@@ -2380,6 +2387,33 @@ def apply_mathy_plotly_theme( figure: go.Figure, title: str = '',
 		showline=True, linecolor='rgba(148,163,184,0.35)' )
 	figure.update_yaxes( showgrid=True, gridcolor='rgba(148,163,184,0.16)', zeroline=False,
 		showline=True, linecolor='rgba(148,163,184,0.35)' )
+	return figure
+
+def add_statistical_reference_lines( figure: go.Figure, mean_value: float,
+		median_value: float ) -> go.Figure:
+	"""Add non-overlapping mean and median references to a Plotly figure.
+
+	Purpose:
+	    Draws mean and median reference lines without placing collision-prone text annotations
+	    inside the plotting area. The formatted values are exposed through distinct legend entries.
+
+	Args:
+	    figure (go.Figure): Plotly figure receiving the statistical reference lines.
+	    mean_value (float): Arithmetic mean represented by the dashed amber line.
+	    median_value (float): Median represented by the dotted teal line.
+
+	Returns:
+	    go.Figure: Plotly figure containing mean and median lines and legend entries.
+	"""
+	throw_if( 'figure', figure )
+	figure.add_vline( x=mean_value, line_dash='dash', line_color='#F59E0B' )
+	figure.add_vline( x=median_value, line_dash='dot', line_color='#2DD4BF' )
+	figure.add_trace( go.Scatter( x=[ None ], y=[ None ], mode='lines',
+		name=f'Mean: {mean_value:,.4g}', line={ 'color': '#F59E0B', 'dash': 'dash',
+			'width': 2 }, hoverinfo='skip' ) )
+	figure.add_trace( go.Scatter( x=[ None ], y=[ None ], mode='lines',
+		name=f'Median: {median_value:,.4g}', line={ 'color': '#2DD4BF', 'dash': 'dot',
+			'width': 2 }, hoverinfo='skip' ) )
 	return figure
 
 def render_mathy_plotly_chart( figure: go.Figure, key: str, filename: str,
@@ -2763,7 +2797,7 @@ with st.sidebar:
 		st.session_state[ 'active_mode' ] = selected_mode
 		
 	# ------- Available Modes
-	ml_modes = list( cfg.ML_MODE )
+	ml_modes = list( dict.fromkeys( cfg.ML_MODE ) )
 	db_modes = list( cfg.DB_MODE )
 	df_loaded = st.session_state.get( 'df_dataset', None )
 	visualization_modes = get_visualization_modes( df_loaded )
@@ -2830,7 +2864,7 @@ style_subheaders( )
 # DATA PROFILING MODE
 # ============================================
 if mode == 'Data Profile':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Data Profile' ] )
 		st.divider( )
@@ -3095,10 +3129,7 @@ if mode == 'Data Profile':
 							kde_values = kde_values * len( s ) * bin_width
 						figure.add_trace( go.Scatter( x=x_values, y=kde_values, mode='lines',
 							name='KDE', line={ 'color': '#F472B6', 'width': 3 } ) )
-					figure.add_vline( x=mean_val, line_dash='dash', line_color='#F59E0B',
-						annotation_text=f'Mean: {mean_val:,.2f}' )
-					figure.add_vline( x=median_val, line_dash='dot', line_color='#2DD4BF',
-						annotation_text=f'Median: {median_val:,.2f}' )
+					add_statistical_reference_lines( figure, mean_val, median_val )
 					figure.update_xaxes( title_text=col )
 					figure.update_yaxes( title_text='Density' if stat_mode == 'density' else 'Frequency' )
 					render_mathy_plotly_chart( figure, f'profile_numeric_distribution_chart_{i}',
@@ -3122,7 +3153,7 @@ if mode == 'Data Profile':
 #  DESCRIPTIVE STATISTICS MODE
 # ============================================
 elif mode == 'Descriptive Statistics':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Descriptive Statistics' ], help=cfg.DESCRIPTIVE_STATISTICS )
 		st.divider( )
@@ -3249,10 +3280,7 @@ elif mode == 'Descriptive Statistics':
 					kde_values = stats.gaussian_kde( s.to_numpy( ) )( x_values ) * len( s ) * bin_width
 					figure.add_trace( go.Scatter( x=x_values, y=kde_values, mode='lines',
 						name='KDE', line={ 'color': '#F472B6', 'width': 3 } ) )
-				figure.add_vline( x=mean_val, line_dash='dash', line_color='#F59E0B',
-					annotation_text=f'Mean: {mean_val:,.2f}' )
-				figure.add_vline( x=median_val, line_dash='dot', line_color='#2DD4BF',
-					annotation_text=f'Median: {median_val:,.2f}' )
+				add_statistical_reference_lines( figure, mean_val, median_val )
 				figure.update_xaxes( title_text=col )
 				figure.update_yaxes( title_text='Frequency' )
 				render_mathy_plotly_chart( figure, f'descriptive_histogram_chart_{col}',
@@ -3366,7 +3394,7 @@ elif mode == 'Descriptive Statistics':
 # INFERENTIAL STATISTICS MODE
 # ============================================
 elif mode == 'Inferential Statistics':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Inferential Statistics' ], help=cfg.INFERENTIAL_STATISTICS )
 		st.divider( )
@@ -3749,7 +3777,7 @@ elif mode == 'Inferential Statistics':
 # ANOMALY DETECTION MODE
 # ============================================
 elif mode == 'Anomaly Detection':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Anomaly Detection' ] )
 		st.divider( )
@@ -3974,10 +4002,7 @@ elif mode == 'Anomaly Detection':
 				
 				mean_val = float( s_clean.mean( ) )
 				median_val = float( s_clean.median( ) )
-				figure.add_vline( x=mean_val, line_dash='dash', line_color='#F59E0B',
-					annotation_text=f'Mean: {mean_val:,.2f}' )
-				figure.add_vline( x=median_val, line_dash='dot', line_color='#2DD4BF',
-					annotation_text=f'Median: {median_val:,.2f}' )
+				add_statistical_reference_lines( figure, mean_val, median_val )
 				figure.update_xaxes( title_text=col )
 				figure.update_yaxes( title_text='Cumulative Probability', range=[ 0.0, 1.02 ] )
 				render_mathy_plotly_chart( figure, f'anomaly_ecdf_chart_{col}',
@@ -4063,7 +4088,7 @@ elif mode == 'Classification Models':
 	y_prediction = st.session_state.get( 'y_prediction', None )
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classification Models' ] )
 		st.caption( 'Predictive Models for Categorical, Discrete-Values' )
@@ -8931,7 +8956,7 @@ elif mode == 'Regression Models':
 	y_series = st.session_state.get( 'y_series', None )
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Regression Models' ] )
 		st.caption( 'Predictive Models for Continuous Values' )
@@ -14453,7 +14478,7 @@ elif mode == 'Regression Models':
 # ============================================
 elif mode == 'Clustering Models':
 	df_dataset = st.session_state.get( 'df_dataset', None )
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Clustering Models' ] )
 		st.divider( )
@@ -15858,6 +15883,11 @@ elif mode == 'Clustering Models':
 		st.session_state[ 'cluster_kmeans_n_clusters' ] = min(
 			max( 2, int( st.session_state[ 'cluster_kmeans_n_clusters' ] ) ),
 			cluster_max_clusters )
+		df_results = st.session_state.get( 'df_cluster_kmeans_results', pd.DataFrame( ) )
+		df_counts = st.session_state.get( 'df_cluster_kmeans_counts', pd.DataFrame( ) )
+		df_metrics = st.session_state.get( 'df_cluster_kmeans_metrics', pd.DataFrame( ) )
+		df_centroids = st.session_state.get( 'df_cluster_kmeans_centroids', pd.DataFrame( ) )
+		df_details = st.session_state.get( 'df_cluster_kmeans_details', pd.DataFrame( ) )
 		
 		with st.expander( 'K-Means', expanded=True ):
 			st.caption( 'Prototype-based clustering using centroid minimization.' )
@@ -17617,7 +17647,7 @@ elif mode == 'Clustering Models':
 # TIME SERIES MODE
 # ============================================
 elif mode == 'Time-Series Models':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Time-Series Models' ] )
 		st.divider( )
@@ -18894,7 +18924,7 @@ elif mode == 'Time-Series Models':
 # DATA OVERVIEW MODE
 # ============================================
 elif mode == 'Data Overview':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Data Overview', divider='gray' )
 		render_visualization_metric_styles( )
@@ -18982,7 +19012,7 @@ elif mode == 'Data Overview':
 # NUMERIC DISTRIBUTIONS MODE
 # ============================================
 elif mode == 'Numeric Distributions':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Numeric Distributions', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19038,10 +19068,8 @@ elif mode == 'Numeric Distributions':
 						kde_values = kde_values * len( series ) * bin_width
 					figure.add_trace( go.Scatter( x=x_values, y=kde_values, mode='lines',
 						name='KDE', line={ 'color': '#F472B6', 'width': 3 } ) )
-				figure.add_vline( x=float( series.mean( ) ), line_dash='dash',
-					line_color='#F59E0B', annotation_text='Mean' )
-				figure.add_vline( x=float( series.median( ) ), line_dash='dot',
-					line_color='#2DD4BF', annotation_text='Median' )
+				add_statistical_reference_lines( figure, float( series.mean( ) ),
+					float( series.median( ) ) )
 				figure.update_xaxes( title_text=column )
 				figure.update_yaxes( title_text=display_mode )
 				render_mathy_plotly_chart( figure, f'visualization_numeric_hist_{index}',
@@ -19068,7 +19096,7 @@ elif mode == 'Numeric Distributions':
 # CORRELATION ANALYSIS MODE
 # ============================================
 elif mode == 'Correlation Analysis':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Correlation Analysis', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19136,7 +19164,7 @@ elif mode == 'Correlation Analysis':
 # SCATTER ANALYSIS MODE
 # ============================================
 elif mode == 'Scatter Analysis':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Scatter Analysis', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19222,7 +19250,7 @@ elif mode == 'Scatter Analysis':
 # CATEGORICAL DISTRIBUTIONS MODE
 # ============================================
 elif mode == 'Categorical Distributions':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Categorical Distributions', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19284,7 +19312,7 @@ elif mode == 'Categorical Distributions':
 # CATEGORY COMPARISONS MODE
 # ============================================
 elif mode == 'Category Comparisons':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Category Comparisons', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19349,7 +19377,7 @@ elif mode == 'Category Comparisons':
 # TIME-SERIES VISUALIZATION MODE
 # ============================================
 elif mode == 'Time-Series Visualization':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Time-Series Visualization', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19440,7 +19468,7 @@ elif mode == 'Time-Series Visualization':
 # MISSING DATA VISUALIZATION MODE
 # ============================================
 elif mode == 'Missing Data Visualization':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
 	with center:
 		st.subheader( 'Missing Data Visualization', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19800,7 +19828,8 @@ elif mode == 'Data Management':
 				if numeric_columns:
 					col = st.selectbox( 'Column', numeric_columns, key='numeric_col_box' )
 					fig = px.histogram( df, x=col )
-					st.plotly_chart( fig, use_container_width=True )
+					render_mathy_plotly_chart( fig, 'data_management_visualization_chart',
+						'mathy_data_management_histogram', f'Histogram — {col}', 500 )
 		
 		# ------------------------------------------------------------------------------
 		# ADMIN
