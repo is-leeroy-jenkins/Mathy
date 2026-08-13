@@ -383,11 +383,10 @@ def reset_classification_mode_state( ) -> None:
 	    None: This function resets classification-related values in Streamlit session state.
 	"""
 	classification_keys = [ 'df_working', 'df_processed', 'df_model', 'df_scores',
-		'df_predictions',
-		'df_classification', 'df_classification_scores', 'df_features', 'df_targets', 'features',
-		'targets', 'selected_all', 'active_features', 'active_targets', 'X_data', 'X_train',
-		'X_test', 'y_train', 'y_test', 'y_series', 'y_prediction', 'model', 'elapsed_seconds',
-		'target_count' ]
+		'df_predictions', 'df_classification', 'df_classification_scores', 'df_features',
+		'df_targets', 'features', 'targets', 'selected_all', 'active_features', 'active_targets',
+		'X_data', 'X_train', 'X_test', 'y_train', 'y_test', 'y_series', 'y_prediction', 'model',
+		'elapsed_seconds', 'target_count' ]
 	
 	clear_keys( classification_keys )
 	st.session_state[ 'df_working' ] = pd.DataFrame( )
