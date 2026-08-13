@@ -6,7 +6,7 @@
 	  Created:                 05-31-2022
 	
 	  Last Modified By:        Terry D. Eppler
-	  Last Modified On:        05-01-2025
+	  Last Modified On:        08-13-2026
 	******************************************************************************************
 	<copyright file="capp.py" company="Terry D. Eppler">
 	
@@ -253,27 +253,32 @@ if 'data_upload_filename' not in st.session_state:
 # ============================================
 
 def throw_if( name: str, value: object ) -> None:
-	"""Validate a required argument before workflow execution.
-
-	Purpose:
-	    Rejects null values and blank strings before they reach data operations, model workflows,
-	    or user-interface routines that require a populated argument.
-
-	Args:
-	    name (str): Argument name included in validation error messages.
-	    value (object): Argument value evaluated for a null or blank-string state.
-
-	Returns:
-	    None: This function completes without returning a value when validation succeeds.
-
-	Raises:
-	    ValueError: Raised when ``value`` is ``None`` or a blank string.
-	"""
-	if value is None:
-		raise ValueError( f'Argument "{name}" cannot be None.' )
+	"""Validate a required clustering argument.
 	
-	if isinstance( value, str ) and not value.strip( ):
-		raise ValueError( f'Argument "{name}" cannot be empty.' )
+	Purpose:
+	    Enforces the presence of required clustering inputs before estimator execution. The
+	    validation accepts populated NumPy arrays and standard Python containers while
+	    rejecting null values and empty collections that would otherwise cause downstream
+	    operations to fail or produce undefined clustering results.
+	
+	Args:
+	    name (str): Argument name used in the validation error message.
+	    value (object): Argument value checked for a null or empty state.
+	
+	Returns:
+	    None: This function performs its work through side effects and does not return a
+	          value.
+	
+	Raises:
+	    ValueError: Raised when `value` is None or empty."""
+	if value is None:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, np.ndarray ) and value.size == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
+	
+	if isinstance( value, (str, list, tuple, dict, set) ) and len( value ) == 0:
+		raise ValueError( f'Argument "{name}" cannot be empty!' )
 
 def init_state( ) -> None:
 	"""Initialize core application session state.
@@ -353,6 +358,83 @@ def store_loaded_dataset( df_dataset: pd.DataFrame, df_original: pd.DataFrame = 
 	st.session_state[ 'raw_df' ] = df_source.copy( )
 	st.session_state[ 'df_original' ] = df_base.copy( )
 	st.session_state[ 'df_dataset' ] = df_source.copy( )
+	synchronize_dataset_columns( df_source )
+
+def synchronize_dataset_columns( df_dataset: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]:
+	"""Synchronize analytical column classifications with the active dataset.
+
+	Purpose:
+	    Recomputes numeric and categorical analytical roles from the current dataframe and stores
+	    the resulting column collections in session state. This keeps analytical modes aligned with
+	    source changes and column-management operations instead of relying on classifications left
+	    behind by a previously rendered mode.
+
+	Args:
+	    df_dataset (pd.DataFrame): Active dataframe whose columns are classified.
+
+	Returns:
+	    tuple[List[str], List[str]]: Numeric column names followed by categorical column names.
+	"""
+	if not has_loaded_dataset( df_dataset ):
+		st.session_state[ 'numeric_columns' ] = [ ]
+		st.session_state[ 'categorical_columns' ] = [ ]
+		return [ ], [ ]
+
+	schema = infer_schema( df_dataset )
+	numeric_columns = [ column for column, role in schema.items( ) if role == 'numeric' ]
+	categorical_columns = [ column for column, role in schema.items( ) if role == 'categorical' ]
+	st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
+	st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
+	return numeric_columns, categorical_columns
+
+def reset_inferential_selection_state( df_dataset: pd.DataFrame,
+	numeric_columns: List[ str ], categorical_columns: List[ str ] ) -> None:
+	"""Reset inferential selections that do not belong to the active dataset schema.
+
+	Purpose:
+	    Compares the active dataframe schema with the schema previously used by Inferential
+	    Statistics and removes dataset-dependent widget state before the corresponding controls are
+	    instantiated. Selections are also validated individually so invalid legacy values cannot be
+	    used to index the current dataframe.
+
+	Args:
+	    df_dataset (pd.DataFrame): Active dataframe used by Inferential Statistics.
+	    numeric_columns (List[str]): Current numeric columns available to inferential controls.
+	    categorical_columns (List[str]): Current categorical columns available to inferential
+	        controls.
+
+	Returns:
+	    None: This function updates Streamlit session state in place.
+	"""
+	throw_if( 'df_dataset', df_dataset )
+	schema_signature = (tuple( df_dataset.columns.tolist( ) ),
+		tuple( str( dtype ) for dtype in df_dataset.dtypes.tolist( ) ))
+	selection_keys = [ 'infer_summary_y', 'infer_summary_x', 'infer_summary_group',
+		'infer_summary_cat1', 'infer_summary_cat2' ]
+	previous_signature = st.session_state.get( 'inferential_schema_signature', None )
+
+	if previous_signature != schema_signature:
+		clear_keys( selection_keys )
+	else:
+		numeric_options = set( numeric_columns )
+		categorical_options = set( categorical_columns )
+		if st.session_state.get( 'infer_summary_y', None ) not in numeric_options:
+			clear_keys( [ 'infer_summary_y' ] )
+		if st.session_state.get( 'infer_summary_x', '<None>' ) not in numeric_options | {
+				'<None>' }:
+			clear_keys( [ 'infer_summary_x' ] )
+		if st.session_state.get( 'infer_summary_group', '<None>' ) not in categorical_options | {
+				'<None>' }:
+			clear_keys( [ 'infer_summary_group' ] )
+		if st.session_state.get( 'infer_summary_cat1', None ) not in categorical_options:
+			clear_keys( [ 'infer_summary_cat1' ] )
+		if st.session_state.get( 'infer_summary_cat2', None ) not in categorical_options:
+			clear_keys( [ 'infer_summary_cat2' ] )
+		if st.session_state.get( 'infer_summary_cat1', None ) == st.session_state.get(
+				'infer_summary_cat2', None ):
+			clear_keys( [ 'infer_summary_cat2' ] )
+
+	st.session_state[ 'inferential_schema_signature' ] = schema_signature
 
 def clear_keys( keys: List[ str ] ) -> None:
 	"""Remove specified keys from Streamlit session state.
@@ -2632,10 +2714,13 @@ with st.sidebar:
 		source = st.selectbox( label='Select Source', options=src, key='source_selectbox' )
 		df_loaded: pd.DataFrame | None = None
 		loaded_original: pd.DataFrame | None = None
+		loaded_source_signature: tuple | None = None
+		loaded_source_message = ''
 		if source == 'Default Data':
 			df_loaded = pd.read_excel( cfg.DEFAULT_DATA )
 			loaded_original = df_loaded.copy( )
-			log_step( 'Loaded Default Dataset' )
+			loaded_source_signature = ('Default Data', str( cfg.DEFAULT_DATA ))
+			loaded_source_message = 'Loaded Default Dataset'
 		
 		elif source == 'Database Data':
 			try:
@@ -2657,7 +2742,8 @@ with st.sidebar:
 							df_loaded = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
 								connection )
 							loaded_original = df_loaded.copy( )
-							log_step( f'Loaded Database Table: {selected_table}' )
+							loaded_source_signature = ('Database Data', selected_table)
+							loaded_source_message = f'Loaded Database Table: {selected_table}'
 					else:
 						st.warning( 'No tables were found in the database.' )
 			except Exception as ex:
@@ -2673,12 +2759,18 @@ with st.sidebar:
 					df_loaded = pd.read_csv( uploaded )
 				
 				loaded_original = df_loaded.copy( )
-				log_step( f'Loaded uploaded file: {uploaded.name}' )
+				loaded_source_signature = ('Custom Data', uploaded.name, uploaded.size)
+				loaded_source_message = f'Loaded uploaded file: {uploaded.name}'
 			else:
 				st.info( 'Upload a spreadsheet to load data.' )
 		
-		if has_loaded_dataset( df_loaded ):
+		active_source_signature = st.session_state.get( 'active_source_signature', None )
+		if has_loaded_dataset( df_loaded ) and (not has_loaded_dataset(
+				st.session_state.get( 'df_dataset', None ) ) or
+				loaded_source_signature != active_source_signature):
 			store_loaded_dataset( df_loaded, loaded_original )
+			st.session_state[ 'active_source_signature' ] = loaded_source_signature
+			log_step( loaded_source_message )
 	
 	def get_visualization_modes( df_frame: pd.DataFrame | None ) -> list[ str ]:
 		"""Return visualization modes supported by the loaded dataframe.
@@ -3398,13 +3490,13 @@ elif mode == 'Inferential Statistics':
 		st.subheader( cfg.MODE[ 'Inferential Statistics' ], help=cfg.INFERENTIAL_STATISTICS )
 		st.divider( )
 		
-		df_dataset = st.session_state.df_dataset
+		df_dataset = get_loaded_dataset( )
 		if df_dataset is None or df_dataset.empty:
 			st.info( 'No data available.' )
 			st.stop( )
 		
-		numeric_columns = st.session_state.numeric_columns
-		categorical_columns = st.session_state.categorical_columns
+		numeric_columns, categorical_columns = synchronize_dataset_columns( df_dataset )
+		reset_inferential_selection_state( df_dataset, numeric_columns, categorical_columns )
 		if not numeric_columns:
 			st.info( 'No numeric variables available for inferential analysis.' )
 			st.stop( )
@@ -3572,7 +3664,7 @@ elif mode == 'Inferential Statistics':
 					
 					infer_rows.append(
 						{ 'Analysis': 'Categorical Association', 'Test': 'Chi-Square',
-							'Statistic': chi2_stat, 'P Value': chi2_p, 'DoF': float( chi2_dof ),
+							'Statistic': chi2_stat, 'P-Value': chi2_p, 'DoF': float( chi2_dof ),
 							'Effect Size': cramers_v, 'N': float( n_total ),
 							'Notes': f'{summary_cat1} vs {summary_cat2}' } )
 				except Exception:
