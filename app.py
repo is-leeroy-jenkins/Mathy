@@ -152,6 +152,27 @@ if 'numeric_columns' not in st.session_state:
 if 'categorical_columns' not in st.session_state:
 	st.session_state[ 'categorical_columns' ] = [ ]
 
+if 'ordinal_columns' not in st.session_state:
+	st.session_state[ 'ordinal_columns' ] = [ ]
+
+if 'identifier_columns' not in st.session_state:
+	st.session_state[ 'identifier_columns' ] = [ ]
+
+if 'datetime_columns' not in st.session_state:
+	st.session_state[ 'datetime_columns' ] = [ ]
+
+if 'boolean_columns' not in st.session_state:
+	st.session_state[ 'boolean_columns' ] = [ ]
+
+if 'column_profiles' not in st.session_state:
+	st.session_state[ 'column_profiles' ] = { }
+
+if 'column_type_overrides' not in st.session_state:
+	st.session_state[ 'column_type_overrides' ] = { }
+
+if 'df_analysis' not in st.session_state:
+	st.session_state[ 'df_analysis' ] = pd.DataFrame( )
+
 if 'active_features' not in st.session_state:
 	st.session_state[ 'active_features' ] = [ ]
 
@@ -378,13 +399,34 @@ def synchronize_dataset_columns( df_dataset: pd.DataFrame ) -> tuple[ List[ str 
 	if not has_loaded_dataset( df_dataset ):
 		st.session_state[ 'numeric_columns' ] = [ ]
 		st.session_state[ 'categorical_columns' ] = [ ]
+		st.session_state[ 'ordinal_columns' ] = [ ]
+		st.session_state[ 'identifier_columns' ] = [ ]
+		st.session_state[ 'datetime_columns' ] = [ ]
+		st.session_state[ 'boolean_columns' ] = [ ]
+		st.session_state[ 'column_profiles' ] = { }
+		st.session_state[ 'df_analysis' ] = pd.DataFrame( )
 		return [ ], [ ]
 
-	schema = infer_schema( df_dataset )
+	profiles = profile_dataframe_schema( df_dataset )
+	schema = { column: str( profile[ 'analytical_role' ] ) for column, profile in
+		profiles.items( ) }
 	numeric_columns = [ column for column, role in schema.items( ) if role == 'numeric' ]
-	categorical_columns = [ column for column, role in schema.items( ) if role == 'categorical' ]
+	ordinal_columns = [ column for column, role in schema.items( ) if role == 'ordinal' ]
+	identifier_columns = [ column for column, role in schema.items( ) if role == 'identifier' ]
+	datetime_columns = [ column for column, role in schema.items( ) if role == 'datetime' ]
+	boolean_columns = [ column for column, profile in profiles.items( ) if
+		profile[ 'inferred_dtype' ] == 'boolean' ]
+	categorical_columns = [ column for column, role in schema.items( ) if role in (
+		'categorical', 'ordinal' ) ]
 	st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
 	st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
+	st.session_state[ 'ordinal_columns' ] = ordinal_columns.copy( )
+	st.session_state[ 'identifier_columns' ] = identifier_columns.copy( )
+	st.session_state[ 'datetime_columns' ] = datetime_columns.copy( )
+	st.session_state[ 'boolean_columns' ] = boolean_columns.copy( )
+	st.session_state[ 'column_profiles' ] = profiles.copy( )
+	st.session_state[ 'column_schema' ] = schema.copy( )
+	st.session_state[ 'df_analysis' ] = create_typed_analysis_dataframe( df_dataset, profiles )
 	return numeric_columns, categorical_columns
 
 def reset_inferential_selection_state( df_dataset: pd.DataFrame,
@@ -509,8 +551,7 @@ def reset_regression_mode_state( ) -> None:
 	"""
 	regression_keys = [ 'df_working', 'df_processed', 'df_model', 'df_scores', 'df_predictions',
 		'df_regression', 'df_regression_scores', 'df_features', 'df_targets', 'features',
-		'targets',
-		'selected_all', 'active_features', 'active_targets', 'X_data', 'X_train', 'X_test',
+		'targets', 'selected_all', 'active_features', 'active_targets', 'X_data', 'X_train', 'X_test',
 		'y_train', 'y_test', 'y_series', 'y_prediction', 'model', 'elapsed_seconds',
 		'target_count' ]
 	
@@ -618,24 +659,11 @@ def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]
 	Returns:
 	    tuple[List[str], List[str]]: Numeric column names followed by categorical column names.
 	"""
-	numeric_hints = ('py', 'cy', 'by', 'amount', 'total', 'value', 'balance', 'outlay')
-	categorical_hints = ('fy', 'code', 'id', 'name', 'type', 'symbol')
-	
-	numeric, categorical = [ ], [ ]
-	
-	for col in df.columns:
-		name = col.lower( )
-		if any( h in name for h in categorical_hints ):
-			categorical.append( col )
-		elif any( h in name for h in numeric_hints ):
-			numeric.append( col )
-		elif pd.api.types.is_float_dtype( df[ col ] ):
-			numeric.append( col )
-		elif pd.api.types.is_integer_dtype( df[ col ] ):
-			numeric.append( col )
-		else:
-			categorical.append( col )
-	
+	profiles = profile_dataframe_schema( df )
+	numeric = [ column for column, profile in profiles.items( ) if
+		profile[ 'analytical_role' ] == 'numeric' ]
+	categorical = [ column for column, profile in profiles.items( ) if
+		profile[ 'analytical_role' ] in ('categorical', 'ordinal') ]
 	return numeric, categorical
 
 def styled_scatter( figure: go.Figure, x: np.ndarray, y: np.ndarray, series_index: int=0,
@@ -790,7 +818,9 @@ def get_numeric_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	Returns:
 	    list[str]: Names of columns containing numeric data.
 	"""
-	return [ c for c in df_frame.columns if pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
+	profiles = profile_dataframe_schema( df_frame )
+	return [ column for column, profile in profiles.items( ) if
+		profile[ 'analytical_role' ] == 'numeric' ]
 
 def get_categorical_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	"""Return non-numeric columns from a dataframe.
@@ -805,7 +835,9 @@ def get_categorical_columns( df_frame: pd.DataFrame ) -> list[ str ]:
 	Returns:
 	    list[str]: Names of columns containing non-numeric data.
 	"""
-	return [ c for c in df_frame.columns if not pd.api.types.is_numeric_dtype( df_frame[ c ] ) ]
+	profiles = profile_dataframe_schema( df_frame )
+	return [ column for column, profile in profiles.items( ) if
+		profile[ 'analytical_role' ] in ('categorical', 'ordinal') ]
 
 def get_working_frame( ) -> pd.DataFrame:
 	"""Return the active dataframe used by Data Plumbing workflows.
@@ -1154,63 +1186,316 @@ def initialize_database( ) -> None:
 		
 		conn.commit( )
 
-def infer_schema( df: pd.DataFrame ) -> Dict[ str, str ]:
-	"""Infer analytical roles for dataframe columns.
+def get_column_name_tokens( column_name: str ) -> List[ str ]:
+	"""Return normalized semantic tokens from a dataframe column name.
 
 	Purpose:
-	    Classifies each dataframe column as datetime, identifier, ordinal, numeric, or
-	    categorical by evaluating its pandas data type, name-based identifier hints,
-	    distinct-value count, distinct-value ratio, and datetime-conversion success rate.
+	    Splits camel-case, whitespace-delimited, and punctuation-delimited column names into exact
+	    lowercase tokens so schema inference can use semantic evidence without unsafe substring
+	    matches.
 
 	Args:
-	    df (pd.DataFrame): Dataframe whose columns are classified for profiling and
-	        downstream analytical workflows.
+	    column_name (str): Source dataframe column name.
 
 	Returns:
-	    Dict[str, str]: Mapping of column names to inferred analytical role names.
+	    List[str]: Ordered normalized name tokens.
 	"""
-	schema: dict[ str, str ] = { }
-	n_rows = len( df )
-	
-	for col in df.columns:
-		s = df[ col ]
-		name = col.lower( )
-		nunique = s.nunique( dropna=True )
-		unique_ratio = nunique / max( 1, n_rows )
-		
-		# ------------------------------------------------------------------
-		# 1) Datetime: ONLY for object/string columns
-		# ------------------------------------------------------------------
-		if s.dtype == 'object':
-			try:
-				parsed_dt = pd.to_datetime( s, errors='coerce' )
-				if parsed_dt.notna( ).sum( ) / max( 1, n_rows ) > 0.9:
-					schema[ col ] = 'datetime'
-					continue
-			except Exception:
-				pass
-		
-		# ------------------------------------------------------------------
-		# 2) Numeric detection: ints AND floats
-		# ------------------------------------------------------------------
-		if pd.api.types.is_numeric_dtype( s ):
-			# Identifier heuristics for numeric codes/keys
-			if ('id' in name) or ('code' in name) or ('key' in name) or (
-					unique_ratio > 0.8):
-				schema[ col ] = 'identifier'
-				continue
-			if pd.api.types.is_integer_dtype( s ) and nunique <= 20:
-				schema[ col ] = 'ordinal'
-				continue
-			schema[ col ] = 'numeric'
-			continue
-		
-		# ------------------------------------------------------------------
-		# 3) Categorical fallback
-		# ------------------------------------------------------------------
-		schema[ col ] = 'categorical'
-	
-	return schema
+	throw_if( 'column_name', column_name )
+	spaced_name = re.sub( r'([a-z0-9])([A-Z])', r'\1 \2', str( column_name ) )
+	return [ token for token in re.split( r'[^A-Za-z0-9]+', spaced_name.lower( ) ) if token ]
+
+def get_populated_mask( series: pd.Series ) -> pd.Series:
+	"""Return the populated-value mask for a series.
+
+	Purpose:
+	    Identifies values that are neither null nor blank text so conversion-success ratios use the
+	    number of populated observations rather than the dataframe row count.
+
+	Args:
+	    series (pd.Series): Series evaluated for populated values.
+
+	Returns:
+	    pd.Series: Boolean mask aligned to the source series.
+	"""
+	throw_if( 'series', series )
+	text_values = series.astype( 'string' ).str.strip( )
+	return series.notna( ) & text_values.ne( '' )
+
+def parse_numeric_series( series: pd.Series ) -> pd.Series:
+	"""Parse numeric values without modifying the source series.
+
+	Purpose:
+	    Converts native numbers and common database or spreadsheet numeric text into numeric values.
+	    Thousands separators, currency symbols, percentage suffixes, and accounting parentheses are
+	    handled once in a dedicated conversion path while unparseable values become missing.
+
+	Args:
+	    series (pd.Series): Source values evaluated as a numeric candidate.
+
+	Returns:
+	    pd.Series: Numeric values aligned to the source index.
+	"""
+	throw_if( 'series', series )
+	if pd.api.types.is_numeric_dtype( series ) and not pd.api.types.is_bool_dtype( series ):
+		return pd.to_numeric( series, errors='coerce' )
+
+	text_values = series.astype( 'string' ).str.strip( )
+	accounting_mask = text_values.str.match( r'^\(.*\)$', na=False )
+	cleaned_values = text_values.str.replace( r'^\((.*)\)$', r'-\1', regex=True )
+	cleaned_values = cleaned_values.str.replace( r'[$£€¥,]', '', regex=True )
+	cleaned_values = cleaned_values.str.replace( r'\s+', '', regex=True )
+	cleaned_values = cleaned_values.str.replace( r'%$', '', regex=True )
+	parsed_values = pd.to_numeric( cleaned_values, errors='coerce' )
+	parsed_values.loc[ accounting_mask & parsed_values.gt( 0 ) ] *= -1
+	return parsed_values
+
+def parse_datetime_series( series: pd.Series ) -> pd.Series:
+	"""Parse datetime values without modifying the source series.
+
+	Purpose:
+	    Converts native datetimes and populated date-like text into pandas datetime values while
+	    rejecting unparseable values. Mixed-format parsing is used when supported by pandas, with a
+	    compatibility fallback for earlier versions.
+
+	Args:
+	    series (pd.Series): Source values evaluated as a datetime candidate.
+
+	Returns:
+	    pd.Series: Datetime values aligned to the source index.
+	"""
+	throw_if( 'series', series )
+	if pd.api.types.is_datetime64_any_dtype( series ):
+		return pd.to_datetime( series, errors='coerce' )
+
+	try:
+		text_values = series.astype( 'string' ).str.strip( )
+		parsed_values = pd.to_datetime( text_values, errors='coerce', format='mixed' )
+		if parsed_values.notna( ).any( ) or not get_populated_mask( series ).any( ):
+			return parsed_values
+		return pd.to_datetime( text_values, errors='coerce' )
+	except (TypeError, ValueError):
+		return pd.to_datetime( series.astype( 'string' ).str.strip( ), errors='coerce' )
+
+def profile_column( column_name: str, series: pd.Series,
+	override_role: str = '' ) -> Dict[ str, object ]:
+	"""Infer the storage type and analytical role of one dataframe column.
+
+	Purpose:
+	    Combines native pandas type information, exact column-name tokens, conversion success,
+	    cardinality, leading-zero evidence, and value characteristics to distinguish measures,
+	    categories, ordered categories, identifiers, booleans, and datetimes. An explicit valid
+	    override takes precedence over automatic inference.
+
+	Args:
+	    column_name (str): Column name associated with the supplied series.
+	    series (pd.Series): Column values evaluated by the profiler.
+	    override_role (str): Optional user-selected analytical role.
+
+	Returns:
+	    Dict[str, object]: Detailed profile containing the inferred dtype, analytical role,
+	        confidence, evidence, and cardinality statistics.
+	"""
+	throw_if( 'column_name', column_name )
+	throw_if( 'series', series )
+	valid_roles = { 'numeric', 'categorical', 'ordinal', 'identifier', 'datetime' }
+	tokens = set( get_column_name_tokens( column_name ) )
+	populated_mask = get_populated_mask( series )
+	populated_count = int( populated_mask.sum( ) )
+	distinct_count = int( series[ populated_mask ].nunique( dropna=True ) )
+	unique_ratio = distinct_count / max( 1, populated_count )
+	text_values = series.astype( 'string' ).str.strip( )
+	numeric_values = parse_numeric_series( series )
+	numeric_success = float( numeric_values[ populated_mask ].notna( ).mean( ) ) if (
+		populated_count > 0) else 0.0
+	integer_like = bool( numeric_values[ populated_mask ].dropna( ).mod( 1 ).eq( 0 ).all( ) ) if (
+		numeric_success > 0 and populated_count > 0) else False
+	leading_zero_ratio = float( text_values[ populated_mask ].str.match(
+		r'^[+-]?0\d+$', na=False ).mean( ) ) if populated_count > 0 else 0.0
+
+	date_tokens = { 'date', 'datetime', 'timestamp', 'time', 'effective', 'expiration',
+		'expiry' }
+	identifier_tokens = { 'id', 'identifier', 'key', 'uuid', 'guid', 'index', 'sequence' }
+	number_identifier_tokens = { 'account', 'transaction', 'reference', 'document', 'invoice',
+		'order', 'record', 'control', 'serial', 'case', 'project' }
+	ordinal_tokens = { 'rank', 'grade', 'level', 'rating', 'priority', 'stage', 'tier', 'fy' }
+	measure_tokens = { 'amount', 'balance', 'total', 'value', 'cost', 'price', 'rate',
+		'percent', 'percentage', 'quantity', 'count', 'outlay', 'outlays', 'obligation',
+		'obligations', 'budget', 'estimate', 'mean', 'average', 'score', 'py', 'cy', 'by',
+		'oy' }
+	category_tokens = { 'category', 'categories', 'class', 'type', 'status', 'account',
+		'agency', 'program', 'symbol', 'split', 'authority', 'footnote', 'footnotes', 'code' }
+	boolean_values = { 'yes', 'no', 'true', 'false', 'y', 'n', '0', '1' }
+	normalized_values = set( text_values[ populated_mask ].str.lower( ).unique( ).tolist( ) )
+	boolean_candidate = bool( normalized_values ) and normalized_values.issubset( boolean_values )
+	number_identifier_evidence = 'number' in tokens and bool( tokens & number_identifier_tokens )
+	date_name_evidence = bool( tokens & date_tokens ) or ('start' in tokens and 'date' in tokens) or (
+		'end' in tokens and 'date' in tokens)
+	date_lexical_mask = text_values[ populated_mask ].str.contains(
+		r'[-/:T]|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b',
+		case=False, regex=True, na=False )
+	date_lexical_ratio = float( date_lexical_mask.mean( ) ) if populated_count > 0 else 0.0
+	datetime_values = parse_datetime_series( series ) if (
+		pd.api.types.is_datetime64_any_dtype( series ) or date_name_evidence or
+		date_lexical_ratio >= 0.80) else pd.Series( pd.NaT, index=series.index, dtype='datetime64[ns]' )
+	datetime_success = float( datetime_values[ populated_mask ].notna( ).mean( ) ) if (
+		populated_count > 0) else 0.0
+
+	analytical_role = 'categorical'
+	inferred_dtype = 'text'
+	confidence = 0.60
+	reason = 'Non-numeric values default to a categorical analytical role.'
+
+	if override_role in valid_roles:
+		analytical_role = override_role
+		inferred_dtype = 'overridden'
+		confidence = 1.0
+		reason = f'User override selected the {override_role} analytical role.'
+	elif pd.api.types.is_datetime64_any_dtype( series ):
+		analytical_role = 'datetime'
+		inferred_dtype = 'datetime'
+		confidence = 1.0
+		reason = 'The pandas storage dtype is datetime.'
+	elif pd.api.types.is_bool_dtype( series ) or boolean_candidate:
+		analytical_role = 'categorical'
+		inferred_dtype = 'boolean'
+		confidence = 0.98
+		reason = 'The values form a boolean or two-state category.'
+	elif datetime_success >= 0.95 and (date_name_evidence or date_lexical_ratio >= 0.80):
+		analytical_role = 'datetime'
+		inferred_dtype = 'datetime'
+		confidence = min( 1.0, datetime_success )
+		reason = 'Populated values contain date evidence and parse reliably as datetimes.'
+	elif (tokens & identifier_tokens or number_identifier_evidence) and (
+			unique_ratio >= 0.50 or leading_zero_ratio > 0):
+		analytical_role = 'identifier'
+		inferred_dtype = 'integer' if integer_like else 'text'
+		confidence = 0.95
+		reason = 'Identifier name tokens are supported by uniqueness or code-format evidence.'
+	elif numeric_success >= 0.98:
+		inferred_dtype = 'integer' if integer_like else 'float'
+		if tokens & measure_tokens:
+			analytical_role = 'numeric'
+			confidence = 0.98
+			reason = 'Measure name tokens and values provide strong numeric evidence.'
+		elif tokens & ordinal_tokens or ({ 'fiscal', 'year' }.issubset( tokens )) or (
+				{ 'calendar', 'year' }.issubset( tokens )):
+			analytical_role = 'ordinal'
+			confidence = 0.92
+			reason = 'Ordered name tokens and integer-like values indicate an ordinal variable.'
+		elif tokens & category_tokens or ({ 'line', 'number' }.issubset( tokens )) or (
+				{ 'account', 'number' }.issubset( tokens )) or leading_zero_ratio >= 0.05:
+			analytical_role = 'categorical'
+			confidence = 0.94
+			reason = 'Code/category name tokens or leading-zero evidence outweigh storage dtype.'
+		elif integer_like and distinct_count <= max( 10, min( 50, int( np.sqrt(
+				max( 1, populated_count ) ) ) ) ):
+			analytical_role = 'categorical'
+			confidence = 0.82
+			reason = 'Repeated low-cardinality integers are treated as unordered categories.'
+		else:
+			analytical_role = 'numeric'
+			confidence = max( 0.85, numeric_success )
+			reason = 'Values parse reliably as numbers without categorical or identifier evidence.'
+	elif isinstance( series.dtype, pd.CategoricalDtype ):
+		analytical_role = 'categorical'
+		inferred_dtype = 'category'
+		confidence = 1.0
+		reason = 'The pandas storage dtype is categorical.'
+
+	return { 'column': column_name, 'storage_dtype': str( series.dtype ),
+		'inferred_dtype': inferred_dtype, 'analytical_role': analytical_role,
+		'non_null_count': populated_count, 'distinct_count': distinct_count,
+		'unique_ratio': unique_ratio, 'numeric_success_ratio': numeric_success,
+		'datetime_success_ratio': datetime_success, 'leading_zero_ratio': leading_zero_ratio,
+		'is_integer_like': integer_like, 'confidence': confidence, 'reason': reason }
+
+def profile_dataframe_schema( df: pd.DataFrame ) -> Dict[ str, Dict[ str, object ] ]:
+	"""Profile every dataframe column using the authoritative schema classifier.
+
+	Purpose:
+	    Produces detailed column profiles from one consistent classifier and applies only overrides
+	    associated with columns that exist in the active dataframe.
+
+	Args:
+	    df (pd.DataFrame): Dataframe whose storage types and analytical roles are profiled.
+
+	Returns:
+	    Dict[str, Dict[str, object]]: Detailed profile keyed by dataframe column name.
+	"""
+	throw_if( 'df', df )
+	schema_signature = repr( (tuple( df.columns.tolist( ) ),
+		tuple( str( dtype ) for dtype in df.dtypes.tolist( ) )) )
+	overrides_by_schema = st.session_state.get( 'column_type_overrides', { } )
+	legacy_override_values = list( overrides_by_schema.values( ) ) if isinstance(
+		overrides_by_schema, dict ) else [ ]
+	if legacy_override_values and all( isinstance( value, str ) for value in
+			legacy_override_values ):
+		overrides = overrides_by_schema
+	else:
+		overrides = overrides_by_schema.get( schema_signature, { } ) if isinstance(
+			overrides_by_schema, dict ) else { }
+	return { column: profile_column( str( column ), df[ column ], str( overrides.get(
+		column, '' ) ) ) for column in df.columns }
+
+def infer_schema( df: pd.DataFrame ) -> Dict[ str, str ]:
+	"""Return backward-compatible analytical roles for dataframe columns.
+
+	Purpose:
+	    Preserves the established ``infer_schema`` mapping contract while delegating all decisions
+	    to the authoritative detailed dataframe profiler.
+
+	Args:
+	    df (pd.DataFrame): Dataframe whose columns are classified.
+
+	Returns:
+	    Dict[str, str]: Mapping of column names to numeric, categorical, ordinal, identifier, or
+	        datetime analytical roles.
+	"""
+	profiles = profile_dataframe_schema( df )
+	return { column: str( profile[ 'analytical_role' ] ) for column, profile in profiles.items( ) }
+
+def create_typed_analysis_dataframe( df: pd.DataFrame,
+	profiles: Dict[ str, Dict[ str, object ] ] ) -> pd.DataFrame:
+	"""Create a typed analytical copy of a dataframe.
+
+	Purpose:
+	    Converts inferred numeric measures and datetimes in an independent dataframe while
+	    preserving categories, identifiers, leading-zero codes, source values, database content,
+	    and export representations in the active dataset.
+
+	Args:
+	    df (pd.DataFrame): Source dataframe retained without mutation.
+	    profiles (Dict[str, Dict[str, object]]): Authoritative column profiles for the dataframe.
+
+	Returns:
+	    pd.DataFrame: Typed dataframe copy for statistics, visualization, and modeling.
+	"""
+	throw_if( 'df', df )
+	throw_if( 'profiles', profiles )
+	df_analysis = df.copy( )
+	for column, profile in profiles.items( ):
+		role = str( profile[ 'analytical_role' ] )
+		if role == 'numeric':
+			df_analysis[ column ] = parse_numeric_series( df_analysis[ column ] )
+		elif role == 'datetime':
+			df_analysis[ column ] = parse_datetime_series( df_analysis[ column ] )
+	return df_analysis
+
+def get_analysis_dataset( ) -> pd.DataFrame | None:
+	"""Return a synchronized typed dataframe for analytical workflows.
+
+	Purpose:
+	    Retrieves the active dataset, synchronizes its authoritative schema metadata, and returns an
+	    isolated typed copy without changing source data or database-backed representations.
+
+	Returns:
+	    pd.DataFrame | None: Typed analytical dataframe or ``None`` when no dataset is loaded.
+	"""
+	df_dataset = get_loaded_dataset( )
+	if df_dataset is None:
+		return None
+	synchronize_dataset_columns( df_dataset )
+	return st.session_state[ 'df_analysis' ].copy( )
 
 def create_connection( ) -> sqlite3.Connection:
 	"""Create a connection to the configured SQLite database.
@@ -1340,6 +1625,73 @@ def read_table( table: str, limit: int=None, offset: int=0 ) -> pd.DataFrame:
 	
 	return pd.DataFrame( normalized_rows, columns=columns )
 
+def get_data_editor_column_config( df: pd.DataFrame,
+	existing_config: Dict[ str, object ] = None ) -> Dict[ str, object ]:
+	"""Build numeric display configuration for a dataframe editor.
+
+	Purpose:
+	    Adds locale-aware thousands separators and two-decimal precision for floating-point and
+	    double-precision columns while retaining whole-number formatting for integer columns.
+	    Explicit caller configurations take precedence over generated defaults.
+
+	Args:
+	    df (pd.DataFrame): Dataframe displayed by the editor.
+	    existing_config (Dict[str, object]): Optional specialized caller configuration preserved in
+	        the returned mapping.
+
+	Returns:
+	    Dict[str, object]: Streamlit column configuration keyed by dataframe column name.
+	"""
+	throw_if( 'df', df )
+	column_config = dict( existing_config ) if existing_config else { }
+	profiles = profile_dataframe_schema( df )
+	for column in df.columns:
+		if column in column_config:
+			continue
+		series = df[ column ]
+		if profiles[ column ][ 'analytical_role' ] != 'numeric':
+			continue
+		if pd.api.types.is_float_dtype( series ):
+			column_config[ column ] = st.column_config.NumberColumn( str( column ),
+				format='localized', step=0.01 )
+		elif pd.api.types.is_integer_dtype( series ) and not pd.api.types.is_bool_dtype( series ):
+			column_config[ column ] = st.column_config.NumberColumn( str( column ),
+				format='localized', step=1 )
+	return column_config
+
+_streamlit_data_editor = st.data_editor
+
+def render_data_editor( df: pd.DataFrame, use_container_width: bool | None = None,
+	key: str = '', height: int | str = 'auto', hide_index: bool | None = None,
+	disabled: bool | List[ str ] = False, column_config: Dict[ str, object ] = None,
+	num_rows: str = 'fixed' ) -> pd.DataFrame:
+	"""Render a consistently formatted Streamlit dataframe editor.
+
+	Purpose:
+	    Preserves the established data-editor arguments while merging automatic numeric formatting
+	    with any specialized caller configuration. Floating-point values use the locale equivalent
+	    of ``#,##0.00`` whenever Streamlit supports numeric column formatting.
+
+	Args:
+	    df (pd.DataFrame): Dataframe rendered by Streamlit.
+	    use_container_width (bool | None): Existing Streamlit container-width setting.
+	    key (str): Optional unique widget key.
+	    height (int | str): Editor height setting.
+	    hide_index (bool | None): Index visibility setting.
+	    disabled (bool | List[str]): Editor or column disabled state.
+	    column_config (Dict[str, object]): Optional specialized column configuration.
+	    num_rows (str): Established fixed or dynamic row mode.
+
+	Returns:
+	    pd.DataFrame: Dataframe returned by ``st.data_editor``.
+	"""
+	throw_if( 'df', df )
+	formatted_config = get_data_editor_column_config( df, column_config )
+	widget_key = key if key else None
+	return _streamlit_data_editor( df, use_container_width=use_container_width, key=widget_key,
+		height=height, hide_index=hide_index, disabled=disabled,
+		column_config=formatted_config, num_rows=num_rows )
+
 def render_table( df: pd.DataFrame ) -> None:
 	"""Render a dataframe safely in Streamlit.
 
@@ -1359,7 +1711,7 @@ def render_table( df: pd.DataFrame ) -> None:
 		return
 	
 	try:
-		st.data_editor( df, use_container_width=True )
+		render_data_editor( df, use_container_width=True )
 		return
 	except Exception:
 		pass
@@ -2086,20 +2438,25 @@ def create_profile_table( table: str ):
 	    pd.DataFrame: Dataframe containing one profile record for each source column.
 	"""
 	df = read_table( table )
+	profiles = profile_dataframe_schema( df )
+	df_analysis = create_typed_analysis_dataframe( df, profiles )
 	profile_rows = [ ]
 	total_rows = len( df )
 	for col in df.columns:
 		series = df[ col ]
+		profile = profiles[ col ]
 		null_count = series.isna( ).sum( )
 		distinct_count = series.nunique( dropna=True )
 		row = { 'column': col, 'dtype': str( series.dtype ),
+			'inferred_type': profile[ 'inferred_dtype' ], 'role': profile[ 'analytical_role' ],
 			'null_%': round( (null_count / total_rows) * 100, 2 ) if total_rows else 0,
 			'distinct_%': round( (distinct_count / total_rows) * 100, 2 ) if total_rows else 0, }
 		
-		if pd.api.types.is_numeric_dtype( series ):
-			row[ 'min' ] = series.min( )
-			row[ 'max' ] = series.max( )
-			row[ 'mean' ] = series.mean( )
+		if profile[ 'analytical_role' ] == 'numeric':
+			numeric_series = df_analysis[ col ].dropna( )
+			row[ 'min' ] = numeric_series.min( )
+			row[ 'max' ] = numeric_series.max( )
+			row[ 'mean' ] = numeric_series.mean( )
 		else:
 			row[ 'min' ] = None
 			row[ 'max' ] = None
@@ -2360,7 +2717,7 @@ def get_visualization_dataframe( ) -> pd.DataFrame:
 	Returns:
 	    pd.DataFrame: Copy of the active dataset, or an empty dataframe when no data is loaded.
 	"""
-	df_dataset = get_loaded_dataset( )
+	df_dataset = get_analysis_dataset( )
 	if df_dataset is None or df_dataset.empty:
 		return pd.DataFrame( )
 
@@ -2371,7 +2728,9 @@ def get_visualization_columns( df_frame: pd.DataFrame ) -> Dict[ str, List[ str 
 
 	Purpose:
 	    Identifies numeric, categorical, datetime, boolean, and missing-value columns using the
-	    same pandas type rules that control visualization-mode availability in the sidebar.
+	    authoritative analytical profiles synchronized from the active source dataframe. Stored
+	    profiles are reused for a matching analytical copy so conversions do not change roles or
+	    detach dataset-specific overrides.
 
 	Args:
 	    df_frame (pd.DataFrame): Dataframe whose columns are classified.
@@ -2380,18 +2739,20 @@ def get_visualization_columns( df_frame: pd.DataFrame ) -> Dict[ str, List[ str 
 	    Dict[str, List[str]]: Column names grouped by visualization-compatible data type.
 	"""
 	throw_if( 'df_frame', df_frame )
-	numeric_columns = [ column for column in df_frame.columns
-		if pd.api.types.is_numeric_dtype( df_frame[ column ] )
-		and not pd.api.types.is_bool_dtype( df_frame[ column ] ) ]
-
-	datetime_columns = [ column for column in df_frame.columns
-		if pd.api.types.is_datetime64_any_dtype( df_frame[ column ] ) ]
-
-	boolean_columns = [ column for column in df_frame.columns
-		if pd.api.types.is_bool_dtype( df_frame[ column ] ) ]
-
-	categorical_columns = [ column for column in df_frame.columns
-		if column not in numeric_columns and column not in datetime_columns ]
+	stored_profiles = st.session_state.get( 'column_profiles', { } )
+	if isinstance( stored_profiles, dict ) and list( stored_profiles.keys( ) ) == list(
+			df_frame.columns ):
+		profiles = stored_profiles
+	else:
+		profiles = profile_dataframe_schema( df_frame )
+	numeric_columns = [ column for column, profile in profiles.items( ) if
+		profile[ 'analytical_role' ] == 'numeric' ]
+	datetime_columns = [ column for column, profile in profiles.items( ) if
+		profile[ 'analytical_role' ] == 'datetime' ]
+	boolean_columns = [ column for column, profile in profiles.items( ) if
+		profile[ 'inferred_dtype' ] == 'boolean' ]
+	categorical_columns = [ column for column, profile in profiles.items( ) if
+		profile[ 'analytical_role' ] in ('categorical', 'ordinal') ]
 
 	missing_columns = [ column for column in df_frame.columns
 		if df_frame[ column ].isna( ).any( ) ]
@@ -2789,15 +3150,10 @@ with st.sidebar:
 		if df_frame is None or df_frame.empty:
 			return [ ]
 		
-		numeric_columns = [ column for column in df_frame.columns
-			if pd.api.types.is_numeric_dtype( df_frame[ column ] )
-			and not pd.api.types.is_bool_dtype( df_frame[ column ] ) ]
-		
-		datetime_columns = [ column for column in df_frame.columns
-			if pd.api.types.is_datetime64_any_dtype( df_frame[ column ] ) ]
-		
-		categorical_columns = [ column for column in df_frame.columns
-			if column not in numeric_columns and column not in datetime_columns ]
+		column_groups = get_visualization_columns( df_frame )
+		numeric_columns = column_groups[ 'numeric' ]
+		datetime_columns = column_groups[ 'datetime' ]
+		categorical_columns = column_groups[ 'categorical' ]
 		
 		visualization_modes = [ 'Data Overview' ]
 		
@@ -2955,7 +3311,7 @@ style_subheaders( )
 # DATA PROFILING MODE
 # ============================================
 if mode == 'Data Profile':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Data Profile' ] )
 		st.divider( )
@@ -2966,18 +3322,15 @@ if mode == 'Data Profile':
 			st.stop( )
 		
 		df_original = df_dataset.copy( )
-		schema = infer_schema( df_dataset )
-		st.session_state.column_schema = schema
-		numeric_columns = [ c for c, t in schema.items( ) if t == 'numeric' ]
-		categorical_columns = [ c for c, t in schema.items( ) if t == 'categorical' ]
-		st.session_state[ 'numeric_columns' ] = numeric_columns
-		st.session_state[ 'categorical_columns' ] = categorical_columns
+		numeric_columns, categorical_columns = synchronize_dataset_columns( df_dataset )
+		schema = st.session_state[ 'column_schema' ].copy( )
+		df_analysis = st.session_state[ 'df_analysis' ].copy( )
 		
 		# -------------------------------------------------------------------------------------
 		# DATASET DISPLAY
 		# -------------------------------------------------------------------------------------
 		st.markdown( '##### Data' )
-		render_table( df_dataset )
+		render_table( df_analysis )
 		
 		# -------------------------------------------------------------------------------------
 		# SCHEMA METRICS
@@ -2992,73 +3345,6 @@ if mode == 'Data Profile':
 			type_counts.get( 'ordinal', 0 ) + type_counts.get( 'identifier', 0 ) )
 		m4.metric( 'Categorical', type_counts.get( 'categorical', 0 ) )
 		m5.metric( 'Datetime', type_counts.get( 'datetime', 0 ) )
-		
-		blue_divider( )
-		st.markdown( '##### Records' )
-		
-		with st.expander( label='Edit', icon='✏️', expanded=True ):
-			if df_dataset is None or df_dataset.empty:
-				st.info( 'No rows are available to edit.' )
-			else:
-				top_c1, top_c2 = st.columns( [ 0.20, 0.80 ] )
-				with top_c1:
-					max_row_index = len( df_dataset ) - 1
-					default_row_index = int( st.session_state.get( 'row_editor_index', 0 ) )
-					default_row_index = max( 0, min( default_row_index, max_row_index ) )
-					
-					row_idx = st.number_input( 'Select Index', min_value=0,
-						max_value=max_row_index,
-						value=default_row_index, step=1, key='row_editor_index' )
-				
-				row = df_dataset.iloc[ row_idx ]
-				updated = { }
-				
-				col_left, col_right = st.columns( 2, border=True )
-				with st.form( 'row_edit_form' ):
-					for i, (col, dtype) in enumerate( schema.items( ) ):
-						target = col_left if i % 2 == 0 else col_right
-						val = row[ col ]
-						with target:
-							if dtype == 'numeric':
-								updated[ col ] = st.number_input( col,
-									value=float( val ) if pd.notna( val ) else 0.0 )
-							elif dtype == 'ordinal':
-								updated[ col ] = st.number_input( col,
-									value=int( val ) if pd.notna( val ) else 0 )
-							elif dtype == 'datetime':
-								updated[ col ] = st.date_input( col,
-									value=pd.to_datetime( val ).date( ) if pd.notna(
-										val ) else pd.Timestamp.today( ).date( ) )
-							elif dtype == 'categorical':
-								options = df_dataset[ col ].dropna( ).unique( ).tolist( )
-								if options:
-									updated[ col ] = st.selectbox( col, options,
-										index=options.index( val ) if val in options else 0 )
-								else:
-									updated[ col ] = st.text_input( col,
-										value='' if pd.isna( val ) else str( val ) )
-							else:
-								updated[ col ] = st.text_input( col, value=str( val ),
-									disabled=True )
-					
-					submitted = st.form_submit_button( label='Apply Row Update', icon='✔️' )
-				
-				if submitted:
-					before = df_dataset.loc[ row_idx ].copy( )
-					for col, value in updated.items( ):
-						if schema[ col ] == 'datetime':
-							st.session_state.df_dataset.at[ row_idx, col ] = pd.to_datetime(
-								value )
-						else:
-							st.session_state.df_dataset.at[ row_idx, col ] = value
-					
-					after = st.session_state.df_dataset.loc[ row_idx ]
-					log_step( f'Updated row {row_idx}' )
-					st.success( f'Row {row_idx} updated.' )
-					st.data_editor( pd.DataFrame( { 'Before': before, 'After': after } ),
-						use_container_width=True )
-					
-					st.rerun( )
 		
 		# =====================================================================================
 		# DIAGNOSTIC VISUALIZATIONS (TAB-1 APPROPRIATE)
@@ -3103,52 +3389,7 @@ if mode == 'Data Profile':
 				'mathy_profile_cardinality', 'Top Columns by Cardinality', 450 )
 		
 		with v4:
-			st.caption( 'Row edits are confirmed above before commit.' )
-		
-		# -------------------------------------------------------------------------------------
-		# COLUMN CRUD
-		# -------------------------------------------------------------------------------------
-		blue_divider( )
-		st.markdown( '##### Labels' )
-		
-		with st.expander( label='Edit', icon='✏️', expanded=True ):
-			c1, c2 = st.columns( 2, border=True )
-			with c1:
-				drop_cols = st.multiselect( 'Columns to Drop', df_dataset.columns.tolist( ) )
-				if st.button( label='Drop Column', icon='❌' ):
-					if len( drop_cols ) == len( df_dataset.columns ):
-						st.error( 'Cannot Drop All Columns.' )
-					else:
-						st.session_state.df_dataset = df_dataset.drop( columns=drop_cols )
-						log_step( f'Dropped Columns: {drop_cols}' )
-						st.rerun( )
-			
-			with c2:
-				rename_col = st.selectbox( 'Rename Column',
-					[ '<None>' ] + df_dataset.columns.tolist( ) )
-				new_name = st.text_input( 'New Column Name' )
-				if st.button( label='Rename',  icon='✔️'  ):
-					if rename_col != '<None>' and new_name:
-						if new_name in df_dataset.columns:
-							st.error( 'Column Name Already Exists.' )
-						else:
-							st.session_state.df_dataset = df_dataset.rename(
-								columns={ rename_col: new_name } )
-							log_step( f'Renamed {rename_col} → {new_name}' )
-							st.rerun( )
-			
-			r1, r2 = st.columns( 2 )
-			with r1:
-				if st.button( label='Reset to Original', icon='🔄' ):
-					st.session_state.df_dataset = st.session_state.raw_df.copy( )
-					st.session_state.pipeline_log.clear( )
-					log_step( 'Reset dataset to original' )
-					st.rerun( )
-			
-			with r2:
-				st.download_button( 'Export Dataset (CSV)',
-					st.session_state.df_dataset.to_csv( index=False ), 'dataset.csv', 'text/csv',
-					icon='📥', )
+			st.caption( 'Column cardinality is calculated from populated source values.' )
 		
 		# -------------------------------------------------------------------------------------
 		# Probability Distributions
@@ -3156,9 +3397,7 @@ if mode == 'Data Profile':
 		blue_divider( )
 		st.markdown( '##### Numeric Distributions' )
 		
-		numeric_dist_cols = [ c for c in df_dataset.columns if
-			pd.api.types.is_numeric_dtype( df_dataset[ c ] ) and not pd.api.types.is_bool_dtype(
-				df_dataset[ c ] ) ]
+		numeric_dist_cols = numeric_columns.copy( )
 		
 		if not numeric_dist_cols:
 			st.info( 'No numeric columns detected.' )
@@ -3199,7 +3438,7 @@ if mode == 'Data Profile':
 			grid_cols = st.columns( 2, border=True )
 			for i, col in enumerate( numeric_dist_cols ):
 				with grid_cols[ i % 2 ]:
-					s = pd.to_numeric( df_dataset[ col ], errors='coerce' )
+					s = pd.to_numeric( df_analysis[ col ], errors='coerce' )
 					s = s.replace( [ np.inf, -np.inf ], np.nan ).dropna( )
 					
 					if s.empty:
@@ -3232,23 +3471,18 @@ if mode == 'Data Profile':
 					m4.metric( 'Std',
 						f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.00' )
 		
-		# -------------------------------------------------------------------------------------
-		# RESET / EXPORT
-		# -------------------------------------------------------------------------------------
-		st.divider( )
-		
-		for step in st.session_state.pipeline_log:
-			st.write( f'• {step}' )
-
 # ============================================
 #  DESCRIPTIVE STATISTICS MODE
 # ============================================
 elif mode == 'Descriptive Statistics':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Descriptive Statistics' ], help=cfg.DESCRIPTIVE_STATISTICS )
 		st.divider( )
-		df_dataset = st.session_state.df_dataset
+		df_dataset = get_analysis_dataset( )
+		if df_dataset is None:
+			st.info( 'No data available.' )
+			st.stop( )
 		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
 		if df_numeric.empty:
 			st.info( 'No numeric variables available for descriptive analysis.' )
@@ -3339,7 +3573,7 @@ elif mode == 'Descriptive Statistics':
 			
 			column_config = { k: v for k, v in column_config.items( ) if
 				k in df_descriptive.columns }
-			st.data_editor( df_descriptive, use_container_width=True, hide_index=True,
+			render_data_editor( df_descriptive, use_container_width=True, hide_index=True,
 				disabled=True, column_config=column_config, key='desc_summary_editor' )
 		else:
 			st.info( 'Select one or more numeric variables to display descriptive statistics.' )
@@ -3485,17 +3719,19 @@ elif mode == 'Descriptive Statistics':
 # INFERENTIAL STATISTICS MODE
 # ============================================
 elif mode == 'Inferential Statistics':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Inferential Statistics' ], help=cfg.INFERENTIAL_STATISTICS )
 		st.divider( )
 		
-		df_dataset = get_loaded_dataset( )
+		df_source = get_loaded_dataset( )
+		df_dataset = df_source
 		if df_dataset is None or df_dataset.empty:
 			st.info( 'No data available.' )
 			st.stop( )
 		
-		numeric_columns, categorical_columns = synchronize_dataset_columns( df_dataset )
+		numeric_columns, categorical_columns = synchronize_dataset_columns( df_source )
+		df_dataset = st.session_state[ 'df_analysis' ].copy( )
 		reset_inferential_selection_state( df_dataset, numeric_columns, categorical_columns )
 		if not numeric_columns:
 			st.info( 'No numeric variables available for inferential analysis.' )
@@ -3687,7 +3923,7 @@ elif mode == 'Inferential Statistics':
 				'N': st.column_config.NumberColumn( 'N', format='%.0f' ),
 				'Notes': st.column_config.TextColumn( 'Notes', width='large' ) }
 			
-			st.data_editor( df_infer_summary, use_container_width=True, hide_index=True,
+			render_data_editor( df_infer_summary, use_container_width=True, hide_index=True,
 				disabled=True, column_config=infer_column_config, key='infer_summary_editor' )
 		else:
 			st.info( 'Unable to compute inferential summary for the current selections.' )
@@ -3842,7 +4078,7 @@ elif mode == 'Inferential Statistics':
 				
 				ca1, ca2 = st.columns( 2, border=True )
 				with ca1:
-					st.data_editor( contingency, key='inference_data', height='stretch',
+					render_data_editor( contingency, key='inference_data', height='stretch',
 						num_rows='dynamic' )
 				
 				with ca2:
@@ -3868,7 +4104,7 @@ elif mode == 'Inferential Statistics':
 # ANOMALY DETECTION MODE
 # ============================================
 elif mode == 'Anomaly Detection':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Anomaly Detection' ] )
 		st.divider( )
@@ -3876,7 +4112,10 @@ elif mode == 'Anomaly Detection':
 			st.info( 'No data loaded.' )
 			st.stop( )
 		
-		df_dataset = st.session_state.df_dataset
+		df_dataset = get_analysis_dataset( )
+		if df_dataset is None:
+			st.info( 'No data loaded.' )
+			st.stop( )
 		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
 		if df_numeric.empty:
 			st.info( 'No usable numeric columns available for anomaly detection.' )
@@ -4154,8 +4393,8 @@ elif mode == 'Anomaly Detection':
 # CLASSIFICATION MODE
 # ============================================
 elif mode == 'Classification Models':
-	df_original = st.session_state.get( 'df_dataset', None )
-	df_dataset = st.session_state.get( 'df_dataset', None )
+	df_original = get_analysis_dataset( )
+	df_dataset = df_original.copy( ) if isinstance( df_original, pd.DataFrame ) else None
 	df_working = st.session_state.get( 'df_working', None )
 	df_processed = st.session_state.get( 'df_processed', None )
 	df_classification = st.session_state.get( 'df_classification', None )
@@ -4179,7 +4418,7 @@ elif mode == 'Classification Models':
 	y_prediction = st.session_state.get( 'y_prediction', None )
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classification Models' ] )
 		st.caption( 'Predictive Models for Categorical, Discrete-Values' )
@@ -4191,11 +4430,8 @@ elif mode == 'Classification Models':
 		
 		df_original = df_dataset.copy( )
 		st.session_state[ 'df_original' ] = df_original.copy( )
-		numeric_columns = [ column for column in df_original.columns if
-			pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
-		
-		categorical_columns = [ column for column in df_original.columns if
-			column not in numeric_columns ]
+		numeric_columns = st.session_state.get( 'numeric_columns', [ ] ).copy( )
+		categorical_columns = st.session_state.get( 'categorical_columns', [ ] ).copy( )
 		
 		st.session_state[ 'numeric_columns' ] = numeric_columns
 		st.session_state[ 'categorical_columns' ] = categorical_columns
@@ -4257,7 +4493,7 @@ elif mode == 'Classification Models':
 		st.markdown( '##### Working Data' )
 		
 		st.caption( f'Samples: {len( df_working ):,} | Feautres: {len( df_working.columns ):,}' )
-		st.data_editor( df_working, key='classification_working_data' )
+		render_data_editor( df_working, key='classification_working_data' )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
@@ -6039,7 +6275,7 @@ elif mode == 'Classification Models':
 		st.markdown( '##### Processed Data' )
 		st.caption(
 			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
-		st.data_editor( df_processed, key='classification_processed_data' )
+		render_data_editor( df_processed, key='classification_processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL TRAINING
@@ -8868,7 +9104,7 @@ elif mode == 'Classification Models':
 			with m3:
 				st.metric( 'Processing Time', f'{elapsed_seconds:0.2f} sec' )
 			
-			st.data_editor( df_scores, use_container_width=True,
+			render_data_editor( df_scores, use_container_width=True,
 				key='classification_performance_scores' )
 		else:
 			st.info( 'No classification performance metrics are available yet. '
@@ -8878,7 +9114,7 @@ elif mode == 'Classification Models':
 		st.markdown( '##### Predictions' )
 		
 		if has_prediction_frame:
-			st.data_editor( df_predictions, use_container_width=True,
+			render_data_editor( df_predictions, use_container_width=True,
 				key='classification_performance_predictions' )
 		else:
 			st.info( 'No predictions are available for the current classification result.' )
@@ -9025,7 +9261,7 @@ elif mode == 'Classification Models':
 # REGRESSION MODE
 # ============================================
 elif mode == 'Regression Models':
-	df_dataset = st.session_state.get( 'df_dataset', None )
+	df_dataset = get_analysis_dataset( )
 	df_original = st.session_state.get( 'df_original', None )
 	df_working = st.session_state.get( 'df_working', pd.DataFrame( ) )
 	df_processed = st.session_state.get( 'df_processed', pd.DataFrame( ) )
@@ -9047,7 +9283,7 @@ elif mode == 'Regression Models':
 	y_series = st.session_state.get( 'y_series', None )
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Regression Models' ] )
 		st.caption( 'Predictive Models for Continuous Values' )
@@ -9060,11 +9296,8 @@ elif mode == 'Regression Models':
 		df_original = df_dataset.copy( )
 		st.session_state[ 'df_original' ] = df_original.copy( )
 		
-		numeric_columns = [ column for column in df_original.columns if
-			pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
-		
-		categorical_columns = [ column for column in df_original.columns if
-			column not in numeric_columns ]
+		numeric_columns = st.session_state.get( 'numeric_columns', [ ] ).copy( )
+		categorical_columns = st.session_state.get( 'categorical_columns', [ ] ).copy( )
 		
 		st.session_state[ 'numeric_columns' ] = numeric_columns.copy( )
 		st.session_state[ 'categorical_columns' ] = categorical_columns.copy( )
@@ -9187,7 +9420,7 @@ elif mode == 'Regression Models':
 		st.caption( f'Samples: {len( df_working ):,} | '
 		            f'Features: {len( features ):,} | Target: {target_name}' )
 		
-		st.data_editor( df_working, key='regression_working_data', use_container_width=True )
+		render_data_editor( df_working, key='regression_working_data', use_container_width=True )
 		
 		# -----------------------------------------------------------------
 		# Data Processing
@@ -10549,7 +10782,7 @@ elif mode == 'Regression Models':
 		st.markdown( '##### Processed Data' )
 		st.caption(
 			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
-		st.data_editor( df_processed, key='regression_processed_data' )
+		render_data_editor( df_processed, key='regression_processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL TRAINING
@@ -14495,7 +14728,7 @@ elif mode == 'Regression Models':
 		st.session_state[ 'y_prediction' ] = y_prediction.copy( )
 		st.session_state[ 'df_predictions' ] = df_predictions.copy( )
 		
-		st.data_editor( df_predictions, use_container_width=True )
+		render_data_editor( df_predictions, use_container_width=True )
 		
 		# ------------------------------------------------------------------
 		# MODEL DETAILS
@@ -14530,7 +14763,7 @@ elif mode == 'Regression Models':
 					df_weights = pd.DataFrame(
 						{ 'Feature': features, 'Weight': np.asarray( weights ).reshape( -1 ) } )
 					st.caption( 'Coefficients' )
-					st.data_editor( df_weights, use_container_width=True )
+					render_data_editor( df_weights, use_container_width=True )
 			except Exception:
 				pass
 		
@@ -14544,7 +14777,7 @@ elif mode == 'Regression Models':
 		
 		if detail_rows:
 			df_details = pd.DataFrame( detail_rows )
-			st.data_editor( df_details, use_container_width=True )
+			render_data_editor( df_details, use_container_width=True )
 		else:
 			st.info( 'No additional model details are exposed for this regressor.' )
 		
@@ -14568,8 +14801,8 @@ elif mode == 'Regression Models':
 # CLUSTERING MODELS MODE
 # ============================================
 elif mode == 'Clustering Models':
-	df_dataset = st.session_state.get( 'df_dataset', None )
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	df_dataset = get_analysis_dataset( )
 	with center:
 		st.subheader( cfg.MODE[ 'Clustering Models' ] )
 		st.divider( )
@@ -14579,10 +14812,8 @@ elif mode == 'Clustering Models':
 			st.stop( )
 		
 		df_original = df_dataset.copy( )
-		numeric_columns = [ column for column in df_original.columns if
-			pd.api.types.is_numeric_dtype( df_original[ column ] ) ]
-		categorical_columns = [ column for column in df_original.columns if
-			column not in numeric_columns ]
+		numeric_columns = st.session_state.get( 'numeric_columns', [ ] ).copy( )
+		categorical_columns = st.session_state.get( 'categorical_columns', [ ] ).copy( )
 		
 		if not numeric_columns:
 			st.warning( '⚠️ Clustering requires at least one numeric feature.' )
@@ -14679,7 +14910,7 @@ elif mode == 'Clustering Models':
 		blue_divider( )
 		st.markdown( '##### Working Data' )
 		st.caption( f'Samples: {len( df_working ):,} | Features: {len( df_working.columns ):,}' )
-		st.data_editor( df_working, key='clusters_working_data', disabled=True )
+		render_data_editor( df_working, key='clusters_working_data', disabled=True )
 		
 		# ------------------------------------------------------------------
 		# Training Features
@@ -15895,7 +16126,7 @@ elif mode == 'Clustering Models':
 		st.markdown( '##### Processed Data' )
 		st.caption(
 			f'Samples: {len( df_processed ):,} | Features: {len( df_processed.columns ):,}' )
-		st.data_editor( df_processed, key='cluster_processed_data' )
+		render_data_editor( df_processed, key='cluster_processed_data' )
 		
 		# ------------------------------------------------------------------
 		# MODEL INPUT
@@ -16128,15 +16359,15 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if df_counts is not None and not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if df_metrics is not None and not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if df_details is not None and not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 			else:
 				st.info( 'Run clustering to view cluster counts and metrics.' )
 			
@@ -16162,7 +16393,7 @@ elif mode == 'Clustering Models':
 			if df_centroids is not None and not df_centroids.empty:
 				blue_divider( )
 				st.markdown( '##### Cluster Centroids' )
-				st.data_editor( df_centroids, use_container_width=True )
+				render_data_editor( df_centroids, use_container_width=True )
 		
 		if 'cluster_dbscan_eps' not in st.session_state:
 			st.session_state[ 'cluster_dbscan_eps' ] = 0.5
@@ -16325,15 +16556,15 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 			else:
 				st.info( 'Run DBSCAN to view cluster counts, noise counts, and metrics.' )
 			
@@ -16561,15 +16792,15 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 			else:
 				st.info( 'Run Agglomerative Clustering to view cluster counts and metrics.' )
 			
@@ -16845,15 +17076,15 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 			else:
 				st.info( 'Run Spectral Clustering to view cluster counts and metrics.' )
 			
@@ -17116,19 +17347,19 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 				
 				if not df_ordering.empty:
 					st.caption( 'Reachability and Ordering' )
-					st.data_editor( df_ordering, use_container_width=True )
+					render_data_editor( df_ordering, use_container_width=True )
 			else:
 				st.info( 'Run OPTICS Clustering to view cluster counts, noise counts, and metrics.' )
 			
@@ -17310,19 +17541,19 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if not df_centroids.empty:
 					st.caption( 'Cluster Centroids' )
-					st.data_editor( df_centroids, use_container_width=True )
+					render_data_editor( df_centroids, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 			else:
 				st.info(
 					'Run Mean Shift Clustering to view cluster counts, centroids, and metrics.' )
@@ -17503,19 +17734,19 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if not df_centroids.empty:
 					st.caption( 'Cluster Exemplars' )
-					st.data_editor( df_centroids, use_container_width=True )
+					render_data_editor( df_centroids, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 			else:
 				st.info(
 					'Run Affinity Propagation to view cluster counts, exemplars, and metrics.' )
@@ -17701,19 +17932,19 @@ elif mode == 'Clustering Models':
 			st.markdown( '##### Cluster Summary' )
 			
 			if not df_counts.empty:
-				st.data_editor( df_counts, use_container_width=True )
+				render_data_editor( df_counts, use_container_width=True )
 				
 				if not df_metrics.empty:
 					st.caption( 'Metrics' )
-					st.data_editor( df_metrics, use_container_width=True )
+					render_data_editor( df_metrics, use_container_width=True )
 				
 				if not df_centroids.empty:
 					st.caption( 'Subcluster Centers' )
-					st.data_editor( df_centroids, use_container_width=True )
+					render_data_editor( df_centroids, use_container_width=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True )
+					render_data_editor( df_details, use_container_width=True )
 			else:
 				st.info( 'Run Birch Clustering to view cluster counts, subclusters, and metrics.' )
 			
@@ -17738,7 +17969,7 @@ elif mode == 'Clustering Models':
 # TIME SERIES MODE
 # ============================================
 elif mode == 'Time-Series Models':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Time-Series Models' ] )
 		st.divider( )
@@ -17746,14 +17977,12 @@ elif mode == 'Time-Series Models':
 		# ------------------------------------------------------------------
 		# TIME-SERIES INPUT
 		# ------------------------------------------------------------------
-		df_dataset = get_loaded_dataset( )
+		df_dataset = get_analysis_dataset( )
 		if df_dataset is None or df_dataset.empty:
 			st.warning( '⚠️ No dataset loaded.' )
 			st.stop( )
 		
-		numeric_columns = [ column for column in df_dataset.columns if
-			pd.api.types.is_numeric_dtype(
-				df_dataset[ column ] ) and not pd.api.types.is_bool_dtype( df_dataset[ column ] ) ]
+		numeric_columns = st.session_state.get( 'numeric_columns', [ ] ).copy( )
 		
 		if not numeric_columns:
 			st.warning( '⚠️ No numeric columns available for time-series analysis.' )
@@ -17813,7 +18042,7 @@ elif mode == 'Time-Series Models':
 				'Mean': float( np.mean( series ) ),
 				'Standard Deviation': float( np.std( series ) ) } ] )
 		
-		st.data_editor( df_timeseries_summary, use_container_width=True, hide_index=True,
+		render_data_editor( df_timeseries_summary, use_container_width=True, hide_index=True,
 			disabled=True )
 		
 		# ------------------------------------------------------------------
@@ -17922,7 +18151,7 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+				render_data_editor( df_metrics, use_container_width=True, hide_index=True,
 					disabled=True )
 			else:
 				st.info( 'Run Lagged Linear Regression to view model metrics.' )
@@ -17934,7 +18163,7 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor( df_results, use_container_width=True, hide_index=True,
+				render_data_editor( df_results, use_container_width=True, hide_index=True,
 					disabled=True )
 			else:
 				st.info( 'Run Lagged Linear Regression to view forecast values.' )
@@ -18195,12 +18424,12 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+				render_data_editor( df_metrics, use_container_width=True, hide_index=True,
 					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True, hide_index=True,
+					render_data_editor( df_details, use_container_width=True, hide_index=True,
 						disabled=True )
 			else:
 				st.info( 'Run Lagged Boosting Regression to view model metrics.' )
@@ -18212,7 +18441,7 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor( df_results, use_container_width=True, hide_index=True,
+				render_data_editor( df_results, use_container_width=True, hide_index=True,
 					disabled=True )
 			else:
 				st.info( 'Run Lagged Boosting Regression to view forecast values.' )
@@ -18389,12 +18618,12 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+				render_data_editor( df_metrics, use_container_width=True, hide_index=True,
 					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True, hide_index=True,
+					render_data_editor( df_details, use_container_width=True, hide_index=True,
 						disabled=True )
 			else:
 				st.info( 'Run Lagged Quantile Regression to view model metrics.' )
@@ -18406,7 +18635,7 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor( df_results, use_container_width=True, hide_index=True,
+				render_data_editor( df_results, use_container_width=True, hide_index=True,
 					disabled=True )
 			else:
 				st.info( 'Run Lagged Quantile Regression to view forecast values.' )
@@ -18553,12 +18782,12 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+				render_data_editor( df_metrics, use_container_width=True, hide_index=True,
 					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True, hide_index=True,
+					render_data_editor( df_details, use_container_width=True, hide_index=True,
 						disabled=True )
 			else:
 				st.info( 'Run ARIMA to view model metrics.' )
@@ -18570,7 +18799,7 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor( df_results, use_container_width=True, hide_index=True,
+				render_data_editor( df_results, use_container_width=True, hide_index=True,
 					disabled=True )
 			else:
 				st.info( 'Run ARIMA to view forecast values.' )
@@ -18768,12 +18997,12 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Model Evaluation' )
 			
 			if not df_metrics.empty:
-				st.data_editor( df_metrics, use_container_width=True, hide_index=True,
+				render_data_editor( df_metrics, use_container_width=True, hide_index=True,
 					disabled=True )
 				
 				if not df_details.empty:
 					st.caption( 'Model Details' )
-					st.data_editor( df_details, use_container_width=True, hide_index=True,
+					render_data_editor( df_details, use_container_width=True, hide_index=True,
 						disabled=True )
 			else:
 				st.info( 'Run SARIMA to view model metrics.' )
@@ -18785,7 +19014,7 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Forecast Results' )
 			
 			if not df_results.empty:
-				st.data_editor( df_results, use_container_width=True, hide_index=True,
+				render_data_editor( df_results, use_container_width=True, hide_index=True,
 					disabled=True )
 			else:
 				st.info( 'Run SARIMA to view forecast values.' )
@@ -18977,12 +19206,12 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Split Summary' )
 			
 			if not df_split_summary.empty:
-				st.data_editor( df_split_summary, use_container_width=True, hide_index=True,
+				render_data_editor( df_split_summary, use_container_width=True, hide_index=True,
 					disabled=True )
 				
 				if not df_split_details.empty:
 					st.caption( 'Splitter Details' )
-					st.data_editor( df_split_details, use_container_width=True, hide_index=True,
+					render_data_editor( df_split_details, use_container_width=True, hide_index=True,
 						disabled=True )
 			else:
 				st.info( 'Generate time-series splits to view the train-and-test windows.' )
@@ -18994,7 +19223,7 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Split Assignments' )
 			
 			if not df_split_results.empty:
-				st.data_editor( df_split_results, use_container_width=True, hide_index=True,
+				render_data_editor( df_split_results, use_container_width=True, hide_index=True,
 					disabled=True )
 			else:
 				st.info( 'Generate time-series splits to view individual period assignments.' )
@@ -19015,16 +19244,20 @@ elif mode == 'Time-Series Models':
 # DATA OVERVIEW MODE
 # ============================================
 elif mode == 'Data Overview':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Data Overview', divider='gray' )
 		render_visualization_metric_styles( )
-		df_dataset = get_visualization_dataframe( )
-		if df_dataset.empty:
+		df_source = get_loaded_dataset( )
+		if df_source is None:
 			st.info( 'No data loaded.' )
 			st.stop( )
-
-		column_groups = get_visualization_columns( df_dataset )
+		
+		synchronize_dataset_columns( df_source )
+		profiles = st.session_state[ 'column_profiles' ].copy( )
+		schema = st.session_state[ 'column_schema' ].copy( )
+		df_dataset = st.session_state[ 'df_analysis' ].copy( )
+		type_counts = pd.Series( schema ).value_counts( )
 		preview_c1, preview_c2 = st.columns( 2, border=True )
 		with preview_c1:
 			preview_rows = st.slider( 'Preview Rows', min_value=5,
@@ -19039,49 +19272,72 @@ elif mode == 'Data Overview':
 			render_table( df_dataset.loc[ :, preview_columns ].head( preview_rows ) )
 		else:
 			st.info( 'Select one or more columns to preview.' )
-
-		missing_cells = int( df_dataset.isna( ).sum( ).sum( ) )
-		duplicate_rows = int( df_dataset.duplicated( ).sum( ) )
+		
+		missing_cells = int( df_source.isna( ).sum( ).sum( ) )
+		duplicate_rows = int( df_source.duplicated( ).sum( ) )
 		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
-		m1.metric( 'Rows', f'{len( df_dataset ):,}' )
-		m2.metric( 'Columns', f'{len( df_dataset.columns ):,}' )
-		m3.metric( 'Numeric', f'{len( column_groups[ "numeric" ] ):,}' )
-		m4.metric( 'Categorical', f'{len( column_groups[ "categorical" ] ):,}' )
-		m5.metric( 'Missing Cells', f'{missing_cells:,}' )
-
+		m1.metric( 'Rows', f'{len( df_source ):,}' )
+		m2.metric( 'Numeric', f'{int( type_counts.get( "numeric", 0 ) ):,}' )
+		m3.metric( 'Ordinal / ID', f'{int( type_counts.get( "ordinal", 0 ) ) + int(
+			type_counts.get( "identifier", 0 ) ):,}' )
+		m4.metric( 'Categorical', f'{int( type_counts.get( "categorical", 0 ) ):,}' )
+		m5.metric( 'Datetime', f'{int( type_counts.get( "datetime", 0 ) ):,}' )
+		st.caption( f'Columns: {len( df_source.columns ):,} · Missing cells: {missing_cells:,} · '
+			f'Duplicate rows: {duplicate_rows:,}.' )
+		
 		blue_divider( )
 		st.markdown( '##### Schema' )
 		schema_rows: List[ Dict[ str, Any ] ] = [ ]
-		for column in df_dataset.columns:
-			non_null = int( df_dataset[ column ].notna( ).sum( ) )
-			missing = int( df_dataset[ column ].isna( ).sum( ) )
-			schema_rows.append( { 'Column': column, 'Type': str( df_dataset[ column ].dtype ),
-				'Non-Null': non_null, 'Missing': missing,
-				'Missing %': (missing / len( df_dataset ) * 100.0),
-				'Unique': int( df_dataset[ column ].nunique( dropna=True ) ) } )
-
-		df_schema = pd.DataFrame( schema_rows )
+		for column in df_source.columns:
+			profile = profiles[ column ]
+			non_null = int( df_source[ column ].notna( ).sum( ) )
+			missing = int( df_source[ column ].isna( ).sum( ) )
+			schema_rows.append( { 'Column': column,
+				'Storage Type': str( profile[ 'storage_dtype' ] ),
+				'Inferred Type': str( profile[ 'inferred_dtype' ] ),
+				'Analytical Role': str( profile[ 'analytical_role' ] ),
+				'Confidence': float( profile[ 'confidence' ] ),
+				'Non-Null': non_null, 'Populated': int( profile[ 'non_null_count' ] ),
+				'Missing': missing,
+				'Missing %': missing / len( df_source ) * 100.0,
+				'Unique': int( profile[ 'distinct_count' ] ),
+				'Evidence': str( profile[ 'reason' ] ) } )
+		
+		df_schema = pd.DataFrame( schema_rows, columns=[ 'Column', 'Storage Type',
+			'Inferred Type', 'Analytical Role', 'Confidence', 'Non-Null', 'Populated',
+			'Missing', 'Missing %', 'Unique', 'Evidence' ] )
 		schema_sort = st.selectbox( 'Sort Schema By',
-			[ 'Original Order', 'Data Type', 'Missing Percentage', 'Cardinality' ],
+			[ 'Original Order', 'Analytical Role', 'Storage Type', 'Inferred Type',
+				'Missing Percentage', 'Cardinality' ],
 			key='visualization_overview_schema_sort' )
-		if schema_sort == 'Data Type':
-			df_schema = df_schema.sort_values( [ 'Type', 'Column' ], ignore_index=True )
+		if schema_sort == 'Analytical Role':
+			df_schema = df_schema.sort_values( [ 'Analytical Role', 'Column' ],
+				ignore_index=True )
+		elif schema_sort == 'Storage Type':
+			df_schema = df_schema.sort_values( [ 'Storage Type', 'Column' ], ignore_index=True )
+		elif schema_sort == 'Inferred Type':
+			df_schema = df_schema.sort_values( [ 'Inferred Type', 'Column' ], ignore_index=True )
 		elif schema_sort == 'Missing Percentage':
 			df_schema = df_schema.sort_values( 'Missing %', ascending=False, ignore_index=True )
 		elif schema_sort == 'Cardinality':
 			df_schema = df_schema.sort_values( 'Unique', ascending=False, ignore_index=True )
-		st.data_editor( df_schema, use_container_width=True, hide_index=True, disabled=True,
+		render_data_editor( df_schema, use_container_width=True, hide_index=True, disabled=True,
+			column_config={
+				'Confidence': st.column_config.NumberColumn( 'Confidence', format='%.2f' ),
+				'Missing %': st.column_config.NumberColumn( 'Missing %', format='%.2f' ),
+				'Evidence': st.column_config.TextColumn( 'Evidence', width='large' ) },
 			key='visualization_overview_schema_table' )
-
+		
 		blue_divider( )
 		chart_c1, chart_c2 = st.columns( 2, border=True )
 		with chart_c1:
-			type_counts = df_schema[ 'Type' ].value_counts( ).rename_axis( 'Type' ).reset_index(
+			df_type_counts = type_counts.rename_axis( 'Analytical Role' ).reset_index(
 				name='Columns' )
-			figure = px.bar( type_counts, x='Type', y='Columns', color='Type', text_auto=True )
+			figure = px.bar( df_type_counts, x='Analytical Role', y='Columns',
+				color='Analytical Role', text_auto=True )
 			render_mathy_plotly_chart( figure, 'visualization_overview_types_chart',
-				'mathy_column_types', 'Column Type Distribution', 450 )
-
+				'mathy_column_types', 'Analytical Role Distribution', 450 )
+		
 		with chart_c2:
 			df_cardinality = df_schema.nlargest( min( 15, len( df_schema ) ), 'Unique' ).sort_values(
 				'Unique' )
@@ -19097,13 +19353,11 @@ elif mode == 'Data Overview':
 			render_mathy_plotly_chart( figure, 'visualization_overview_missing_chart',
 				'mathy_missing_overview', 'Missing Values by Column', 480 )
 
-		st.caption( f'Duplicate rows: {duplicate_rows:,}.' )
-
 # ============================================
 # NUMERIC DISTRIBUTIONS MODE
 # ============================================
 elif mode == 'Numeric Distributions':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Numeric Distributions', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19187,7 +19441,7 @@ elif mode == 'Numeric Distributions':
 # CORRELATION ANALYSIS MODE
 # ============================================
 elif mode == 'Correlation Analysis':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Correlation Analysis', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19226,7 +19480,7 @@ elif mode == 'Correlation Analysis':
 
 		chart_c1, chart_c2 = st.columns( 2, border=True )
 		with chart_c1:
-			st.data_editor( df_correlation, use_container_width=True, disabled=True,
+			render_data_editor( df_correlation, use_container_width=True, disabled=True,
 				key='visualization_correlation_matrix_table' )
 		with chart_c2:
 			text_values = np.round( df_correlation.values, 2 ) if show_annotations else None
@@ -19240,7 +19494,7 @@ elif mode == 'Correlation Analysis':
 
 		blue_divider( )
 		st.markdown( '##### Ranked Relationships' )
-		st.data_editor( df_filtered_pairs, use_container_width=True, hide_index=True,
+		render_data_editor( df_filtered_pairs, use_container_width=True, hide_index=True,
 			disabled=True, key='visualization_correlation_pairs_table' )
 		if not df_filtered_pairs.empty:
 			df_plot = df_filtered_pairs.head( 20 ).copy( )
@@ -19255,7 +19509,7 @@ elif mode == 'Correlation Analysis':
 # SCATTER ANALYSIS MODE
 # ============================================
 elif mode == 'Scatter Analysis':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Scatter Analysis', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19341,7 +19595,7 @@ elif mode == 'Scatter Analysis':
 # CATEGORICAL DISTRIBUTIONS MODE
 # ============================================
 elif mode == 'Categorical Distributions':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Categorical Distributions', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19389,7 +19643,7 @@ elif mode == 'Categorical Distributions':
 		figure.update_traces( texttemplate='%{text:.2f}' if display_mode == 'Percentage' else '%{text}' )
 		render_mathy_plotly_chart( figure, 'visualization_categorical_chart',
 			'mathy_categorical_distribution', f'Distribution — {column}', 580 )
-		st.data_editor( df_frequency, use_container_width=True, hide_index=True, disabled=True,
+		render_data_editor( df_frequency, use_container_width=True, hide_index=True, disabled=True,
 			key='visualization_categorical_table' )
 		most_common = df_frequency.iloc[ 0 ] if not df_frequency.empty else None
 		m1, m2, m3, m4 = st.columns( 4, border=True )
@@ -19403,7 +19657,7 @@ elif mode == 'Categorical Distributions':
 # CATEGORY COMPARISONS MODE
 # ============================================
 elif mode == 'Category Comparisons':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Category Comparisons', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19456,7 +19710,7 @@ elif mode == 'Category Comparisons':
 			[ 'count', 'mean', 'median', 'std', 'min', 'max' ] ).reset_index( )
 		df_summary.columns = [ category, 'Count', 'Mean', 'Median', 'Std', 'Min', 'Max' ]
 		df_summary = df_summary.sort_values( 'Mean', ascending=False, ignore_index=True )
-		st.data_editor( df_summary, use_container_width=True, hide_index=True, disabled=True,
+		render_data_editor( df_summary, use_container_width=True, hide_index=True, disabled=True,
 			key='visualization_comparison_table' )
 		m1, m2, m3, m4 = st.columns( 4, border=True )
 		m1.metric( 'Groups', f'{len( df_summary ):,}' )
@@ -19468,7 +19722,7 @@ elif mode == 'Category Comparisons':
 # TIME-SERIES VISUALIZATION MODE
 # ============================================
 elif mode == 'Time-Series Visualization':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Time-Series Visualization', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19552,14 +19806,14 @@ elif mode == 'Time-Series Visualization':
 		m4.metric( 'Net Change', f'{net_change:,.2f}' )
 		m5.metric( 'Percent Change', f'{percent_change:,.2f}%'
 			if np.isfinite( percent_change ) else 'n/a' )
-		st.data_editor( df_series, use_container_width=True, hide_index=True, disabled=True,
+		render_data_editor( df_series, use_container_width=True, hide_index=True, disabled=True,
 			key='visualization_timeseries_table' )
 
 # ============================================
 # MISSING DATA VISUALIZATION MODE
 # ============================================
 elif mode == 'Missing Data Visualization':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( 'Missing Data Visualization', divider='gray' )
 		render_visualization_metric_styles( )
@@ -19602,7 +19856,7 @@ elif mode == 'Missing Data Visualization':
 		figure.update_traces( texttemplate='%{text:.2f}' if display_mode == 'Percentage' else '%{text}' )
 		render_mathy_plotly_chart( figure, 'visualization_missing_bar_chart',
 			'mathy_missing_values', 'Missing Values by Column', 520 )
-		st.data_editor( df_missing, use_container_width=True, hide_index=True, disabled=True,
+		render_data_editor( df_missing, use_container_width=True, hide_index=True, disabled=True,
 			key='visualization_missing_table' )
 
 		blue_divider( )
@@ -19713,7 +19967,7 @@ elif mode == 'Data Management':
 				
 				blue_divider( )
 				df = read_table( table )
-				st.data_editor( df, use_container_width=True, height=400 )
+				render_data_editor( df, use_container_width=True, height=400 )
 			else:
 				st.info( 'No tables available.' )
 		
@@ -19858,7 +20112,7 @@ elif mode == 'Data Management':
 				blue_divider( )
 				offset = (page - 1) * page_size
 				df_page = read_table( table, page_size, offset )
-				st.data_editor( df_page, use_container_width=True, height=400 )
+				render_data_editor( df_page, use_container_width=True, height=400 )
 		
 		# ------------------------------------------------------------------------------
 		# FILTER
@@ -19879,7 +20133,7 @@ elif mode == 'Data Management':
 						df = df[ df[ column ].astype( str ).str.contains( value ) ]
 						
 				blue_divider( )
-				st.data_editor( df, use_container_width=True, key='filter_frame', height=400 )
+				render_data_editor( df, use_container_width=True, key='filter_frame', height=400 )
 		
 		# ------------------------------------------------------------------------------
 		# AGGREGATE
@@ -19938,7 +20192,7 @@ elif mode == 'Data Management':
 				if st.button( label='Generate Profile', icon='⚡' ):
 					df_profile = create_profile_table( table )
 			
-				st.data_editor( df_profile, use_container_width=True, height=400 )
+				render_data_editor( df_profile, use_container_width=True, height=400 )
 			
 			blue_divider( )
 			st.markdown( '##### Drop Table' )
@@ -20021,7 +20275,7 @@ elif mode == 'Data Management':
 					columns=[ 'cid', 'name', 'type', 'notnull', 'default', 'pk' ] )
 				
 				st.markdown( "##### Columns" )
-				st.data_editor( schema_df, use_container_width=True,
+				render_data_editor( schema_df, use_container_width=True,
 					key='schema_editor', height=400 )
 				
 				# Row count
@@ -20037,7 +20291,7 @@ elif mode == 'Data Management':
 						columns=[ 'seq', 'name', 'unique', 'origin', 'partial' ] )
 					
 					st.markdown( "##### Indexes" )
-					st.data_editor( idx_df, use_container_width=True,
+					render_data_editor( idx_df, use_container_width=True,
 						key='schema_editor', height=400 )
 				else:
 					st.info( "No indexes defined." )
@@ -20285,7 +20539,7 @@ elif mode == 'Data Upload':
 			blue_divider( )
 			st.markdown( f'##### Data — {selected_table}' )
 			
-			st.data_editor( df_uploaded, use_container_width=True, height=500, hide_index=True,
+			render_data_editor( df_uploaded, use_container_width=True, height=500, hide_index=True,
 				disabled=True, key=f'data_upload_editor_{selected_table}' )
 		
 # ============================================
@@ -20318,7 +20572,7 @@ elif mode == 'Data Browse':
 				st.metric( 'Categorical Fields', int( type_counts.get( 'categorical', 0 ) ) )
 			
 			blue_divider( )
-			st.data_editor( df, use_container_width=True, height=400 )
+			render_data_editor( df, use_container_width=True, height=400 )
 		else:
 			st.info( 'No tables available.' )
 
@@ -20330,27 +20584,51 @@ elif mode == 'CRUD Ops':
 	with center:
 		st.subheader( cfg.MODE[ 'CRUD Ops' ] )
 		st.divider( )
+		
+		# =====================================================================================
+		# ACTIVE DATASET CRUD
+		# =====================================================================================
+		df_active = get_loaded_dataset( )
+		if df_active is None:
+			st.info( 'No active dataset is available to edit.' )
+		else:
+			synchronize_dataset_columns( df_active )
+			active_profiles = st.session_state[ 'column_profiles' ].copy( )
+			active_schema = st.session_state[ 'column_schema' ].copy( )
+			active_schema_signature = (tuple( df_active.columns.tolist( ) ), tuple(
+				active_schema.items( ) ))
+			if st.session_state.get( 'crud_active_schema_signature', None ) != (
+					active_schema_signature):
+				dynamic_keys = [ key for key in st.session_state.keys( ) if str( key ).startswith(
+					'crud_active_row_' ) ]
+				clear_keys( dynamic_keys + [ 'crud_active_drop_columns',
+					'crud_active_rename_column', 'crud_active_new_column_name' ] )
+			
+		# =====================================================================================
+		# DATABASE TABLE CRUD
+		# =====================================================================================
+		st.markdown( '#### Database Table' )
 		tables = list_tables( )
 		if not tables:
-			st.info( 'No tables available.' )
+			st.info( 'No database tables are available.' )
 		else:
-			st.markdown( '##### Data Table' )
 			crud_c1, crud_c2, crud_c3, crud_c4 = st.columns( 4 )
 			with crud_c1:
 				table = st.selectbox( 'Select', tables, key='crud_table' )
 			df = read_table( table )
-			schema = create_schema( table )
+			database_schema = create_schema( table )
 			
 			# ------------------------------------------------------------------
 			# Build Type Map
 			# ------------------------------------------------------------------
-			type_map = { col[ 1 ]: col[ 2 ].upper( ) for col in schema if col[ 1 ] != 'rowid' }
+			type_map = { column[ 1 ]: column[ 2 ].upper( ) for column in database_schema
+				if column[ 1 ] != 'rowid' }
 			
 			# ------------------------------------------------------------------
 			# INSERT
 			# ------------------------------------------------------------------
-			blue_divider( )
-			st.markdown( '##### Insert Row' )
+			st.divider( )
+			st.markdown( '#### Insert Row' )
 			insert_data = { }
 			insert_columns = st.columns( 4 )
 			for index, (column, col_type) in enumerate( type_map.items( ) ):
@@ -20389,11 +20667,12 @@ elif mode == 'CRUD Ops':
 			# ------------------------------------------------------------------
 			# UPDATE
 			# ------------------------------------------------------------------
-			blue_divider( )
-			st.markdown( '##### Update Row' )
+			st.divider( )
+			st.markdown( '#### Update Row' )
 			upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
 			with upd_c1:
-				rowid = st.number_input( 'Row ID', min_value=1, step=1 )
+				rowid = st.number_input( 'Row ID', min_value=1, step=1,
+					key='crud_database_update_rowid' )
 			update_data = { }
 			update_columns = st.columns( 4 )
 			for index, (column, col_type) in enumerate( type_map.items( ) ):
@@ -20421,8 +20700,8 @@ elif mode == 'CRUD Ops':
 			btn_c1, btn_c2, btn_c3, btn_c4 = st.columns( 4 )
 			with btn_c1:
 				if st.button( label='Update Row', icon='⬆️', width='stretch' ):
-					set_clause = ', '.join( [ f'{c}=?' for c in update_data ] )
-					stmt = f'UPDATE {table} SET {set_clause} WHERE rowid=?;'
+					set_clause = ', '.join( [ f'"{column}"=?' for column in update_data ] )
+					stmt = f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;'
 					with create_connection( ) as conn:
 						conn.execute( stmt, list( update_data.values( ) ) + [ rowid ] )
 						conn.commit( )
@@ -20433,18 +20712,175 @@ elif mode == 'CRUD Ops':
 			# ------------------------------------------------------------------
 			# DELETE
 			# ------------------------------------------------------------------
-			blue_divider( )
-			st.markdown( '##### Delete Row' )
+			st.divider( )
+			st.markdown( '#### Delete Row' )
 			delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
 			with delete_c1:
-				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1 )
-				if st.button( label='Delete Row', icon='❌', width='stretch' ):
+				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1,
+					key='crud_database_delete_rowid' )
+				if st.button( label='Delete Row', icon='❌', width='stretch',
+						key='crud_database_delete_button' ):
 					with create_connection( ) as conn:
-						conn.execute( f'DELETE FROM {table} WHERE rowid=?;', (delete_id,) )
+						conn.execute( f'DELETE FROM "{table}" WHERE rowid=?;', (delete_id,) )
 						conn.commit( )
-						
+					
 					st.success( 'Row deleted.' )
 					st.rerun( )
+			
+			blue_divider( )
+			
+			# -------------------------------------------------------------------------------------
+			# RECORD CRUD
+			# -------------------------------------------------------------------------------------
+			with st.expander( label='Edit Records', icon='✏️', expanded=True ):
+				index_c1, index_c2 = st.columns( [ 0.20, 0.80 ] )
+				with index_c1:
+					max_row_position = len( df_active ) - 1
+					default_row_position = int( st.session_state.get(
+						'crud_active_row_position', 0 ) )
+					default_row_position = max( 0, min( default_row_position,
+						max_row_position ) )
+					row_position = st.number_input( 'Select Row Position', min_value=0,
+						max_value=max_row_position, value=default_row_position, step=1,
+						key='crud_active_row_position' )
+				with index_c2:
+					st.caption( f'Index label: {df_active.index[ row_position ]}' )
+				
+				row = df_active.iloc[ row_position ]
+				updated_values: Dict[ str, object ] = { }
+				with st.form( 'crud_active_row_edit_form' ):
+					column_left, column_right = st.columns( 2 )
+					for index, (column, role) in enumerate( active_schema.items( ) ):
+						target = column_left if index % 2 == 0 else column_right
+						value = row[ column ]
+						profile = active_profiles[ column ]
+						with target:
+							if role == 'numeric':
+								parsed_value = parse_numeric_series( pd.Series( [ value ] ) ).iloc[ 0 ]
+								if profile[ 'inferred_dtype' ] == 'integer':
+									updated_values[ column ] = st.number_input( column,
+										value=int( parsed_value ) if pd.notna( parsed_value ) else 0,
+										step=1, key=f'crud_active_row_{index}' )
+								else:
+									updated_values[ column ] = st.number_input( column,
+										value=float( parsed_value ) if pd.notna( parsed_value ) else 0.0,
+										format='%.2f', key=f'crud_active_row_{index}' )
+							elif role == 'ordinal':
+								parsed_value = parse_numeric_series( pd.Series( [ value ] ) ).iloc[ 0 ]
+								if pd.notna( parsed_value ):
+									updated_values[ column ] = st.number_input( column,
+										value=int( parsed_value ), step=1,
+										key=f'crud_active_row_{index}' )
+								else:
+									updated_values[ column ] = st.text_input( column,
+										value='' if pd.isna( value ) else str( value ),
+										key=f'crud_active_row_{index}' )
+							elif role == 'datetime':
+								parsed_value = parse_datetime_series( pd.Series( [ value ] ) ).iloc[ 0 ]
+								updated_values[ column ] = st.date_input( column,
+									value=parsed_value.date( ) if pd.notna( parsed_value ) else None,
+									key=f'crud_active_row_{index}' )
+							elif role == 'categorical':
+								options = df_active[ column ].dropna( ).unique( ).tolist( )
+								if options:
+									selected_index = options.index( value ) if pd.notna(
+										value ) and value in options else 0
+									updated_values[ column ] = st.selectbox( column, options,
+										index=selected_index, key=f'crud_active_row_{index}' )
+								else:
+									updated_values[ column ] = st.text_input( column, value='',
+										key=f'crud_active_row_{index}' )
+							else:
+								updated_values[ column ] = st.text_input( column,
+									value='' if pd.isna( value ) else str( value ), disabled=True,
+									key=f'crud_active_row_{index}' )
+					
+					submitted = st.form_submit_button( label='Apply Row Update', icon='✔️' )
+				
+				if submitted:
+					df_updated = df_active.copy( )
+					before = df_updated.iloc[ row_position ].copy( )
+					for column, value in updated_values.items( ):
+						column_position = df_updated.columns.get_loc( column )
+						if active_schema[ column ] == 'datetime':
+							df_updated.iat[ row_position, column_position ] = pd.to_datetime(
+								value ) if value is not None else pd.NaT
+						else:
+							df_updated.iat[ row_position, column_position ] = value
+					
+					st.session_state[ 'df_dataset' ] = df_updated
+					synchronize_dataset_columns( df_updated )
+					after = df_updated.iloc[ row_position ].copy( )
+					st.success( f'Row position {row_position} updated.' )
+					render_data_editor( pd.DataFrame( { 'Before': before, 'After': after } ),
+						use_container_width=True,
+						key='crud_active_row_update_comparison' )
+					st.rerun( )
+			
+			st.divider( )
+			
+			# -------------------------------------------------------------------------------------
+			# COLUMN CRUD
+			# -------------------------------------------------------------------------------------			
+			with st.expander( label='Edit Labels', icon='✏️', expanded=True ):
+				label_c1, label_c2 = st.columns( 2, border=True )
+				with label_c1:
+					drop_columns = st.multiselect( 'Columns to Drop',
+						df_active.columns.tolist( ), key='crud_active_drop_columns' )
+					if st.button( label='Drop Column', icon='❌',
+							key='crud_active_drop_button' ):
+						if not drop_columns:
+							st.info( 'Select one or more columns to drop.' )
+						elif len( drop_columns ) == len( df_active.columns ):
+							st.error( 'Cannot Drop All Columns.' )
+						else:
+							df_updated = df_active.drop( columns=drop_columns )
+							st.session_state[ 'df_dataset' ] = df_updated
+							synchronize_dataset_columns( df_updated )
+							st.rerun( )
+				
+				with label_c2:
+					rename_column = st.selectbox( 'Rename Column',
+						[ '<None>' ] + df_active.columns.tolist( ),
+						key='crud_active_rename_column' )
+					new_column_name = st.text_input( 'New Column Name',
+						key='crud_active_new_column_name' )
+					if st.button( label='Rename', icon='✔️', key='crud_active_rename_button' ):
+						if rename_column == '<None>' or not new_column_name:
+							st.info( 'Select a column and enter a new name.' )
+						elif new_column_name in df_active.columns:
+							st.error( 'Column Name Already Exists.' )
+						else:
+							df_updated = df_active.rename( columns={ rename_column: new_column_name } )
+							st.session_state[ 'df_dataset' ] = df_updated
+							synchronize_dataset_columns( df_updated )
+							st.rerun( )
+				
+				action_c1, action_c2 = st.columns( 2 )
+				with action_c1:
+					if st.button( label='Reset to Original', icon='🔄',
+							key='crud_active_reset_button' ):
+						df_baseline = st.session_state.get( 'raw_df', None )
+						if not has_loaded_dataset( df_baseline ):
+							df_baseline = st.session_state.get( 'df_original', None )
+						if has_loaded_dataset( df_baseline ):
+							st.session_state[ 'df_dataset' ] = df_baseline.copy( )
+							st.session_state[ 'pipeline_log' ].clear( )
+							synchronize_dataset_columns( df_baseline )
+							st.rerun( )
+						else:
+							st.error( 'The original dataset is not available.' )
+				
+				with action_c2:
+					st.download_button( 'Export Dataset (CSV)', df_active.to_csv( index=False ),
+						'dataset.csv', 'text/csv', icon='📥',
+						key='crud_active_export_button' )
+			
+			if st.session_state[ 'pipeline_log' ]:
+				st.caption( 'Active Dataset Operations' )
+				for step in st.session_state[ 'pipeline_log' ]:
+					st.write( f'• {step}' )
+		
 	
 # ============================================
 # DATA FILTER MODE
@@ -20469,7 +20905,7 @@ elif mode == 'Data Filter':
 			blue_divider( )
 			offset = (page - 1) * page_size
 			df_page = read_table( table, page_size, offset )
-			st.data_editor( df_page, use_container_width=True, height=400 )
+			render_data_editor( df_page, use_container_width=True, height=400 )
 
 # ============================================
 # DATA AGGREGATION MODE
@@ -20593,26 +21029,25 @@ elif mode == 'SQL Console':
 		# Query Results
 		# ------------------------------------------------------------------
 		if st.session_state[ 'sql_console_executed' ]:
-			df_result = st.session_state[ 'sql_console_result' ].copy( )
+			df_result_source = st.session_state[ 'sql_console_result' ].copy( )
+			result_profiles = profile_dataframe_schema( df_result_source )
+			df_result = create_typed_analysis_dataframe( df_result_source, result_profiles )
 			elapsed = float( st.session_state[ 'sql_console_elapsed' ] )
 			
 			blue_divider( )
 			st.markdown( '##### Results' )
-			st.data_editor( df_result, use_container_width=True, disabled=True,
+			render_data_editor( df_result, use_container_width=True, disabled=True,
 				key='sql_console_result_editor' )
 			
 			row_count = len( df_result )
 			column_count = len( df_result.columns )
 			
-			numeric_columns = [ column for column in df_result.columns
-				if pd.api.types.is_numeric_dtype( df_result[ column ] )
-				and not pd.api.types.is_bool_dtype( df_result[ column ] ) ]
-			
-			datetime_columns = [ column for column in df_result.columns
-				if pd.api.types.is_datetime64_any_dtype( df_result[ column ] ) ]
-			
-			text_columns = [ column for column in df_result.columns
-				if column not in numeric_columns and column not in datetime_columns ]
+			numeric_columns = [ column for column, profile in result_profiles.items( ) if
+				profile[ 'analytical_role' ] == 'numeric' ]
+			datetime_columns = [ column for column, profile in result_profiles.items( ) if
+				profile[ 'analytical_role' ] == 'datetime' ]
+			text_columns = [ column for column in df_result.columns if
+				column not in numeric_columns and column not in datetime_columns ]
 			
 			# --------------------------------------------------------------
 			# Execution and Schema Metrics
@@ -20651,7 +21086,7 @@ elif mode == 'SQL Console':
 			df_schema = pd.DataFrame( schema_rows,
 				columns=[ 'Column', 'Data Type', 'Non-Null', 'Null', 'Distinct' ] )
 			
-			st.data_editor( df_schema, use_container_width=True, hide_index=True, disabled=True,
+			render_data_editor( df_schema, use_container_width=True, hide_index=True, disabled=True,
 				column_config={
 					'Column': st.column_config.TextColumn( 'Column', width='large' ),
 					'Data Type': st.column_config.TextColumn( 'Data Type', width='medium' ),
