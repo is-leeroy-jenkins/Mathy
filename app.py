@@ -20583,7 +20583,7 @@ elif mode == 'CRUD Ops':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'CRUD Ops' ] )
-		st.divider( )
+		blue_divider( )
 		
 		# =====================================================================================
 		# ACTIVE DATASET CRUD
@@ -20607,7 +20607,7 @@ elif mode == 'CRUD Ops':
 		# =====================================================================================
 		# DATABASE TABLE CRUD
 		# =====================================================================================
-		st.markdown( '#### Database Table' )
+		st.markdown( '#### Select Table' )
 		tables = list_tables( )
 		if not tables:
 			st.info( 'No database tables are available.' )
@@ -20627,7 +20627,7 @@ elif mode == 'CRUD Ops':
 			# ------------------------------------------------------------------
 			# INSERT
 			# ------------------------------------------------------------------
-			st.divider( )
+			blue_divider( )
 			st.markdown( '#### Insert Row' )
 			insert_data = { }
 			insert_columns = st.columns( 4 )
@@ -20667,7 +20667,7 @@ elif mode == 'CRUD Ops':
 			# ------------------------------------------------------------------
 			# UPDATE
 			# ------------------------------------------------------------------
-			st.divider( )
+			blue_divider( )
 			st.markdown( '#### Update Row' )
 			upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
 			with upd_c1:
@@ -20712,7 +20712,7 @@ elif mode == 'CRUD Ops':
 			# ------------------------------------------------------------------
 			# DELETE
 			# ------------------------------------------------------------------
-			st.divider( )
+			blue_divider( )
 			st.markdown( '#### Delete Row' )
 			delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
 			with delete_c1:
