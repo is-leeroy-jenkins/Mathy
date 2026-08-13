@@ -20607,7 +20607,7 @@ elif mode == 'CRUD Ops':
 		# =====================================================================================
 		# DATABASE TABLE CRUD
 		# =====================================================================================
-		st.markdown( '#### Select Table' )
+		st.markdown( '##### Select Table' )
 		tables = list_tables( )
 		if not tables:
 			st.info( 'No database tables are available.' )
@@ -20628,7 +20628,7 @@ elif mode == 'CRUD Ops':
 			# INSERT
 			# ------------------------------------------------------------------
 			blue_divider( )
-			st.markdown( '#### Insert Row' )
+			st.markdown( '##### Insert Row' )
 			insert_data = { }
 			insert_columns = st.columns( 4 )
 			for index, (column, col_type) in enumerate( type_map.items( ) ):
@@ -20668,7 +20668,7 @@ elif mode == 'CRUD Ops':
 			# UPDATE
 			# ------------------------------------------------------------------
 			blue_divider( )
-			st.markdown( '#### Update Row' )
+			st.markdown( '##### Update Row' )
 			upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
 			with upd_c1:
 				rowid = st.number_input( 'Row ID', min_value=1, step=1,
@@ -20713,7 +20713,7 @@ elif mode == 'CRUD Ops':
 			# DELETE
 			# ------------------------------------------------------------------
 			blue_divider( )
-			st.markdown( '#### Delete Row' )
+			st.markdown( '##### Delete Row' )
 			delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
 			with delete_c1:
 				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1,
@@ -20732,7 +20732,8 @@ elif mode == 'CRUD Ops':
 			# -------------------------------------------------------------------------------------
 			# RECORD CRUD
 			# -------------------------------------------------------------------------------------
-			with st.expander( label='Edit Records', icon='✏️', expanded=True ):
+			st.markdown( '##### Edit Data' )
+			with st.expander( label='Records', icon='✏️', expanded=True ):
 				index_c1, index_c2 = st.columns( [ 0.20, 0.80 ] )
 				with index_c1:
 					max_row_position = len( df_active ) - 1
@@ -20817,12 +20818,13 @@ elif mode == 'CRUD Ops':
 						key='crud_active_row_update_comparison' )
 					st.rerun( )
 			
-			st.divider( )
+			blue_divider( )
 			
 			# -------------------------------------------------------------------------------------
 			# COLUMN CRUD
-			# -------------------------------------------------------------------------------------			
-			with st.expander( label='Edit Labels', icon='✏️', expanded=True ):
+			# -------------------------------------------------------------------------------------
+			st.markdown( '##### Edit Schema' )
+			with st.expander( label='Columns', icon='✏️', expanded=True ):
 				label_c1, label_c2 = st.columns( 2, border=True )
 				with label_c1:
 					drop_columns = st.multiselect( 'Columns to Drop',
