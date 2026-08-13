@@ -48,7 +48,6 @@ from boogr import Error, Logger
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import plotly.express as px
 
 from scipy import stats
@@ -58,8 +57,6 @@ from typing import List, Dict, Optional, Tuple, Any
 import config as cfg
 
 # sklearn / statsmodels
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 import pandas as pd
 import re
@@ -90,7 +87,6 @@ from statsmodels.stats.power import TTestPower
 from sklearn.neighbors import NearestNeighbors
 from sklearn.svm import OneClassSVM
 from sklearn.cluster import DBSCAN, KMeans
-import seaborn as sns
 import sklearn.feature_selection as sf
 import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split as split
@@ -471,9 +467,9 @@ def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ i
 	"""Create a standardized inferential-analysis figure.
 
 	Purpose:
-	    Creates a Matplotlib figure and axes configured with consistent titles, optional grid
-	    styling, an optional horizontal reference line, and configurable legend behavior for
-	    inferential-statistics visualizations.
+	    Creates a Plotly figure configured with consistent titles, optional grid styling, an
+	    optional horizontal reference line, and configurable legend behavior for inferential-
+	    statistics visualizations.
 
 	Args:
 	    title (str): Primary title displayed above the plot.
@@ -484,31 +480,21 @@ def inferential_plot( title: str, subtitle: str | None = None, figsize: tuple[ i
 	    legend (bool): Flag indicating whether the axes display a legend.
 
 	Returns:
-	    tuple: Matplotlib figure and axes objects used to render the inferential plot.
+	    go.Figure: Configured Plotly figure used to render the inferential plot.
 	"""
-	fig, ax = plt.subplots( figsize=figsize )
-	
-	# Grid (subtle)
-	if grid:
-		ax.grid( True, alpha=0.25, linewidth=0.8 )
-	
-	# Titles
-	ax.set_title( title, fontsize=12, fontweight="bold", pad=8 )
+	figure = go.Figure( )
+	figure.update_layout( title=title, width=int( figsize[ 0 ] * 100 ),
+		height=int( figsize[ 1 ] * 100 ), showlegend=legend )
+	figure.update_xaxes( showgrid=grid )
+	figure.update_yaxes( showgrid=grid )
 	if subtitle:
-		ax.text( 0.5, 1.02, subtitle, transform=ax.transAxes, ha="center", va="bottom", fontsize=9,
-			alpha=0.85 )
+		figure.add_annotation( x=0.5, y=1.08, xref='paper', yref='paper', text=subtitle,
+			showarrow=False, font={ 'size': 12, 'color': '#94A3B8' } )
 	
-	# Reference line
 	if ref_line is not None:
-		ax.axhline( ref_line, color="black", linestyle="--", linewidth=1.2, alpha=0.7 )
+		figure.add_hline( y=ref_line, line_dash='dash', line_color='#94A3B8' )
 	
-	# Legend handling
-	if not legend:
-		ax.get_legend( ).remove( )
-	else:
-		ax.legend( frameon=False )
-	
-	return fig, ax
+	return figure
 
 def blue_divider( ) -> None:
 	"""Render the configured blue section divider.
@@ -571,17 +557,17 @@ def detect_column_types( df: pd.DataFrame ) -> tuple[ List[ str ], List[ str ] ]
 	
 	return numeric, categorical
 
-def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: int=0,
+def styled_scatter( figure: go.Figure, x: np.ndarray, y: np.ndarray, series_index: int=0,
 	label: Optional[ str ] = None, size: int=30, ) -> None:
 	"""Render a consistently styled scatter series.
 
 	Purpose:
-	    Draws a scatter series on the supplied Matplotlib axes using the configured application
+	    Draws a scatter series on the supplied Plotly figure using the configured application
 	    color and marker palettes, visible point boundaries, controlled transparency, and grid
 	    styling.
 
 	Args:
-	    ax (plt.Axes): Matplotlib axes receiving the scatter series.
+	    figure (go.Figure): Plotly figure receiving the scatter series.
 	    x (np.ndarray): Horizontal coordinates for the plotted observations.
 	    y (np.ndarray): Vertical coordinates aligned to ``x``.
 	    series_index (int): Palette index used to select the series color and marker.
@@ -589,13 +575,14 @@ def styled_scatter( ax: plt.Axes, x: np.ndarray, y: np.ndarray, series_index: in
 	    size (int): Marker size applied to each plotted observation.
 
 	Returns:
-	    None: This function modifies the supplied axes in place.
+	    None: This function modifies the supplied figure in place.
 	"""
 	color = cfg.PALETTE[ series_index % len( cfg.PALETTE ) ]
-	marker = cfg.MARKERS[ series_index % len( cfg.MARKERS ) ]
-	ax.scatter( x, y, s=size, alpha=0.9, edgecolors="#020617", linewidths=0.6, c=[ color ],
-		marker=marker, label=label, )
-	ax.grid( True, alpha=0.25 )
+	figure.add_trace( go.Scatter( x=x, y=y, mode='markers', name=label,
+		marker={ 'color': color, 'size': max( 4, int( np.sqrt( size ) ) ), 'opacity': 0.9,
+			'line': { 'color': '#020617', 'width': 0.6 } }, showlegend=label is not None ) )
+	figure.update_xaxes( showgrid=True )
+	figure.update_yaxes( showgrid=True )
 
 def auto_float_format( series: pd.Series, max_decimals: int=4 ) -> str:
 	"""Select a numeric display format from the magnitude of a series.
@@ -874,7 +861,7 @@ def normalize_result_frame( result: object, index: pd.Index, prefix: str,
 	if hasattr( result, 'toarray' ):
 		result = result.toarray( )
 	
-	arr = np.asarray( result )	
+	arr = np.asarray( result )
 	if arr.ndim == 1:
 		col_name = columns[ 0 ] if columns and len( columns ) == 1 else prefix
 		return pd.DataFrame( arr, index=index, columns=[ col_name ] )
@@ -2275,6 +2262,322 @@ def normalize_upload_sql_value( value: Any ) -> Any:
 	
 	return str( value )
 
+def get_visualization_dataframe( ) -> pd.DataFrame:
+	"""Return the active dataframe for visualization.
+
+	Purpose:
+	    Retrieves the currently loaded dataset through the application's established data-access
+	    helper and returns an independent copy for read-only visualization workflows.
+
+	Returns:
+	    pd.DataFrame: Copy of the active dataset, or an empty dataframe when no data is loaded.
+	"""
+	df_dataset = get_loaded_dataset( )
+	if df_dataset is None or df_dataset.empty:
+		return pd.DataFrame( )
+
+	return df_dataset.copy( )
+
+def get_visualization_columns( df_frame: pd.DataFrame ) -> Dict[ str, List[ str ] ]:
+	"""Classify dataframe columns for visualization.
+
+	Purpose:
+	    Identifies numeric, categorical, datetime, boolean, and missing-value columns using the
+	    same pandas type rules that control visualization-mode availability in the sidebar.
+
+	Args:
+	    df_frame (pd.DataFrame): Dataframe whose columns are classified.
+
+	Returns:
+	    Dict[str, List[str]]: Column names grouped by visualization-compatible data type.
+	"""
+	throw_if( 'df_frame', df_frame )
+	numeric_columns = [ column for column in df_frame.columns
+		if pd.api.types.is_numeric_dtype( df_frame[ column ] )
+		and not pd.api.types.is_bool_dtype( df_frame[ column ] ) ]
+
+	datetime_columns = [ column for column in df_frame.columns
+		if pd.api.types.is_datetime64_any_dtype( df_frame[ column ] ) ]
+
+	boolean_columns = [ column for column in df_frame.columns
+		if pd.api.types.is_bool_dtype( df_frame[ column ] ) ]
+
+	categorical_columns = [ column for column in df_frame.columns
+		if column not in numeric_columns and column not in datetime_columns ]
+
+	missing_columns = [ column for column in df_frame.columns
+		if df_frame[ column ].isna( ).any( ) ]
+
+	return {
+		'numeric': numeric_columns,
+		'categorical': categorical_columns,
+		'datetime': datetime_columns,
+		'boolean': boolean_columns,
+		'missing': missing_columns
+	}
+
+def render_visualization_metric_styles( ) -> None:
+	"""Render the established Mathy metric typography.
+
+	Purpose:
+	    Applies the metric label, value, and vertical-padding settings used by the original
+	    analytical modes to the newer Plotly visualization modes.
+
+	Returns:
+	    None: This function renders scoped page styling and does not return a value.
+	"""
+	st.markdown( """
+		<style>
+		[data-testid="stMetricLabel"] p {
+			font-size: 0.85rem;
+		}
+
+		[data-testid="stMetricValue"] {
+			font-size: 1.05rem;
+		}
+
+		[data-testid="stMetric"] {
+			padding-top: 0.10rem;
+			padding-bottom: 0.10rem;
+		}
+		</style>
+		""", unsafe_allow_html=True )
+
+def apply_mathy_plotly_theme( figure: go.Figure, title: str = '',
+		height: int = 500 ) -> go.Figure:
+	"""Apply the Mathy Plotly presentation theme.
+
+	Purpose:
+	    Applies consistent typography, spacing, transparent backgrounds, hover styling, legends,
+	    axes, and responsive dimensions to a Plotly figure before Streamlit renders it.
+
+	Args:
+	    figure (go.Figure): Plotly figure receiving the shared presentation settings.
+	    title (str): Optional chart title displayed above the plotting area.
+	    height (int): Figure height in pixels.
+
+	Returns:
+	    go.Figure: The themed Plotly figure.
+	"""
+	throw_if( 'figure', figure )
+	figure.update_layout(
+		template='plotly_dark',
+		title={ 'text': title, 'x': 0.01, 'xanchor': 'left' },
+		height=height,
+		autosize=True,
+		paper_bgcolor='rgba(0,0,0,0)',
+		plot_bgcolor='rgba(0,0,0,0)',
+		font={ 'family': 'Arial, sans-serif', 'size': 13, 'color': '#E2E8F0' },
+		margin={ 'l': 55, 'r': 30, 't': 70 if title else 35, 'b': 55 },
+		legend={ 'orientation': 'h', 'yanchor': 'bottom', 'y': 1.02,
+			'xanchor': 'right', 'x': 1.0 },
+		hoverlabel={ 'bgcolor': '#0F172A', 'font_size': 13,
+			'font_family': 'Arial, sans-serif' },
+		colorway=[ '#38BDF8', '#A78BFA', '#2DD4BF', '#F59E0B', '#F472B6', '#60A5FA',
+			'#34D399', '#FB7185' ] )
+
+	figure.update_xaxes( showgrid=True, gridcolor='rgba(148,163,184,0.16)', zeroline=False,
+		showline=True, linecolor='rgba(148,163,184,0.35)' )
+	figure.update_yaxes( showgrid=True, gridcolor='rgba(148,163,184,0.16)', zeroline=False,
+		showline=True, linecolor='rgba(148,163,184,0.35)' )
+	return figure
+
+def render_mathy_plotly_chart( figure: go.Figure, key: str, filename: str,
+		title: str = '', height: int = 500 ) -> None:
+	"""Render a themed Plotly chart.
+
+	Purpose:
+	    Applies the shared Mathy Plotly theme and renders the figure with a responsive toolbar,
+	    high-resolution PNG export, zooming, panning, autoscaling, and no Plotly branding.
+
+	Args:
+	    figure (go.Figure): Plotly figure rendered in Streamlit.
+	    key (str): Unique Streamlit element key assigned to the chart.
+	    filename (str): Base filename used by the Plotly image-download control.
+	    title (str): Optional chart title.
+	    height (int): Figure height in pixels.
+
+	Returns:
+	    None: This function renders the chart and does not return a value.
+	"""
+	throw_if( 'figure', figure )
+	throw_if( 'key', key )
+	throw_if( 'filename', filename )
+	apply_mathy_plotly_theme( figure, title, height )
+	chart_config = {
+		'displaylogo': False,
+		'responsive': True,
+		'scrollZoom': True,
+		'toImageButtonOptions': { 'format': 'png', 'filename': filename, 'scale': 2 }
+	}
+	st.plotly_chart( figure, use_container_width=True, key=key, config=chart_config )
+
+def create_correlation_pairs( df_correlation: pd.DataFrame ) -> pd.DataFrame:
+	"""Create a ranked table of unique correlation pairs.
+
+	Purpose:
+	    Converts a square correlation matrix into unique variable pairs, removes diagonal and
+	    symmetric duplicates, and classifies each relationship by absolute strength.
+
+	Args:
+	    df_correlation (pd.DataFrame): Square correlation matrix.
+
+	Returns:
+	    pd.DataFrame: Ranked correlation pairs with signed and absolute correlation values.
+	"""
+	throw_if( 'df_correlation', df_correlation )
+	rows: List[ Dict[ str, Any ] ] = [ ]
+	columns = df_correlation.columns.tolist( )
+	for left_index, left_column in enumerate( columns ):
+		for right_column in columns[ left_index + 1: ]:
+			correlation = float( df_correlation.loc[ left_column, right_column ] )
+			absolute = abs( correlation )
+			if absolute >= 0.70:
+				strength = 'Strong'
+			elif absolute >= 0.40:
+				strength = 'Moderate'
+			elif absolute >= 0.20:
+				strength = 'Weak'
+			else:
+				strength = 'Very Weak'
+
+			rows.append( { 'Variable 1': left_column, 'Variable 2': right_column,
+				'Correlation': correlation, 'Absolute Correlation': absolute,
+				'Strength': strength } )
+
+	df_pairs = pd.DataFrame( rows )
+	if not df_pairs.empty:
+		df_pairs = df_pairs.sort_values( 'Absolute Correlation', ascending=False,
+			ignore_index=True )
+	return df_pairs
+
+def create_qq_figure( values: np.ndarray, variable: str ) -> go.Figure:
+	"""Create a Plotly quantile-quantile figure.
+
+	Purpose:
+	    Calculates theoretical normal quantiles and ordered sample values, then constructs an
+	    interactive Q-Q plot with the fitted reference line used by Mathy's normality views.
+
+	Args:
+	    values (np.ndarray): One-dimensional numeric observations.
+	    variable (str): Variable name used in chart labels and hover content.
+
+	Returns:
+	    go.Figure: Plotly Q-Q figure containing observed quantiles and the fitted reference line.
+	"""
+	throw_if( 'values', values )
+	throw_if( 'variable', variable )
+	(theoretical, ordered), (slope, intercept, _) = stats.probplot(
+		np.asarray( values, dtype=float ), dist='norm' )
+	figure = go.Figure( )
+	figure.add_trace( go.Scatter( x=theoretical, y=ordered, mode='markers', name='Observed',
+		marker={ 'color': '#38BDF8', 'size': 8, 'opacity': 0.78 },
+		hovertemplate='Theoretical: %{x:.4f}<br>Observed: %{y:.4f}<extra></extra>' ) )
+	figure.add_trace( go.Scatter( x=theoretical, y=(slope * theoretical) + intercept,
+		mode='lines', name='Normal Reference', line={ 'color': '#F59E0B', 'width': 3 } ) )
+	figure.update_xaxes( title_text='Theoretical Quantiles' )
+	figure.update_yaxes( title_text=f'Ordered Values — {variable}' )
+	return figure
+
+def create_cluster_figure( df_results: pd.DataFrame, feature_columns: List[ str ],
+		title: str, df_centroids: Optional[ pd.DataFrame ] = None,
+		centroid_label: str = 'Centroids' ) -> go.Figure:
+	"""Create an interactive cluster-assignment figure.
+
+	Purpose:
+	    Plots two selected clustering features, colors observations by assigned cluster, and
+	    optionally overlays estimator centroids, exemplars, or subcluster centers.
+
+	Args:
+	    df_results (pd.DataFrame): Clustered observations containing a `Cluster` column.
+	    feature_columns (List[str]): Two numeric feature columns plotted on the axes.
+	    title (str): Chart title describing the clustering estimator.
+	    df_centroids (Optional[pd.DataFrame]): Optional center coordinates to overlay.
+	    centroid_label (str): Legend label assigned to the optional center trace.
+
+	Returns:
+	    go.Figure: Plotly cluster-assignment figure.
+	"""
+	throw_if( 'df_results', df_results )
+	throw_if( 'feature_columns', feature_columns )
+	throw_if( 'title', title )
+	x_column, y_column = feature_columns[ 0 ], feature_columns[ 1 ]
+	df_plot = df_results.copy( )
+	df_plot[ 'Cluster Label' ] = df_plot[ 'Cluster' ].astype( str )
+	figure = px.scatter( df_plot, x=x_column, y=y_column, color='Cluster Label',
+		hover_data=df_plot.columns.tolist( ), opacity=0.78 )
+	figure.update_traces( marker={ 'size': 9 } )
+	if df_centroids is not None and not df_centroids.empty and \
+			x_column in df_centroids.columns and y_column in df_centroids.columns:
+		figure.add_trace( go.Scatter( x=df_centroids[ x_column ], y=df_centroids[ y_column ],
+			mode='markers', name=centroid_label, marker={ 'symbol': 'x', 'size': 16,
+				'color': '#F59E0B', 'line': { 'width': 2, 'color': '#F8FAFC' } },
+			hovertemplate=f'{centroid_label}<br>{x_column}: %{{x:.4f}}<br>'
+				f'{y_column}: %{{y:.4f}}<extra></extra>' ) )
+	figure.update_layout( title={ 'text': title } )
+	return figure
+
+def create_forecast_figure( series: np.ndarray, forecast: np.ndarray, variable: str,
+		title: str, forecast_label: str = 'Forecast' ) -> go.Figure:
+	"""Create an observed-versus-forecast Plotly figure.
+
+	Purpose:
+	    Plots the complete observed series and appends a forward forecast trace beginning after
+	    the final observed period while preserving the original period-based axis convention.
+
+	Args:
+	    series (np.ndarray): Historical ordered observations.
+	    forecast (np.ndarray): Forward projected values.
+	    variable (str): Series name used as the y-axis label.
+	    title (str): Forecast chart title.
+	    forecast_label (str): Legend label assigned to the projected trace.
+
+	Returns:
+	    go.Figure: Plotly figure containing observed and forecast traces.
+	"""
+	throw_if( 'series', series )
+	throw_if( 'forecast', forecast )
+	throw_if( 'variable', variable )
+	throw_if( 'title', title )
+	observed_values = np.asarray( series, dtype=float ).reshape( -1 )
+	forecast_values = np.asarray( forecast, dtype=float ).reshape( -1 )
+	observed_index = np.arange( len( observed_values ) )
+	forecast_index = np.arange( len( observed_values ),
+		len( observed_values ) + len( forecast_values ) )
+	figure = go.Figure( )
+	figure.add_trace( go.Scatter( x=observed_index, y=observed_values,
+		mode='lines', name='Observed', line={ 'color': '#38BDF8', 'width': 2.5 } ) )
+	figure.add_trace( go.Scatter( x=forecast_index, y=forecast_values,
+		mode='lines+markers', name=forecast_label,
+		line={ 'color': '#F472B6', 'width': 3, 'dash': 'dash' },
+		marker={ 'size': 7 } ) )
+	figure.update_xaxes( title_text='Period' )
+	figure.update_yaxes( title_text=variable )
+	figure.update_layout( title={ 'text': title } )
+	return figure
+
+def create_split_figure( df_split_results: pd.DataFrame ) -> go.Figure:
+	"""Create an interactive time-series validation-window figure.
+
+	Purpose:
+	    Visualizes each generated split on its own horizontal lane, distinguishing training and
+	    testing periods while retaining period values in hover details.
+
+	Args:
+	    df_split_results (pd.DataFrame): Long-form split assignments containing split, period,
+	        value, and partition columns.
+
+	Returns:
+	    go.Figure: Plotly validation-window assignment figure.
+	"""
+	throw_if( 'df_split_results', df_split_results )
+	figure = px.scatter( df_split_results, x='Period', y='Split', color='Partition',
+		hover_data=[ 'Value' ], color_discrete_map={ 'Train': '#38BDF8', 'Test': '#F472B6' },
+		category_orders={ 'Partition': [ 'Train', 'Test' ] } )
+	figure.update_traces( marker={ 'symbol': 'square', 'size': 10 } )
+	figure.update_yaxes( autorange='reversed', dtick=1 )
+	return figure
+
 # ============================================
 # Page Configuration
 # ============================================
@@ -2461,7 +2764,7 @@ with st.sidebar:
 		
 	# ------- Available Modes
 	ml_modes = list( cfg.ML_MODE )
-	db_modes = list( cfg.DB_MODE )	
+	db_modes = list( cfg.DB_MODE )
 	df_loaded = st.session_state.get( 'df_dataset', None )
 	visualization_modes = get_visualization_modes( df_loaded )
 	
@@ -2505,7 +2808,7 @@ with st.sidebar:
 	st.sidebar.divider( )
 	st.subheader( 'Data Management' )
 	with st.expander( 'Select Mode', expanded=True ):
-		st.radio( label='Select', options=db_modes, index=None, key='db_mode_radio', 
+		st.radio( label='Select', options=db_modes, index=None, key='db_mode_radio',
 			on_change=handle_db_mode_change )
 	
 	# ------- Data Visualization Selection Mode
@@ -2527,7 +2830,7 @@ style_subheaders( )
 # DATA PROFILING MODE
 # ============================================
 if mode == 'Data Profile':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Data Profile' ] )
 		st.divider( )
@@ -2640,41 +2943,23 @@ if mode == 'Data Profile':
 		
 		v1, v2 = st.columns( 2, border=True )
 		with v1:
-			fig, ax = plt.subplots( figsize=(6, 4.5) )
-			type_counts.sort_values( ascending=False ).plot( kind='bar', ax=ax, width=0.75,
-				edgecolor='#0f172a', linewidth=0.9 )
-			ax.set_title( 'Column Type Distribution', fontsize=12, fontweight='bold' )
-			ax.set_xlabel( '' )
-			ax.set_ylabel( 'Count' )
-			ax.grid( axis='y', alpha=0.25, linestyle='--' )
-			ax.spines[ 'top' ].set_visible( False )
-			ax.spines[ 'right' ].set_visible( False )
-			for container in ax.containers:
-				ax.bar_label( container, padding=3, fontsize=9 )
-			fig.tight_layout( )
-			st.pyplot( fig )
-			plt.close( fig )
+			df_type_counts = type_counts.sort_values( ascending=False ).rename_axis(
+				'Type' ).reset_index( name='Count' )
+			figure = px.bar( df_type_counts, x='Type', y='Count', color='Type', text='Count' )
+			render_mathy_plotly_chart( figure, 'profile_type_distribution_chart',
+				'mathy_profile_types', 'Column Type Distribution', 450 )
 		
 		with v2:
 			missing_pct = (df_dataset.isna( ).mean( ) * 100).sort_values( ascending=False )
 			missing_pct = missing_pct[ missing_pct > 0 ].head( 10 )
 			if not missing_pct.empty:
-				fig, ax = plt.subplots( figsize=(6, 4.5) )
-				missing_pct.sort_values( ascending=True ).plot( kind='barh', ax=ax, width=0.75,
-					edgecolor='#0f172a', linewidth=0.9 )
-				ax.set_title( 'Top Columns by Missing %', fontsize=12, fontweight='bold' )
-				ax.set_xlabel( 'Percent Missing' )
-				ax.set_ylabel( '' )
-				ax.grid( axis='x', alpha=0.25, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				for container in ax.containers:
-					labels = [ f'{v:.1f}%' for v in
-						missing_pct.sort_values( ascending=True ).values ]
-					ax.bar_label( container, labels=labels, padding=3, fontsize=9 )
-				fig.tight_layout( )
-				st.pyplot( fig )
-				plt.close( fig )
+				df_missing_pct = missing_pct.sort_values( ascending=True ).rename_axis(
+					'Column' ).reset_index( name='Percent Missing' )
+				figure = px.bar( df_missing_pct, x='Percent Missing', y='Column', orientation='h',
+					color='Percent Missing', color_continuous_scale='Reds', text='Percent Missing' )
+				figure.update_traces( texttemplate='%{text:.1f}%' )
+				render_mathy_plotly_chart( figure, 'profile_missing_percentage_chart',
+					'mathy_profile_missing', 'Top Columns by Missing %', 450 )
 			else:
 				st.info( 'No Missing Values Detected.' )
 		
@@ -2685,22 +2970,12 @@ if mode == 'Data Profile':
 		with v3:
 			cardinality = df_dataset.nunique( dropna=True ).sort_values( ascending=False ).head(
 				10 )
-			fig, ax = plt.subplots( figsize=(6, 4.5) )
-			cardinality.sort_values( ascending=True ).plot( kind='barh', ax=ax, width=0.75,
-				edgecolor='#0f172a', linewidth=0.9 )
-			
-			ax.set_title( 'Top Columns by Cardinality', fontsize=10, fontweight='bold' )
-			ax.set_xlabel( 'Unique Values' )
-			ax.set_ylabel( '' )
-			ax.grid( axis='x', alpha=0.25, linestyle='--' )
-			ax.spines[ 'top' ].set_visible( False )
-			ax.spines[ 'right' ].set_visible( False )
-			for container in ax.containers:
-				ax.bar_label( container, padding=3, fontsize=9 )
-			
-			fig.tight_layout( )
-			st.pyplot( fig )
-			plt.close( fig )
+			df_cardinality = cardinality.sort_values( ascending=True ).rename_axis(
+				'Column' ).reset_index( name='Unique Values' )
+			figure = px.bar( df_cardinality, x='Unique Values', y='Column', orientation='h',
+				color='Unique Values', color_continuous_scale='Blues', text='Unique Values' )
+			render_mathy_plotly_chart( figure, 'profile_cardinality_chart',
+				'mathy_profile_cardinality', 'Top Columns by Cardinality', 450 )
 		
 		with v4:
 			st.caption( 'Row edits are confirmed above before commit.' )
@@ -2781,11 +3056,11 @@ if mode == 'Data Profile':
 			st.markdown( """
 				<style>
 				[data-testid="stMetricLabel"] p {
-					font-size: 0.80rem;
+					font-size: 0.85rem;
 				}
 				
 				[data-testid="stMetricValue"] {
-					font-size: 0.95rem;
+					font-size: 1.05rem;
 				}
 				
 				[data-testid="stMetric"] {
@@ -2806,28 +3081,28 @@ if mode == 'Data Profile':
 						st.warning( f'{col}: no plottable numeric values.' )
 						continue
 					
-					fig, ax = plt.subplots( figsize=(7, 4.5) )
-					sns.histplot( s, bins=dist_bins, kde=show_kde, stat=stat_mode, ax=ax,
-						edgecolor='#0f172a', line_kws={ 'linewidth': 2.0 } if show_kde else None )
-					
 					mean_val = float( s.mean( ) )
-					median_val = float( s.median( ) )					
-					ax.axvline( mean_val, linestyle='--', linewidth=1.5,
-						label=f'Mean: {mean_val:,.2f}' )
-					
-					ax.axvline( median_val, linestyle=':', linewidth=1.5,
-						label=f'Median: {median_val:,.2f}' )
-					
-					ax.set_title( f'Distribution — {col}', fontsize=10, fontweight='bold' )
-					ax.set_xlabel( col )
-					ax.set_ylabel( 'Density' if stat_mode == 'density' else 'Frequency' )
-					ax.grid( True, alpha=0.25, linestyle='--' )
-					ax.spines[ 'top' ].set_visible( False )
-					ax.spines[ 'right' ].set_visible( False )
-					ax.legend( frameon=False, fontsize=9 )					
-					fig.tight_layout( )
-					st.pyplot( fig )
-					plt.close( fig )				
+					median_val = float( s.median( ) )
+					histnorm = 'probability density' if stat_mode == 'density' else None
+					figure = go.Figure( )
+					figure.add_trace( go.Histogram( x=s.tolist( ), nbinsx=dist_bins,
+						histnorm=histnorm, name=col, marker_color='#38BDF8', opacity=0.82 ) )
+					if show_kde and len( s ) > 1 and float( s.std( ddof=1 ) ) > 0:
+						x_values = np.linspace( float( s.min( ) ), float( s.max( ) ), 250 )
+						kde_values = stats.gaussian_kde( s.to_numpy( ) )( x_values )
+						if stat_mode == 'count':
+							bin_width = (float( s.max( ) ) - float( s.min( ) )) / dist_bins
+							kde_values = kde_values * len( s ) * bin_width
+						figure.add_trace( go.Scatter( x=x_values, y=kde_values, mode='lines',
+							name='KDE', line={ 'color': '#F472B6', 'width': 3 } ) )
+					figure.add_vline( x=mean_val, line_dash='dash', line_color='#F59E0B',
+						annotation_text=f'Mean: {mean_val:,.2f}' )
+					figure.add_vline( x=median_val, line_dash='dot', line_color='#2DD4BF',
+						annotation_text=f'Median: {median_val:,.2f}' )
+					figure.update_xaxes( title_text=col )
+					figure.update_yaxes( title_text='Density' if stat_mode == 'density' else 'Frequency' )
+					render_mathy_plotly_chart( figure, f'profile_numeric_distribution_chart_{i}',
+						f'mathy_profile_distribution_{i}', f'Distribution — {col}', 470 )
 					m1, m2, m3, m4 = st.columns( 4, border=True )
 					m1.metric( 'Count', f'{len( s ):,}' )
 					m2.metric( 'Mean', f'{mean_val:,.2f}' )
@@ -2847,12 +3122,12 @@ if mode == 'Data Profile':
 #  DESCRIPTIVE STATISTICS MODE
 # ============================================
 elif mode == 'Descriptive Statistics':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Descriptive Statistics' ], help=cfg.DESCRIPTIVE_STATISTICS )
-		st.divider( )		
+		st.divider( )
 		df_dataset = st.session_state.df_dataset
-		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )		
+		df_numeric = clean_numeric( df_dataset.select_dtypes( include=[ np.number ] ) )
 		if df_numeric.empty:
 			st.info( 'No numeric variables available for descriptive analysis.' )
 			st.stop( )
@@ -2862,11 +3137,11 @@ elif mode == 'Descriptive Statistics':
 		st.markdown( """
 			<style>
 			[data-testid="stMetricLabel"] p {
-				font-size: 0.80rem;
+				font-size: 0.85rem;
 			}
 			
 			[data-testid="stMetricValue"] {
-				font-size: 0.95rem;
+				font-size: 1.05rem;
 			}
 			
 			[data-testid="stMetric"] {
@@ -2905,7 +3180,7 @@ elif mode == 'Descriptive Statistics':
 			df_descriptive[ 'Skew' ] = df_summary_source.skew( ).values
 			df_descriptive[ 'Kurtosis' ] = df_summary_source.kurtosis( ).values
 			df_descriptive[ 'Zeros' ] = (df_summary_source == 0).sum( ).values
-			df_descriptive[ 'Zeros %' ] = ((df_summary_source == 0).mean( ).values * 100.0)			
+			df_descriptive[ 'Zeros %' ] = ((df_summary_source == 0).mean( ).values * 100.0)
 			ordered_cols = [ 'Variable', 'count', 'mean', 'std', 'Variance', 'min' ]
 			if show_percentiles:
 				for pcol in [ '5%', '25%', '50%', '75%', '95%' ]:
@@ -2963,29 +3238,25 @@ elif mode == 'Descriptive Statistics':
 			st.markdown( f'##### Distribution & Shape — {col}' )
 			c1, c2 = st.columns( 2, border=True )
 			with c1:
-				fig, ax = plt.subplots( figsize=(7, 4.75) )
-				sns.histplot( s, bins=dist_bins, kde=True, stat='count', ax=ax,
-					edgecolor='#0f172a',
-					line_kws={ 'linewidth': 2.0 } )
-				
 				mean_val = float( s.mean( ) )
 				median_val = float( s.median( ) )
-				ax.axvline( mean_val, linestyle='--', linewidth=1.5,
-					label=f'Mean: {mean_val:,.2f}' )
-				
-				ax.axvline( median_val, linestyle=':', linewidth=1.5,
-					label=f'Median: {median_val:,.2f}' )
-				
-				ax.set_title( f'Histogram — {col}', fontsize=10, fontweight='bold' )
-				ax.set_xlabel( col )
-				ax.set_ylabel( 'Frequency' )
-				ax.grid( True, alpha=0.25, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				ax.legend( frameon=False, fontsize=9 )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )				
+				figure = go.Figure( )
+				figure.add_trace( go.Histogram( x=s.tolist( ), nbinsx=dist_bins, name=col,
+					marker_color='#38BDF8', opacity=0.82 ) )
+				if len( s ) > 1 and float( s.std( ddof=1 ) ) > 0:
+					x_values = np.linspace( float( s.min( ) ), float( s.max( ) ), 250 )
+					bin_width = (float( s.max( ) ) - float( s.min( ) )) / dist_bins
+					kde_values = stats.gaussian_kde( s.to_numpy( ) )( x_values ) * len( s ) * bin_width
+					figure.add_trace( go.Scatter( x=x_values, y=kde_values, mode='lines',
+						name='KDE', line={ 'color': '#F472B6', 'width': 3 } ) )
+				figure.add_vline( x=mean_val, line_dash='dash', line_color='#F59E0B',
+					annotation_text=f'Mean: {mean_val:,.2f}' )
+				figure.add_vline( x=median_val, line_dash='dot', line_color='#2DD4BF',
+					annotation_text=f'Median: {median_val:,.2f}' )
+				figure.update_xaxes( title_text=col )
+				figure.update_yaxes( title_text='Frequency' )
+				render_mathy_plotly_chart( figure, f'descriptive_histogram_chart_{col}',
+					f'mathy_descriptive_histogram_{col}', f'Histogram — {col}', 480 )
 				m1, m2, m3, m4 = st.columns( 4, border=True )
 				m1.metric( 'Count', f'{len( s ):,}' )
 				m2.metric( 'Mean', f'{mean_val:,.2f}' )
@@ -2994,20 +3265,9 @@ elif mode == 'Descriptive Statistics':
 					f'{float( s.std( ddof=1 ) ):,.2f}' if len( s ) > 1 else '0.000' )
 			
 			with c2:
-				fig, ax = plt.subplots( figsize=(7, 4.75) )
-				stats.probplot( s, plot=ax )
-				ax.set_title( f'Q–Q Plot — {col}', fontsize=10, fontweight='bold' )
-				ax.grid( True, alpha=0.20, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )				
-				if len( ax.get_lines( ) ) >= 1:
-					ax.get_lines( )[ 0 ].set_marker( 'o' )
-					ax.get_lines( )[ 0 ].set_alpha( 0.72 )
-					ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
-				
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+				figure = create_qq_figure( s.to_numpy( ), col )
+				render_mathy_plotly_chart( figure, f'descriptive_qq_chart_{col}',
+					f'mathy_descriptive_qq_{col}', f'Q–Q Plot — {col}', 480 )
 				
 				try:
 					if 3 <= len( s ) <= 5000:
@@ -3034,7 +3294,7 @@ elif mode == 'Descriptive Statistics':
 					q3.metric( 'Shapiro P', 'n/a' )
 		
 		blue_divider( )
-		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )		
+		st.markdown( '##### Correlation Structure', help=cfg.CORRELATION_STRUCTURE )
 		cor_c1, cor_c2 = st.columns( [ 0.5, 0.5 ], border=True )
 		with cor_c1:
 			corr_vars = st.multiselect( 'Variables for Correlation', all_num_cols,
@@ -3053,19 +3313,12 @@ elif mode == 'Descriptive Statistics':
 				render_table( corr )
 			
 			with c4:
-				fig, ax = plt.subplots( figsize=(7, 6) )
-				sns.heatmap( corr, ax=ax, cmap='coolwarm', vmin=-1, vmax=1, center=0, annot=True,
-					fmt='.2f', square=False, linewidths=0.5,
-					cbar_kws={ 'shrink': 0.85, 'label': 'Correlation' } )
-				
-				ax.set_title( f'Correlation Heatmap — {corr_method}', fontsize=12,
-					fontweight='bold', pad=10 )
-				
-				ax.set_xticklabels( ax.get_xticklabels( ), rotation=45, ha='right' )
-				ax.set_yticklabels( ax.get_yticklabels( ), rotation=0 )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+				figure = go.Figure( data=go.Heatmap( z=corr.values, x=corr.columns,
+					y=corr.index, zmin=-1, zmax=1, colorscale='RdBu', reversescale=True,
+					text=np.round( corr.values, 2 ), texttemplate='%{text}',
+					hovertemplate='%{y} vs %{x}<br>Correlation: %{z:.4f}<extra></extra>' ) )
+				render_mathy_plotly_chart( figure, 'descriptive_correlation_heatmap_chart',
+					'mathy_descriptive_correlation', f'Correlation Heatmap — {corr_method}', 580 )
 		else:
 			with c3:
 				st.info( 'Select at least two numeric variables.' )
@@ -3096,18 +3349,12 @@ elif mode == 'Descriptive Statistics':
 				render_table( df_explained )
 			
 			with c6:
-				fig, ax = plt.subplots( figsize=(7, 5) )
-				bars = ax.bar( df_explained[ 'Component' ],
-					df_explained[ 'Explained Variance (%)' ], edgecolor='#0f172a', linewidth=0.9 )
-				ax.set_ylabel( '% Variance Explained' )
-				ax.set_title( 'PCA Variance Explained', fontsize=12, fontweight='bold' )
-				ax.grid( axis='y', alpha=0.25, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				ax.bar_label( bars, fmt='%.1f', padding=3, fontsize=9 )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+				figure = px.bar( df_explained, x='Component', y='Explained Variance (%)',
+					color='Explained Variance (%)', color_continuous_scale='Blues',
+					text='Explained Variance (%)' )
+				figure.update_traces( texttemplate='%{text:.1f}%' )
+				render_mathy_plotly_chart( figure, 'descriptive_pca_variance_chart',
+					'mathy_pca_variance', 'PCA Variance Explained', 500 )
 		else:
 			with c5:
 				st.info( 'Select at least two numeric variables for PCA.' )
@@ -3119,7 +3366,7 @@ elif mode == 'Descriptive Statistics':
 # INFERENTIAL STATISTICS MODE
 # ============================================
 elif mode == 'Inferential Statistics':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Inferential Statistics' ], help=cfg.INFERENTIAL_STATISTICS )
 		st.divider( )
@@ -3138,11 +3385,11 @@ elif mode == 'Inferential Statistics':
 		st.markdown( """
 			<style>
 			[data-testid="stMetricLabel"] p {
-				font-size: 0.80rem;
+				font-size: 0.85rem;
 			}
 			
 			[data-testid="stMetricValue"] {
-				font-size: 0.95rem;
+				font-size: 1.05rem;
 			}
 			
 			[data-testid="stMetric"] {
@@ -3340,21 +3587,9 @@ elif mode == 'Inferential Statistics':
 			y = pd.to_numeric( df_dataset[ col_y ], errors='coerce' ).dropna( )
 			if len( y ) >= 3:
 				stat, p_value = stats.shapiro( y )
-				fig, ax = plt.subplots( figsize=(6.25, 5.25) )
-				stats.probplot( y, plot=ax )
-				ax.set_title( f'Q–Q Plot — {col_y}', fontsize=12, fontweight='bold', pad=10 )
-				ax.grid( True, alpha=0.20, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				ax.ticklabel_format( style='plain', axis='both' )
-				if len( ax.get_lines( ) ) >= 1:
-					ax.get_lines( )[ 0 ].set_marker( 'o' )
-					ax.get_lines( )[ 0 ].set_alpha( 0.72 )
-					ax.get_lines( )[ 0 ].set_markeredgecolor( 'black' )
-				
-				fig.tight_layout( )
-				st.pyplot( fig )
-				plt.close( fig )
+				figure = create_qq_figure( y.to_numpy( ), col_y )
+				render_mathy_plotly_chart( figure, 'inferential_normality_qq_chart',
+					'mathy_inferential_qq', f'Q–Q Plot — {col_y}', 525 )
 				m1, m2, m3 = st.columns( 3 )
 				m1.metric( 'Count', f'{len( y ):,}' )
 				m2.metric( 'Shapiro-W', f'{stat:,.2f}' )
@@ -3386,21 +3621,11 @@ elif mode == 'Inferential Statistics':
 				if len( valid_groups ) >= 2:
 					f_stat, p_anova = stats.f_oneway( *valid_groups )
 					h_stat, p_kw = stats.kruskal( *valid_groups )
-					fig, ax = plt.subplots( figsize=(6.5, 5.25) )
-					sns.boxplot( data=df_group, x=col_group, y=col_y, ax=ax )
-					sns.stripplot( data=df_group, x=col_group, y=col_y, ax=ax, color='black',
-						alpha=0.45, size=4 )
-					ax.set_title( f'Group Comparison — {col_y} by {col_group}', fontsize=12,
-						fontweight='bold', pad=10 )
-					ax.set_xlabel( col_group )
-					ax.set_ylabel( col_y )
-					ax.grid( axis='y', alpha=0.20, linestyle='--' )
-					ax.spines[ 'top' ].set_visible( False )
-					ax.spines[ 'right' ].set_visible( False )
-					ax.tick_params( axis='x', rotation=30 )
-					fig.tight_layout( )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = px.box( df_group, x=col_group, y=col_y, color=col_group,
+						points='all' )
+					render_mathy_plotly_chart( figure, 'inferential_group_comparison_chart',
+						'mathy_group_comparison',
+						f'Group Comparison — {col_y} by {col_group}', 525 )
 					g1, g2, g3, g4 = st.columns( 4 )
 					g1.metric( 'Groups', f'{len( valid_groups ):,}' )
 					g2.metric( 'ANOVA F', f'{f_stat:,.2f}' )
@@ -3449,28 +3674,22 @@ elif mode == 'Inferential Statistics':
 		if col_x2:
 			mask = x.notna( ) & y2.notna( )
 			if mask.sum( ) >= 3:
-				fig, ax = plt.subplots( figsize=(7, 5.25) )
-				ax.scatter( x[ mask ], y2[ mask ], alpha=0.70, edgecolor='black' )
+				df_correlation_plot = pd.DataFrame(
+					{ col_x2: x[ mask ].to_numpy( ), col_y: y2[ mask ].to_numpy( ) } )
+				figure = px.scatter( df_correlation_plot, x=col_x2, y=col_y, opacity=0.70 )
+				figure.update_traces( marker={ 'size': 9 } )
 				if mask.sum( ) >= 2:
 					try:
 						m, b = np.polyfit( x[ mask ], y2[ mask ], 1 )
 						xline = np.linspace( float( x[ mask ].min( ) ), float( x[ mask ].max( ) ),
 							100 )
-						ax.plot( xline, m * xline + b, linewidth=2.0, linestyle='--' )
+						figure.add_trace( go.Scatter( x=xline, y=(m * xline) + b,
+							mode='lines', name='Linear Trend',
+							line={ 'color': '#F59E0B', 'width': 3, 'dash': 'dash' } ) )
 					except Exception:
 						pass
-				
-				ax.set_title( f'Correlation — {col_y} vs {col_x2}', fontsize=12, fontweight='bold',
-					pad=10 )
-				
-				ax.set_xlabel( col_x2 )
-				ax.set_ylabel( col_y )
-				ax.grid( True, alpha=0.20, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				fig.tight_layout( )
-				st.pyplot( fig )
-				plt.close( fig )
+				render_mathy_plotly_chart( figure, 'inferential_correlation_scatter_chart',
+					'mathy_inferential_correlation', f'Correlation — {col_y} vs {col_x2}', 525 )
 		
 		blue_divider( )
 		
@@ -3508,18 +3727,16 @@ elif mode == 'Inferential Statistics':
 						num_rows='dynamic' )
 				
 				with ca2:
-					fig, ax = plt.subplots( figsize=(7, 5.5) )
-					sns.heatmap( contingency, annot=True, fmt='d', cmap='Blues', linewidths=0.5,
-						ax=ax, cbar_kws={ 'shrink': 0.85, 'label': 'Count' } )
-					
-					ax.set_title( f'Contingency Heatmap — {col_cat1} vs {col_cat2}', fontsize=12,
-						fontweight='bold', pad=10 )
-					
-					ax.set_xlabel( col_cat2 )
-					ax.set_ylabel( col_cat1 )
-					fig.tight_layout( )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = go.Figure( data=go.Heatmap( z=contingency.values,
+						x=contingency.columns.astype( str ), y=contingency.index.astype( str ),
+						colorscale='Blues', text=contingency.values, texttemplate='%{text}',
+						hovertemplate=f'{col_cat1}: %{{y}}<br>{col_cat2}: %{{x}}'
+							'<br>Count: %{z}<extra></extra>' ) )
+					figure.update_xaxes( title_text=col_cat2 )
+					figure.update_yaxes( title_text=col_cat1 )
+					render_mathy_plotly_chart( figure, 'inferential_contingency_heatmap_chart',
+						'mathy_contingency_heatmap',
+						f'Contingency Heatmap — {col_cat1} vs {col_cat2}', 550 )
 				
 				cm1, cm2, cm3, cm4 = st.columns( 4, border=True )
 				cm1.metric( 'Chi-Square', f'{chi2:,.2f}' )
@@ -3532,7 +3749,7 @@ elif mode == 'Inferential Statistics':
 # ANOMALY DETECTION MODE
 # ============================================
 elif mode == 'Anomaly Detection':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Anomaly Detection' ] )
 		st.divider( )
@@ -3549,11 +3766,11 @@ elif mode == 'Anomaly Detection':
 		st.markdown( """
 			<style>
 			[data-testid="stMetricLabel"] p {
-				font-size: 0.80rem;
+				font-size: 0.85rem;
 			}
 			
 			[data-testid="stMetricValue"] {
-				font-size: 0.95rem;
+				font-size: 1.05rem;
 			}
 			
 			[data-testid="stMetric"] {
@@ -3708,20 +3925,15 @@ elif mode == 'Anomaly Detection':
 			if anomalies.empty:
 				st.info( 'No rows met the current consensus threshold.' )
 			else:
-				fig, ax = plt.subplots( figsize=(7, 5) )
 				vc = anomalies[ 'methods_flagged' ].value_counts( ).sort_index( )
-				bars = ax.bar( vc.index.astype( str ), vc.values, width=0.75, edgecolor='black',
-					linewidth=0.9 )
-				ax.set_xlabel( 'Number of Methods Flagging' )
-				ax.set_ylabel( 'Observation Count' )
-				ax.set_title( 'Consensus Strength', fontsize=10, fontweight='bold' )
-				ax.grid( axis='y', alpha=0.25, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				ax.bar_label( bars, padding=3, fontsize=9 )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+				df_consensus = vc.rename_axis( 'Methods Flagging' ).reset_index(
+					name='Observation Count' )
+				df_consensus[ 'Methods Flagging' ] = df_consensus[ 'Methods Flagging' ].astype( str )
+				figure = px.bar( df_consensus, x='Methods Flagging', y='Observation Count',
+					color='Observation Count', color_continuous_scale='Reds',
+					text='Observation Count' )
+				render_mathy_plotly_chart( figure, 'anomaly_consensus_strength_chart',
+					'mathy_anomaly_consensus', 'Consensus Strength', 500 )
 		
 		# -------------------------------------------------------------------------
 		# Visualization — Distribution with Anomalies
@@ -3746,71 +3958,47 @@ elif mode == 'Anomaly Detection':
 			
 			c_v1, c_v2 = st.columns( 2, border=True )
 			with c_v1:
-				fig, ax = plt.subplots( figsize=(7, 5) )
-				
 				s_sorted = np.sort( s_clean.values.astype( float ) )
 				n_vals = len( s_sorted )
 				y_ecdf = np.arange( 1, n_vals + 1 ) / n_vals
-				
-				ax.step( s_sorted, y_ecdf, where='post', linewidth=2.0, label='ECDF' )
+				figure = go.Figure( )
+				figure.add_trace( go.Scatter( x=s_sorted, y=y_ecdf, mode='lines', name='ECDF',
+					line={ 'color': '#38BDF8', 'width': 3, 'shape': 'hv' } ) )
 				
 				if not flagged_vals.empty:
 					flagged_array = flagged_vals.values.astype( float )
 					flagged_y = np.searchsorted( s_sorted, flagged_array, side='right' ) / n_vals
-					ax.scatter( flagged_array, flagged_y, color='crimson', alpha=0.90, s=42,
-						edgecolors='black', linewidths=0.5, label='Flagged' )
+					figure.add_trace( go.Scatter( x=flagged_array, y=flagged_y, mode='markers',
+						name='Flagged', marker={ 'color': '#EF4444', 'size': 10,
+							'symbol': 'x' } ) )
 				
 				mean_val = float( s_clean.mean( ) )
 				median_val = float( s_clean.median( ) )
-				ax.axvline( mean_val, linestyle='--', linewidth=1.4,
-					label=f'Mean: {mean_val:,.2f}' )
-				
-				ax.axvline( median_val, linestyle=':', linewidth=1.4,
-					label=f'Median: {median_val:,.2f}' )
-				
-				ax.set_title( f'{col} — ECDF with Anomalies', fontsize=10, fontweight='bold' )
-				ax.set_xlabel( col )
-				ax.set_ylabel( 'Cumulative Probability' )
-				ax.set_ylim( 0.0, 1.02 )
-				ax.grid( True, alpha=0.25, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				ax.legend( frameon=False, fontsize=9 )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+				figure.add_vline( x=mean_val, line_dash='dash', line_color='#F59E0B',
+					annotation_text=f'Mean: {mean_val:,.2f}' )
+				figure.add_vline( x=median_val, line_dash='dot', line_color='#2DD4BF',
+					annotation_text=f'Median: {median_val:,.2f}' )
+				figure.update_xaxes( title_text=col )
+				figure.update_yaxes( title_text='Cumulative Probability', range=[ 0.0, 1.02 ] )
+				render_mathy_plotly_chart( figure, f'anomaly_ecdf_chart_{col}',
+					f'mathy_anomaly_ecdf_{col}', f'{col} — ECDF with Anomalies', 500 )
 			
 			with c_v2:
-				fig, ax = plt.subplots( figsize=(7, 5) )
-				sns.violinplot( x=s_clean.values, ax=ax, inner=None, cut=0, linewidth=0.9 )
-				ax.boxplot( s_clean.values, vert=False, widths=0.20, patch_artist=True,
-					boxprops=dict( facecolor='white', edgecolor='black', linewidth=1.0 ),
-					medianprops=dict( color='black', linewidth=1.4 ),
-					whiskerprops=dict( color='black', linewidth=0.9 ),
-					capprops=dict( color='black', linewidth=0.9 ),
-					flierprops=dict( marker='o', markerfacecolor='#475569',
-						markeredgecolor='black',
-						markersize=4, alpha=0.7 ) )
-				
+				figure = go.Figure( )
+				figure.add_trace( go.Violin( x=s_clean.values, name=col, orientation='h',
+					box_visible=True, meanline_visible=True, points='outliers',
+					line_color='#38BDF8', fillcolor='rgba(56,189,248,0.45)' ) )
 				if not flagged_vals.empty:
-					ax.scatter( flagged_vals.values, np.ones( len( flagged_vals ) ),
-						color='crimson', alpha=0.85, s=34, edgecolors='black', linewidths=0.4,
-						label='Flagged', zorder=3 )
-				
-				ax.axvline( float( s_clean.mean( ) ), linestyle='--', linewidth=1.4 )
-				ax.axvline( float( s_clean.median( ) ), linestyle=':', linewidth=1.4 )
-				ax.set_title( f'{col} — Violin / Box Summary', fontsize=10, fontweight='bold' )
-				ax.set_xlabel( col )
-				ax.set_yticks( [ ] )
-				ax.grid( axis='x', alpha=0.25, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				if not flagged_vals.empty:
-					ax.legend( frameon=False, fontsize=9 )
-				
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+					figure.add_trace( go.Scatter( x=flagged_vals.values,
+						y=[ col ] * len( flagged_vals ), mode='markers', name='Flagged',
+						marker={ 'color': '#EF4444', 'size': 10, 'symbol': 'x' } ) )
+				figure.add_vline( x=float( s_clean.mean( ) ), line_dash='dash',
+					line_color='#F59E0B' )
+				figure.add_vline( x=float( s_clean.median( ) ), line_dash='dot',
+					line_color='#2DD4BF' )
+				figure.update_xaxes( title_text=col )
+				render_mathy_plotly_chart( figure, f'anomaly_violin_chart_{col}',
+					f'mathy_anomaly_violin_{col}', f'{col} — Violin / Box Summary', 500 )
 		
 		blue_divider( )
 		
@@ -3826,29 +4014,19 @@ elif mode == 'Anomaly Detection':
 			
 			if not df_scatter.empty:
 				flag_mask = df_scatter.index.isin( anomalies.index )
-				
-				fig, ax = plt.subplots( figsize=(8, 5.5) )
-				ax.scatter( df_scatter.loc[ ~flag_mask, x_col ].values,
-					df_scatter.loc[ ~flag_mask, y_col ].values, s=34, alpha=0.70,
-					edgecolors='black', linewidths=0.5, label='Inliers' )
+				figure = go.Figure( )
+				figure.add_trace( go.Scatter( x=df_scatter.loc[ ~flag_mask, x_col ],
+					y=df_scatter.loc[ ~flag_mask, y_col ], mode='markers', name='Inliers',
+					marker={ 'color': '#38BDF8', 'size': 8, 'opacity': 0.70 } ) )
 				
 				if flag_mask.any( ):
-					ax.scatter( df_scatter.loc[ flag_mask, x_col ].values,
-						df_scatter.loc[ flag_mask, y_col ].values, s=52, alpha=0.92,
-						edgecolors='black', linewidths=0.7, c='crimson', marker='X',
-						label='Flagged' )
-				
-				ax.set_title( f'Anomaly Scatter — {x_col} vs {y_col}', fontsize=12,
-					fontweight='bold', pad=10 )
-				ax.set_xlabel( x_col )
-				ax.set_ylabel( y_col )
-				ax.grid( True, alpha=0.20, linestyle='--' )
-				ax.spines[ 'top' ].set_visible( False )
-				ax.spines[ 'right' ].set_visible( False )
-				ax.legend( frameon=False )
-				fig.tight_layout( )
-				st.pyplot( fig, use_container_width=True )
-				plt.close( fig )
+					figure.add_trace( go.Scatter( x=df_scatter.loc[ flag_mask, x_col ],
+						y=df_scatter.loc[ flag_mask, y_col ], mode='markers', name='Flagged',
+						marker={ 'color': '#EF4444', 'size': 12, 'symbol': 'x' } ) )
+				figure.update_xaxes( title_text=x_col )
+				figure.update_yaxes( title_text=y_col )
+				render_mathy_plotly_chart( figure, 'anomaly_bivariate_scatter_chart',
+					'mathy_anomaly_scatter', f'Anomaly Scatter — {x_col} vs {y_col}', 550 )
 		
 		# -------------------------------------------------------------------------
 		# Export
@@ -3885,7 +4063,7 @@ elif mode == 'Classification Models':
 	y_prediction = st.session_state.get( 'y_prediction', None )
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Classification Models' ] )
 		st.caption( 'Predictive Models for Categorical, Discrete-Values' )
@@ -8594,23 +8772,18 @@ elif mode == 'Classification Models':
 		
 		if has_visual_context:
 			try:
-				plt.close( 'all' )
-				model.confusion_matrix( X_test, y_test )
-				fig_cm = plt.gcf( )
-				fig_cm.set_size_inches( 6, 4 )
-				
-				for ax_cm in fig_cm.axes:
-					ax_cm.tick_params( axis='x', labelrotation=45, labelsize=8 )
-					ax_cm.tick_params( axis='y', labelsize=8 )
-					for label in ax_cm.get_xticklabels( ):
-						label.set_ha( 'right' )
-				
-				fig_cm.tight_layout( )
-				st.pyplot( fig_cm, use_container_width=True )
-				plt.close( fig_cm )
+				class_labels = sorted( set( pd.Series( y_test ).astype( str ) ).union(
+					set( pd.Series( y_prediction ).astype( str ) ) ) )
+				matrix = confusion_matrix( pd.Series( y_test ).astype( str ),
+					pd.Series( y_prediction ).astype( str ), labels=class_labels )
+				figure = go.Figure( data=go.Heatmap( z=matrix, x=class_labels,
+					y=class_labels, colorscale='Blues', text=matrix, texttemplate='%{text}',
+					hovertemplate='Actual: %{y}<br>Predicted: %{x}<br>Count: %{z}<extra></extra>' ) )
+				figure.update_layout( xaxis_title='Predicted Class', yaxis_title='Actual Class' )
+				render_mathy_plotly_chart( figure, 'classification_confusion_matrix_chart',
+					'mathy_classification_confusion_matrix', 'Confusion Matrix', 500 )
 			except Exception as e:
 				st.info( f'Confusion Matrix skipped: {e}' )
-				plt.close( 'all' )
 		else:
 			st.info( 'Confusion Matrix is unavailable until a classification model is trained.' )
 		
@@ -8627,18 +8800,13 @@ elif mode == 'Classification Models':
 				df_counts = pd.DataFrame(
 					{ 'Actual': actual_counts, 'Predicted': pred_counts } ).fillna( 0 )
 				
-				fig_counts, ax_counts = plt.subplots( figsize=(6, 4) )
-				df_counts.plot( kind='bar', ax=ax_counts )
-				ax_counts.set_xlabel( 'Class' )
-				ax_counts.set_ylabel( 'Count' )
-				ax_counts.set_title( 'Actual vs Predicted Class Counts' )
-				ax_counts.grid( axis='y', alpha=0.3 )
-				fig_counts.tight_layout( )
-				st.pyplot( fig_counts )
-				plt.close( fig_counts )
+				df_counts = df_counts.rename_axis( 'Class' ).reset_index( ).melt(
+					id_vars='Class', var_name='Series', value_name='Count' )
+				figure = px.bar( df_counts, x='Class', y='Count', color='Series', barmode='group' )
+				render_mathy_plotly_chart( figure, 'classification_actual_predicted_counts_chart',
+					'mathy_classification_class_counts', 'Actual vs Predicted Class Counts', 500 )
 			except Exception as e:
 				st.info( f'Actual vs Predicted Counts skipped: {e}' )
-				plt.close( 'all' )
 		else:
 			st.info( 'Actual vs Predicted Counts are unavailable until a model is trained.' )
 		
@@ -8657,19 +8825,13 @@ elif mode == 'Classification Models':
 				df_class_acc = df_evaluation.groupby( 'Actual', dropna=False )[
 					'Correct' ].mean( ).sort_index( )
 				
-				fig_acc, ax_acc = plt.subplots( figsize=(6, 4) )
-				ax_acc.bar( df_class_acc.index.astype( str ), df_class_acc.values )
-				ax_acc.set_xlabel( 'Class' )
-				ax_acc.set_ylabel( 'Accuracy' )
-				ax_acc.set_ylim( 0.0, 1.05 )
-				ax_acc.set_title( 'Per-Class Accuracy' )
-				ax_acc.grid( axis='y', alpha=0.3 )
-				fig_acc.tight_layout( )
-				st.pyplot( fig_acc )
-				plt.close( fig_acc )
+				df_class_acc = df_class_acc.rename( 'Accuracy' ).rename_axis( 'Class' ).reset_index( )
+				df_class_acc[ 'Class' ] = df_class_acc[ 'Class' ].astype( str )
+				figure = px.bar( df_class_acc, x='Class', y='Accuracy', range_y=[ 0.0, 1.05 ] )
+				render_mathy_plotly_chart( figure, 'classification_per_class_accuracy_chart',
+					'mathy_classification_per_class_accuracy', 'Per-Class Accuracy', 500 )
 			except Exception as e:
 				st.info( f'Per-Class Accuracy skipped: {e}' )
-				plt.close( 'all' )
 		else:
 			st.info( 'Per-Class Accuracy is unavailable until a model is trained.' )
 		
@@ -8684,20 +8846,14 @@ elif mode == 'Classification Models':
 				proba = model.predict_probability( X_test )
 				if (isinstance( proba, np.ndarray ) and proba.ndim == 2 and proba.shape[ 1 ] > 1):
 					max_conf = np.max( proba, axis=1 )
-					fig_conf, ax_conf = plt.subplots( figsize=(6, 4) )
-					ax_conf.hist( max_conf, bins=20 )
-					ax_conf.set_xlabel( 'Maximum Predicted Probability' )
-					ax_conf.set_ylabel( 'Frequency' )
-					ax_conf.set_title( 'Prediction Confidence Distribution' )
-					ax_conf.grid( axis='y', alpha=0.3 )
-					fig_conf.tight_layout( )
-					st.pyplot( fig_conf )
-					plt.close( fig_conf )
+					figure = px.histogram( x=max_conf, nbins=20,
+						labels={ 'x': 'Maximum Predicted Probability', 'y': 'Frequency' } )
+					render_mathy_plotly_chart( figure, 'classification_confidence_chart',
+						'mathy_classification_confidence', 'Prediction Confidence Distribution', 500 )
 				else:
 					st.info( 'Prediction confidence is unavailable for this model output.' )
 			except Exception as e:
 				st.info( f'Prediction Confidence skipped: {e}' )
-				plt.close( 'all' )
 		else:
 			st.info( 'Prediction Confidence is unavailable until a model is trained.' )
 		
@@ -8707,15 +8863,16 @@ elif mode == 'Classification Models':
 		blue_divider( )
 		st.markdown( '##### Observed vs Predicted' )
 		
-		if has_visual_context and target_count == 2 and hasattr( model, 'scatter_plot' ):
+		if has_visual_context and target_count == 2:
 			try:
-				plt.close( 'all' )
-				model.scatter_plot( X_test, y_test )
-				st.pyplot( plt.gcf( ) )
-				plt.close( 'all' )
+				df_observed = pd.DataFrame( { 'Actual': pd.Series( y_test ).astype( str ),
+					'Predicted': pd.Series( y_prediction ).astype( str ) } )
+				figure = px.scatter( df_observed, x='Actual', y='Predicted', color='Actual',
+					hover_data=df_observed.columns )
+				render_mathy_plotly_chart( figure, 'classification_observed_predicted_chart',
+					'mathy_classification_observed_predicted', 'Observed vs Predicted', 500 )
 			except Exception as e:
 				st.info( f'Observed vs Predicted plot skipped: {e}' )
-				plt.close( 'all' )
 		else:
 			st.info( 'Observed vs Predicted is shown only for binary classification targets.' )
 		
@@ -8725,15 +8882,26 @@ elif mode == 'Classification Models':
 		blue_divider( )
 		st.markdown( '##### ROC Curve', help=cfg.ROC_CURVE )
 		
-		if has_visual_context and target_count == 2 and hasattr( model, 'roc_curve' ):
+		if has_visual_context and target_count == 2 and hasattr( model, 'predict_probability' ):
 			try:
-				plt.close( 'all' )
-				model.roc_curve( X_test, y_test )
-				st.pyplot( plt.gcf( ) )
-				plt.close( 'all' )
+				proba = np.asarray( model.predict_probability( X_test ) )
+				classes = np.unique( np.asarray( y_test ) )
+				positive_class = classes[ -1 ]
+				y_binary = (np.asarray( y_test ) == positive_class).astype( int )
+				scores = proba[ :, -1 ] if proba.ndim == 2 else proba.reshape( -1 )
+				false_positive_rate, true_positive_rate, _ = roc_curve( y_binary, scores )
+				roc_auc = auc( false_positive_rate, true_positive_rate )
+				figure = go.Figure( )
+				figure.add_trace( go.Scatter( x=false_positive_rate, y=true_positive_rate,
+					mode='lines', name=f'ROC (AUC = {roc_auc:0.3f})' ) )
+				figure.add_trace( go.Scatter( x=[ 0, 1 ], y=[ 0, 1 ], mode='lines',
+					name='Chance', line={ 'dash': 'dash', 'color': '#94A3B8' } ) )
+				figure.update_layout( xaxis_title='False Positive Rate',
+					yaxis_title='True Positive Rate' )
+				render_mathy_plotly_chart( figure, 'classification_roc_curve_chart',
+					'mathy_classification_roc_curve', 'ROC Curve', 500 )
 			except Exception as e:
 				st.info( f'ROC Curve Skipped: {e}' )
-				plt.close( 'all' )
 		else:
 			st.info( 'ROC curve is available only for binary classification targets.' )
 
@@ -8763,7 +8931,7 @@ elif mode == 'Regression Models':
 	y_series = st.session_state.get( 'y_series', None )
 	elapsed_seconds = st.session_state.get( 'elapsed_seconds', 0.0 )
 	
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Regression Models' ] )
 		st.caption( 'Predictive Models for Continuous Values' )
@@ -14269,17 +14437,23 @@ elif mode == 'Regression Models':
 		# ------------------------------------------------------------------
 		blue_divider( )
 		st.markdown( '##### Observed vs Predicted' )
-		plt.close( 'all' )
-		model.scatter_plot( X_test, y_test )
-		st.pyplot( plt.gcf( ) )
-		plt.close( 'all' )
+		df_scatter = pd.DataFrame( { 'Observed': np.asarray( y_test ).reshape( -1 ),
+			'Predicted': np.asarray( y_prediction ).reshape( -1 ) } )
+		figure = px.scatter( df_scatter, x='Observed', y='Predicted' )
+		minimum_value = float( df_scatter[ [ 'Observed', 'Predicted' ] ].min( ).min( ) )
+		maximum_value = float( df_scatter[ [ 'Observed', 'Predicted' ] ].max( ).max( ) )
+		figure.add_trace( go.Scatter( x=[ minimum_value, maximum_value ],
+			y=[ minimum_value, maximum_value ], mode='lines', name='Ideal',
+			line={ 'dash': 'dash', 'color': '#94A3B8' } ) )
+		render_mathy_plotly_chart( figure, 'regression_observed_predicted_chart',
+			'mathy_regression_observed_predicted', 'Observed vs Predicted', 540 )
 
 # ============================================
 # CLUSTERING MODELS MODE
 # ============================================
 elif mode == 'Clustering Models':
 	df_dataset = st.session_state.get( 'df_dataset', None )
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Clustering Models' ] )
 		st.divider( )
@@ -15852,22 +16026,10 @@ elif mode == 'Clustering Models':
 			st.subheader( 'Cluster Visualization' )
 			if df_results is not None and not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'Cluster Assignments' )
-					if df_centroids is not None and not df_centroids.empty:
-						try:
-							ax.scatter( df_centroids[ feature_columns[ 0 ] ],
-								df_centroids[ feature_columns[ 1 ] ], marker='x', s=100 )
-						except Exception:
-							pass
-					
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'Cluster Assignments', df_centroids )
+					render_mathy_plotly_chart( figure, 'cluster_kmeans_assignment_chart',
+						'mathy_kmeans_clusters', 'Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -16062,16 +16224,10 @@ elif mode == 'Clustering Models':
 			
 			if not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'DBSCAN Cluster Assignments' )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'DBSCAN Cluster Assignments' )
+					render_mathy_plotly_chart( figure, 'cluster_dbscan_assignment_chart',
+						'mathy_dbscan_clusters', 'DBSCAN Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -16304,17 +16460,10 @@ elif mode == 'Clustering Models':
 			
 			if not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'Agglomerative Cluster Assignments' )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'Agglomerative Cluster Assignments' )
+					render_mathy_plotly_chart( figure, 'cluster_agglomerative_assignment_chart',
+						'mathy_agglomerative_clusters', 'Agglomerative Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -16595,16 +16744,10 @@ elif mode == 'Clustering Models':
 			
 			if not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'Spectral Cluster Assignments' )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'Spectral Cluster Assignments' )
+					render_mathy_plotly_chart( figure, 'cluster_spectral_assignment_chart',
+						'mathy_spectral_clusters', 'Spectral Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -16876,17 +17019,10 @@ elif mode == 'Clustering Models':
 			
 			if not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'OPTICS Cluster Assignments' )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'OPTICS Cluster Assignments' )
+					render_mathy_plotly_chart( figure, 'cluster_optics_assignment_chart',
+						'mathy_optics_clusters', 'OPTICS Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -17078,24 +17214,10 @@ elif mode == 'Clustering Models':
 			
 			if not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					
-					if not df_centroids.empty:
-						ax.scatter( df_centroids[ feature_columns[ 0 ] ],
-							df_centroids[ feature_columns[ 1 ] ], marker='X', s=180,
-							edgecolors='black', linewidths=1.0, label='Centroids' )
-						
-						ax.legend( )
-					
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'Mean Shift Cluster Assignments' )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'Mean Shift Cluster Assignments', df_centroids )
+					render_mathy_plotly_chart( figure, 'cluster_mean_shift_assignment_chart',
+						'mathy_mean_shift_clusters', 'Mean Shift Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -17285,22 +17407,10 @@ elif mode == 'Clustering Models':
 			
 			if not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					
-					if not df_centroids.empty:
-						ax.scatter( df_centroids[ feature_columns[ 0 ] ],
-							df_centroids[ feature_columns[ 1 ] ], marker='X', s=180,
-							edgecolors='black', linewidths=1.0, label='Exemplars' )
-						ax.legend( )
-					
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'Affinity Propagation Cluster Assignments' )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'Affinity Propagation Cluster Assignments', df_centroids, 'Exemplars' )
+					render_mathy_plotly_chart( figure, 'cluster_affinity_assignment_chart',
+						'mathy_affinity_clusters', 'Affinity Propagation Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -17494,22 +17604,10 @@ elif mode == 'Clustering Models':
 			
 			if not df_results.empty:
 				if len( feature_columns ) == 2:
-					plt.close( 'all' )
-					fig, ax = plt.subplots( )
-					ax.scatter( df_results[ feature_columns[ 0 ] ],
-						df_results[ feature_columns[ 1 ] ], c=df_results[ 'Cluster' ], alpha=0.7 )
-					
-					if not df_centroids.empty:
-						ax.scatter( df_centroids[ feature_columns[ 0 ] ],
-							df_centroids[ feature_columns[ 1 ] ], marker='X', s=140,
-							edgecolors='black', linewidths=1.0, label='Subcluster Centers' )
-						ax.legend( )
-					
-					ax.set_xlabel( feature_columns[ 0 ] )
-					ax.set_ylabel( feature_columns[ 1 ] )
-					ax.set_title( 'Birch Cluster Assignments' )
-					st.pyplot( fig )
-					plt.close( fig )
+					figure = create_cluster_figure( df_results, feature_columns,
+						'Birch Cluster Assignments', df_centroids, 'Subcluster Centers' )
+					render_mathy_plotly_chart( figure, 'cluster_birch_assignment_chart',
+						'mathy_birch_clusters', 'Birch Cluster Assignments', 560 )
 				else:
 					st.info( 'Visualization limited to two features.' )
 			else:
@@ -17519,7 +17617,7 @@ elif mode == 'Clustering Models':
 # TIME SERIES MODE
 # ============================================
 elif mode == 'Time-Series Models':
-	left, center, right = st.columns( [ 0.25, 3.5, 0.25 ] )
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
 		st.subheader( cfg.MODE[ 'Time-Series Models' ] )
 		st.divider( )
@@ -17726,18 +17824,10 @@ elif mode == 'Time-Series Models':
 			blue_divider( )
 			st.markdown( '##### Observed vs Forecast' )
 			if len( forecast ) > 0:
-				plt.close( 'all' )
-				fig, ax = plt.subplots( )
-				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				ax.plot( observed_index, series, label='Observed' )
-				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
-				ax.set_xlabel( 'Period' )
-				ax.set_ylabel( series_col )
-				ax.set_title( 'Lagged Linear Regression Forecast' )
-				ax.legend( )
-				st.pyplot( fig )
-				plt.close( fig )
+				figure = create_forecast_figure( series, forecast, series_col,
+					'Lagged Linear Regression Forecast' )
+				render_mathy_plotly_chart( figure, 'timeseries_lag_linear_forecast_chart',
+					'mathy_lag_linear_forecast', 'Lagged Linear Regression Forecast', 560 )
 			else:
 				st.info( 'Run Lagged Linear Regression to view the forecast plot.' )
 		
@@ -18013,18 +18103,10 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
-				plt.close( 'all' )
-				fig, ax = plt.subplots( )
-				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				ax.plot( observed_index, series, label='Observed' )
-				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
-				ax.set_xlabel( 'Period' )
-				ax.set_ylabel( series_col )
-				ax.set_title( 'Lagged Boosting Regression Forecast' )
-				ax.legend( )
-				st.pyplot( fig )
-				plt.close( fig )
+				figure = create_forecast_figure( series, forecast, series_col,
+					'Lagged Boosting Regression Forecast' )
+				render_mathy_plotly_chart( figure, 'timeseries_lag_boost_forecast_chart',
+					'mathy_lag_boost_forecast', 'Lagged Boosting Regression Forecast', 560 )
 			else:
 				st.info( 'Run Lagged Boosting Regression to view the forecast plot.' )
 		
@@ -18215,19 +18297,11 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
-				plt.close( 'all' )
-				fig, ax = plt.subplots( )
-				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				ax.plot( observed_index, series, label='Observed' )
-				ax.plot( forecast_index, forecast, label=f'Quantile {lag_quantile_value:.2f}',
-					linestyle='--' )
-				ax.set_xlabel( 'Period' )
-				ax.set_ylabel( series_col )
-				ax.set_title( 'Lagged Quantile Regression Forecast' )
-				ax.legend( )
-				st.pyplot( fig )
-				plt.close( fig )
+				figure = create_forecast_figure( series, forecast, series_col,
+					'Lagged Quantile Regression Forecast',
+					f'Quantile {lag_quantile_value:.2f}' )
+				render_mathy_plotly_chart( figure, 'timeseries_lag_quantile_forecast_chart',
+					'mathy_lag_quantile_forecast', 'Lagged Quantile Regression Forecast', 560 )
 			else:
 				st.info( 'Run Lagged Quantile Regression to view the forecast plot.' )
 		
@@ -18387,21 +18461,10 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
-				plt.close( 'all' )
-				fig, ax = plt.subplots( )
-				
-				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				
-				ax.plot( observed_index, series, label='Observed' )
-				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
-				ax.set_xlabel( 'Period' )
-				ax.set_ylabel( series_col )
-				ax.set_title( f'ARIMA{(arima_p, arima_d, arima_q)} Forecast' )
-				ax.legend( )
-				
-				st.pyplot( fig )
-				plt.close( fig )
+				title = f'ARIMA{(arima_p, arima_d, arima_q)} Forecast'
+				figure = create_forecast_figure( series, forecast, series_col, title )
+				render_mathy_plotly_chart( figure, 'timeseries_arima_forecast_chart',
+					'mathy_arima_forecast', title, 560 )
 			else:
 				st.info( 'Run ARIMA to view the forecast plot.' )
 		
@@ -18613,19 +18676,11 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Observed vs Forecast' )
 			
 			if len( forecast ) > 0:
-				plt.close( 'all' )
-				fig, ax = plt.subplots( )
-				observed_index = np.arange( len( series ) )
-				forecast_index = np.arange( len( series ), len( series ) + len( forecast ) )
-				ax.plot( observed_index, series, label='Observed' )
-				ax.plot( forecast_index, forecast, label='Forecast', linestyle='--' )
-				ax.set_xlabel( 'Period' )
-				ax.set_ylabel( series_col )
-				ax.set_title( f'SARIMA{(sarima_p, sarima_d, sarima_q)}'
-				              f'{(sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period)} Forecast' )
-				ax.legend( )
-				st.pyplot( fig )
-				plt.close( fig )
+				title = ( f'SARIMA{(sarima_p, sarima_d, sarima_q)}'
+					f'{(sarima_seasonal_p, sarima_seasonal_d, sarima_seasonal_q, current_seasonal_period)} Forecast' )
+				figure = create_forecast_figure( series, forecast, series_col, title )
+				render_mathy_plotly_chart( figure, 'timeseries_sarima_forecast_chart',
+					'mathy_sarima_forecast', title, 560 )
 			else:
 				st.info( 'Run SARIMA to view the forecast plot.' )
 		
@@ -18717,7 +18772,6 @@ elif mode == 'Time-Series Models':
 					
 					start_time = time.time( )
 					split_pairs = splitter.get_splits( series )
-					figure = splitter.visualize( series )
 					elapsed_seconds = time.time( ) - start_time
 					
 					if not split_pairs:
@@ -18746,6 +18800,7 @@ elif mode == 'Time-Series Models':
 								'Value': float( series[ index ] ), 'Partition': 'Test' } )
 					
 					df_split_results = pd.DataFrame( result_rows )
+					figure = create_split_figure( df_split_results )
 					df_split_summary = pd.DataFrame( summary_rows )
 					df_processing = pd.DataFrame( [ { 'Property': 'Configured Splits',
 						'Value': splitter.get_n_splits( series ) },
@@ -18830,9 +18885,634 @@ elif mode == 'Time-Series Models':
 			st.markdown( '##### Split Visualization' )
 			
 			if split_figure is not None:
-				st.pyplot( split_figure )
+				render_mathy_plotly_chart( split_figure, 'timeseries_splitter_chart',
+					'mathy_timeseries_splits', 'Time-Series Validation Windows', 600 )
 			else:
 				st.info( 'Generate time-series splits to view the validation windows.' )
+
+# ============================================
+# DATA OVERVIEW MODE
+# ============================================
+elif mode == 'Data Overview':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Data Overview', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		column_groups = get_visualization_columns( df_dataset )
+		preview_c1, preview_c2 = st.columns( 2, border=True )
+		with preview_c1:
+			preview_rows = st.slider( 'Preview Rows', min_value=5,
+				max_value=max( 5, min( 100, len( df_dataset ) ) ),
+				value=min( 20, max( 5, len( df_dataset ) ) ), step=5,
+				key='visualization_overview_rows' )
+		with preview_c2:
+			preview_columns = st.multiselect( 'Preview Columns', df_dataset.columns.tolist( ),
+				default=df_dataset.columns.tolist( ), key='visualization_overview_columns' )
+
+		if preview_columns:
+			render_table( df_dataset.loc[ :, preview_columns ].head( preview_rows ) )
+		else:
+			st.info( 'Select one or more columns to preview.' )
+
+		missing_cells = int( df_dataset.isna( ).sum( ).sum( ) )
+		duplicate_rows = int( df_dataset.duplicated( ).sum( ) )
+		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
+		m1.metric( 'Rows', f'{len( df_dataset ):,}' )
+		m2.metric( 'Columns', f'{len( df_dataset.columns ):,}' )
+		m3.metric( 'Numeric', f'{len( column_groups[ "numeric" ] ):,}' )
+		m4.metric( 'Categorical', f'{len( column_groups[ "categorical" ] ):,}' )
+		m5.metric( 'Missing Cells', f'{missing_cells:,}' )
+
+		blue_divider( )
+		st.markdown( '##### Schema' )
+		schema_rows: List[ Dict[ str, Any ] ] = [ ]
+		for column in df_dataset.columns:
+			non_null = int( df_dataset[ column ].notna( ).sum( ) )
+			missing = int( df_dataset[ column ].isna( ).sum( ) )
+			schema_rows.append( { 'Column': column, 'Type': str( df_dataset[ column ].dtype ),
+				'Non-Null': non_null, 'Missing': missing,
+				'Missing %': (missing / len( df_dataset ) * 100.0),
+				'Unique': int( df_dataset[ column ].nunique( dropna=True ) ) } )
+
+		df_schema = pd.DataFrame( schema_rows )
+		schema_sort = st.selectbox( 'Sort Schema By',
+			[ 'Original Order', 'Data Type', 'Missing Percentage', 'Cardinality' ],
+			key='visualization_overview_schema_sort' )
+		if schema_sort == 'Data Type':
+			df_schema = df_schema.sort_values( [ 'Type', 'Column' ], ignore_index=True )
+		elif schema_sort == 'Missing Percentage':
+			df_schema = df_schema.sort_values( 'Missing %', ascending=False, ignore_index=True )
+		elif schema_sort == 'Cardinality':
+			df_schema = df_schema.sort_values( 'Unique', ascending=False, ignore_index=True )
+		st.data_editor( df_schema, use_container_width=True, hide_index=True, disabled=True,
+			key='visualization_overview_schema_table' )
+
+		blue_divider( )
+		chart_c1, chart_c2 = st.columns( 2, border=True )
+		with chart_c1:
+			type_counts = df_schema[ 'Type' ].value_counts( ).rename_axis( 'Type' ).reset_index(
+				name='Columns' )
+			figure = px.bar( type_counts, x='Type', y='Columns', color='Type', text_auto=True )
+			render_mathy_plotly_chart( figure, 'visualization_overview_types_chart',
+				'mathy_column_types', 'Column Type Distribution', 450 )
+
+		with chart_c2:
+			df_cardinality = df_schema.nlargest( min( 15, len( df_schema ) ), 'Unique' ).sort_values(
+				'Unique' )
+			figure = px.bar( df_cardinality, x='Unique', y='Column', orientation='h',
+				color='Unique', color_continuous_scale='Blues' )
+			render_mathy_plotly_chart( figure, 'visualization_overview_cardinality_chart',
+				'mathy_cardinality', 'Top Columns by Cardinality', 450 )
+
+		if missing_cells:
+			df_missing = df_schema[ df_schema[ 'Missing' ] > 0 ].sort_values( 'Missing %' )
+			figure = px.bar( df_missing, x='Missing %', y='Column', orientation='h',
+				color='Missing %', color_continuous_scale='Reds' )
+			render_mathy_plotly_chart( figure, 'visualization_overview_missing_chart',
+				'mathy_missing_overview', 'Missing Values by Column', 480 )
+
+		st.caption( f'Duplicate rows: {duplicate_rows:,}.' )
+
+# ============================================
+# NUMERIC DISTRIBUTIONS MODE
+# ============================================
+elif mode == 'Numeric Distributions':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Numeric Distributions', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		numeric_columns = get_visualization_columns( df_dataset )[ 'numeric' ]
+		if not numeric_columns:
+			st.info( 'No numeric columns are available.' )
+			st.stop( )
+
+		c1, c2, c3, c4 = st.columns( 4, border=True )
+		with c1:
+			selected_columns = st.multiselect( 'Numeric Variables', numeric_columns,
+				default=numeric_columns[ :min( 4, len( numeric_columns ) ) ],
+				key='visualization_numeric_columns' )
+		with c2:
+			bins = st.slider( 'Bins', 10, 100, 30, 5, key='visualization_numeric_bins' )
+		with c3:
+			display_mode = st.radio( 'Display', [ 'Frequency', 'Density' ], horizontal=True,
+				key='visualization_numeric_display' )
+		with c4:
+			shape_mode = st.radio( 'Shape', [ 'Box', 'Violin' ], horizontal=True,
+				key='visualization_numeric_shape' )
+
+		show_kde = st.checkbox( 'Show KDE Overlay', value=True,
+			key='visualization_numeric_kde' )
+		if not selected_columns:
+			st.info( 'Select one or more numeric variables.' )
+
+		for index, column in enumerate( selected_columns ):
+			series = pd.to_numeric( df_dataset[ column ], errors='coerce' ).replace(
+				[ np.inf, -np.inf ], np.nan ).dropna( )
+			if series.empty:
+				st.warning( f'{column}: no plottable numeric values.' )
+				continue
+
+			blue_divider( )
+			st.markdown( f'##### {column}' )
+			plot_c1, plot_c2 = st.columns( 2, border=True )
+			with plot_c1:
+				histnorm = 'probability density' if display_mode == 'Density' else None
+				figure = go.Figure( )
+				figure.add_trace( go.Histogram( x=series.tolist( ), nbinsx=bins,
+					histnorm=histnorm, name=column, marker_color='#38BDF8', opacity=0.82 ) )
+				if show_kde and len( series ) > 1 and float( series.std( ddof=1 ) ) > 0:
+					x_values = np.linspace( float( series.min( ) ), float( series.max( ) ), 250 )
+					kde_values = stats.gaussian_kde( series.to_numpy( ) )( x_values )
+					if display_mode == 'Frequency':
+						bin_width = (float( series.max( ) ) - float( series.min( ) )) / bins
+						kde_values = kde_values * len( series ) * bin_width
+					figure.add_trace( go.Scatter( x=x_values, y=kde_values, mode='lines',
+						name='KDE', line={ 'color': '#F472B6', 'width': 3 } ) )
+				figure.add_vline( x=float( series.mean( ) ), line_dash='dash',
+					line_color='#F59E0B', annotation_text='Mean' )
+				figure.add_vline( x=float( series.median( ) ), line_dash='dot',
+					line_color='#2DD4BF', annotation_text='Median' )
+				figure.update_xaxes( title_text=column )
+				figure.update_yaxes( title_text=display_mode )
+				render_mathy_plotly_chart( figure, f'visualization_numeric_hist_{index}',
+					f'mathy_distribution_{index}', f'Distribution — {column}', 470 )
+
+			with plot_c2:
+				if shape_mode == 'Box':
+					figure = px.box( x=series, points='outliers', labels={ 'x': column } )
+				else:
+					figure = px.violin( x=series, box=True, points='outliers',
+						labels={ 'x': column } )
+				render_mathy_plotly_chart( figure, f'visualization_numeric_shape_{index}',
+					f'mathy_shape_{index}', f'{shape_mode} — {column}', 470 )
+
+			m1, m2, m3, m4, m5, m6 = st.columns( 6, border=True )
+			m1.metric( 'Count', f'{len( series ):,}' )
+			m2.metric( 'Mean', f'{float( series.mean( ) ):,.2f}' )
+			m3.metric( 'Median', f'{float( series.median( ) ):,.2f}' )
+			m4.metric( 'Std', f'{float( series.std( ddof=1 ) ):,.2f}' if len( series ) > 1 else '0.00' )
+			m5.metric( 'Skew', f'{float( series.skew( ) ):,.3f}' if len( series ) > 2 else 'n/a' )
+			m6.metric( 'Kurtosis', f'{float( series.kurt( ) ):,.3f}' if len( series ) > 3 else 'n/a' )
+
+# ============================================
+# CORRELATION ANALYSIS MODE
+# ============================================
+elif mode == 'Correlation Analysis':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Correlation Analysis', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		numeric_columns = get_visualization_columns( df_dataset )[ 'numeric' ]
+		if len( numeric_columns ) < 2:
+			st.info( 'At least two numeric columns are required.' )
+			st.stop( )
+
+		c1, c2, c3 = st.columns( 3, border=True )
+		with c1:
+			selected_columns = st.multiselect( 'Numeric Variables', numeric_columns,
+				default=numeric_columns[ :min( 8, len( numeric_columns ) ) ],
+				key='visualization_correlation_columns' )
+		with c2:
+			method = st.radio( 'Method', [ 'Pearson', 'Spearman' ], horizontal=True,
+				key='visualization_correlation_method' )
+		with c3:
+			threshold = st.slider( 'Pair Threshold', 0.0, 1.0, 0.0, 0.05,
+				key='visualization_correlation_threshold' )
+
+		show_annotations = st.checkbox( 'Show Heatmap Values', value=True,
+			key='visualization_correlation_annotations' )
+		if len( selected_columns ) < 2:
+			st.info( 'Select at least two numeric variables.' )
+			st.stop( )
+
+		df_numeric = df_dataset[ selected_columns ].apply( pd.to_numeric, errors='coerce' )
+		df_correlation = df_numeric.corr( method=method.lower( ) )
+		df_pairs = create_correlation_pairs( df_correlation )
+		df_filtered_pairs = df_pairs[ df_pairs[ 'Absolute Correlation' ] >= threshold ].copy( )
+
+		chart_c1, chart_c2 = st.columns( 2, border=True )
+		with chart_c1:
+			st.data_editor( df_correlation, use_container_width=True, disabled=True,
+				key='visualization_correlation_matrix_table' )
+		with chart_c2:
+			text_values = np.round( df_correlation.values, 2 ) if show_annotations else None
+			figure = go.Figure( data=go.Heatmap( z=df_correlation.values,
+				x=df_correlation.columns, y=df_correlation.index, zmin=-1, zmax=1,
+				colorscale='RdBu', reversescale=True, text=text_values,
+				texttemplate='%{text}' if show_annotations else None,
+				hovertemplate='%{y} vs %{x}<br>Correlation: %{z:.4f}<extra></extra>' ) )
+			render_mathy_plotly_chart( figure, 'visualization_correlation_heatmap_chart',
+				'mathy_correlation_heatmap', f'{method} Correlation Heatmap', 580 )
+
+		blue_divider( )
+		st.markdown( '##### Ranked Relationships' )
+		st.data_editor( df_filtered_pairs, use_container_width=True, hide_index=True,
+			disabled=True, key='visualization_correlation_pairs_table' )
+		if not df_filtered_pairs.empty:
+			df_plot = df_filtered_pairs.head( 20 ).copy( )
+			df_plot[ 'Pair' ] = df_plot[ 'Variable 1' ] + ' ↔ ' + df_plot[ 'Variable 2' ]
+			figure = px.bar( df_plot.sort_values( 'Absolute Correlation' ),
+				x='Absolute Correlation', y='Pair', orientation='h', color='Correlation',
+				color_continuous_scale='RdBu', range_color=[ -1, 1 ] )
+			render_mathy_plotly_chart( figure, 'visualization_correlation_pairs_chart',
+				'mathy_ranked_correlations', 'Strongest Correlation Pairs', 550 )
+
+# ============================================
+# SCATTER ANALYSIS MODE
+# ============================================
+elif mode == 'Scatter Analysis':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Scatter Analysis', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		groups = get_visualization_columns( df_dataset )
+		numeric_columns = groups[ 'numeric' ]
+		if len( numeric_columns ) < 2:
+			st.info( 'At least two numeric columns are required.' )
+			st.stop( )
+
+		c1, c2, c3, c4 = st.columns( 4, border=True )
+		with c1:
+			x_column = st.selectbox( 'X Variable', numeric_columns,
+				key='visualization_scatter_x' )
+		with c2:
+			y_options = [ column for column in numeric_columns if column != x_column ]
+			y_column = st.selectbox( 'Y Variable', y_options,
+				key='visualization_scatter_y' )
+		with c3:
+			color_column = st.selectbox( 'Color Group', [ '<None>' ] + groups[ 'categorical' ],
+				key='visualization_scatter_color' )
+		with c4:
+			size_column = st.selectbox( 'Size Variable', [ '<None>' ] + numeric_columns,
+				key='visualization_scatter_size' )
+
+		c5, c6, c7 = st.columns( 3, border=True )
+		with c5:
+			show_trend = st.checkbox( 'Show Linear Trend', value=True,
+				key='visualization_scatter_trend' )
+		with c6:
+			opacity = st.slider( 'Point Opacity', 0.20, 1.0, 0.75, 0.05,
+				key='visualization_scatter_opacity' )
+		with c7:
+			marker_size = st.slider( 'Marker Size', 4, 24, 9, 1,
+				key='visualization_scatter_marker_size' )
+
+		plot_columns = [ x_column, y_column ]
+		if color_column != '<None>':
+			plot_columns.append( color_column )
+		if size_column != '<None>' and size_column not in plot_columns:
+			plot_columns.append( size_column )
+		df_plot = df_dataset[ plot_columns ].copy( )
+		df_plot[ x_column ] = pd.to_numeric( df_plot[ x_column ], errors='coerce' )
+		df_plot[ y_column ] = pd.to_numeric( df_plot[ y_column ], errors='coerce' )
+		if size_column != '<None>':
+			df_plot[ size_column ] = pd.to_numeric( df_plot[ size_column ], errors='coerce' ).abs( )
+		df_plot = df_plot.dropna( subset=[ x_column, y_column ] )
+		if df_plot.empty:
+			st.info( 'No paired observations are available.' )
+			st.stop( )
+
+		figure = px.scatter( df_plot, x=x_column, y=y_column,
+			color=None if color_column == '<None>' else color_column,
+			size=None if size_column == '<None>' else size_column,
+			hover_data=df_plot.columns.tolist( ), opacity=opacity )
+		figure.update_traces( marker={ 'size': marker_size } if size_column == '<None>' else { } )
+		if show_trend and len( df_plot ) >= 2 and df_plot[ x_column ].nunique( ) > 1:
+			coefficient, intercept = np.polyfit( df_plot[ x_column ], df_plot[ y_column ], 1 )
+			x_line = np.linspace( float( df_plot[ x_column ].min( ) ),
+				float( df_plot[ x_column ].max( ) ), 200 )
+			figure.add_trace( go.Scatter( x=x_line, y=(coefficient * x_line) + intercept,
+				mode='lines', name='Linear Trend', line={ 'color': '#F59E0B', 'width': 3,
+					'dash': 'dash' } ) )
+
+		render_mathy_plotly_chart( figure, 'visualization_scatter_chart',
+			'mathy_scatter_analysis', f'{y_column} vs {x_column}', 620 )
+		pearson_r, pearson_p = stats.pearsonr( df_plot[ x_column ], df_plot[ y_column ] )
+		spearman_r, spearman_p = stats.spearmanr( df_plot[ x_column ], df_plot[ y_column ] )
+		covariance = float( df_plot[ [ x_column, y_column ] ].cov( ).iloc[ 0, 1 ] )
+		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
+		m1.metric( 'Pairs', f'{len( df_plot ):,}' )
+		m2.metric( 'Pearson R', f'{pearson_r:,.3f}' )
+		m3.metric( 'Pearson P', f'{pearson_p:,.3g}' )
+		m4.metric( 'Spearman R', f'{spearman_r:,.3f}' )
+		m5.metric( 'Covariance', f'{covariance:,.3f}' )
+		st.caption( f'Spearman p-value: {spearman_p:.3g}.' )
+
+# ============================================
+# CATEGORICAL DISTRIBUTIONS MODE
+# ============================================
+elif mode == 'Categorical Distributions':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Categorical Distributions', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		categorical_columns = get_visualization_columns( df_dataset )[ 'categorical' ]
+		if not categorical_columns:
+			st.info( 'No categorical columns are available.' )
+			st.stop( )
+
+		c1, c2, c3, c4 = st.columns( 4, border=True )
+		with c1:
+			column = st.selectbox( 'Categorical Variable', categorical_columns,
+				key='visualization_categorical_column' )
+		with c2:
+			category_limit = st.slider( 'Maximum Categories', 2, 50, 15, 1,
+				key='visualization_categorical_limit' )
+		with c3:
+			display_mode = st.radio( 'Display', [ 'Count', 'Percentage' ], horizontal=True,
+				key='visualization_categorical_display' )
+		with c4:
+			include_missing = st.checkbox( 'Include Missing', value=True,
+				key='visualization_categorical_missing' )
+
+		series = df_dataset[ column ].copy( )
+		if include_missing:
+			series = series.astype( object ).where( series.notna( ), 'Missing' )
+		else:
+			series = series.dropna( )
+		series = series.astype( str )
+		counts = series.value_counts( dropna=False )
+		if len( counts ) > category_limit:
+			top_counts = counts.iloc[ :category_limit - 1 ].copy( )
+			top_counts.loc[ 'Other' ] = int( counts.iloc[ category_limit - 1: ].sum( ) )
+			counts = top_counts
+		df_frequency = counts.rename_axis( 'Category' ).reset_index( name='Count' )
+		df_frequency[ 'Percentage' ] = df_frequency[ 'Count' ] / max( 1, int( counts.sum( ) ) ) * 100.0
+		value_column = 'Count' if display_mode == 'Count' else 'Percentage'
+		df_plot = df_frequency.sort_values( value_column )
+		figure = px.bar( df_plot, x=value_column, y='Category', orientation='h',
+			color=value_column, color_continuous_scale='Blues', text=value_column )
+		figure.update_traces( texttemplate='%{text:.2f}' if display_mode == 'Percentage' else '%{text}' )
+		render_mathy_plotly_chart( figure, 'visualization_categorical_chart',
+			'mathy_categorical_distribution', f'Distribution — {column}', 580 )
+		st.data_editor( df_frequency, use_container_width=True, hide_index=True, disabled=True,
+			key='visualization_categorical_table' )
+		most_common = df_frequency.iloc[ 0 ] if not df_frequency.empty else None
+		m1, m2, m3, m4 = st.columns( 4, border=True )
+		m1.metric( 'Observations', f'{len( series ):,}' )
+		m2.metric( 'Unique', f'{df_dataset[ column ].nunique( dropna=True ):,}' )
+		m3.metric( 'Most Common', str( most_common[ 'Category' ] ) if most_common is not None else 'n/a' )
+		m4.metric( 'Leading Share', f'{float( most_common[ "Percentage" ] ):,.2f}%'
+			if most_common is not None else 'n/a' )
+
+# ============================================
+# CATEGORY COMPARISONS MODE
+# ============================================
+elif mode == 'Category Comparisons':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Category Comparisons', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		groups = get_visualization_columns( df_dataset )
+		if not groups[ 'numeric' ] or not groups[ 'categorical' ]:
+			st.info( 'At least one numeric and one categorical column are required.' )
+			st.stop( )
+
+		c1, c2, c3, c4 = st.columns( 4, border=True )
+		with c1:
+			measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
+				key='visualization_comparison_measure' )
+		with c2:
+			category = st.selectbox( 'Grouping Variable', groups[ 'categorical' ],
+				key='visualization_comparison_category' )
+		with c3:
+			chart_type = st.radio( 'Chart', [ 'Box', 'Violin' ], horizontal=True,
+				key='visualization_comparison_chart_type' )
+		with c4:
+			category_limit = st.slider( 'Maximum Categories', 2, 30, 12, 1,
+				key='visualization_comparison_limit' )
+
+		show_points = st.checkbox( 'Show Individual Observations', value=True,
+			key='visualization_comparison_points' )
+		df_plot = df_dataset[ [ category, measure ] ].copy( )
+		df_plot[ measure ] = pd.to_numeric( df_plot[ measure ], errors='coerce' )
+		df_plot = df_plot.dropna( subset=[ category, measure ] )
+		top_categories = df_plot[ category ].value_counts( ).head( category_limit ).index
+		df_plot = df_plot[ df_plot[ category ].isin( top_categories ) ].copy( )
+		if df_plot.empty:
+			st.info( 'No valid grouped observations are available.' )
+			st.stop( )
+
+		points = 'all' if show_points else False
+		if chart_type == 'Box':
+			figure = px.box( df_plot, x=category, y=measure, color=category, points=points )
+		else:
+			figure = px.violin( df_plot, x=category, y=measure, color=category,
+				box=True, points=points )
+		figure.update_xaxes( categoryorder='total descending' )
+		render_mathy_plotly_chart( figure, 'visualization_comparison_chart',
+			'mathy_category_comparison', f'{measure} by {category}', 620 )
+
+		df_summary = df_plot.groupby( category, observed=True )[ measure ].agg(
+			[ 'count', 'mean', 'median', 'std', 'min', 'max' ] ).reset_index( )
+		df_summary.columns = [ category, 'Count', 'Mean', 'Median', 'Std', 'Min', 'Max' ]
+		df_summary = df_summary.sort_values( 'Mean', ascending=False, ignore_index=True )
+		st.data_editor( df_summary, use_container_width=True, hide_index=True, disabled=True,
+			key='visualization_comparison_table' )
+		m1, m2, m3, m4 = st.columns( 4, border=True )
+		m1.metric( 'Groups', f'{len( df_summary ):,}' )
+		m2.metric( 'Observations', f'{len( df_plot ):,}' )
+		m3.metric( 'Highest Mean', str( df_summary.iloc[ 0 ][ category ] ) )
+		m4.metric( 'Lowest Mean', str( df_summary.iloc[ -1 ][ category ] ) )
+
+# ============================================
+# TIME-SERIES VISUALIZATION MODE
+# ============================================
+elif mode == 'Time-Series Visualization':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Time-Series Visualization', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		groups = get_visualization_columns( df_dataset )
+		if not groups[ 'datetime' ] or not groups[ 'numeric' ]:
+			st.info( 'At least one datetime and one numeric column are required.' )
+			st.stop( )
+
+		c1, c2, c3, c4 = st.columns( 4, border=True )
+		with c1:
+			date_column = st.selectbox( 'Datetime Variable', groups[ 'datetime' ],
+				key='visualization_timeseries_date' )
+		with c2:
+			value_column = st.selectbox( 'Numeric Variable', groups[ 'numeric' ],
+				key='visualization_timeseries_value' )
+		with c3:
+			frequency = st.selectbox( 'Frequency',
+				[ 'Original', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annual' ],
+				key='visualization_timeseries_frequency' )
+		with c4:
+			aggregation = st.selectbox( 'Aggregation',
+				[ 'Mean', 'Sum', 'Median', 'Minimum', 'Maximum' ],
+				key='visualization_timeseries_aggregation' )
+
+		rolling_c1, rolling_c2 = st.columns( 2, border=True )
+		with rolling_c1:
+			show_rolling = st.checkbox( 'Show Rolling Average', value=True,
+				key='visualization_timeseries_rolling' )
+		with rolling_c2:
+			rolling_window = st.slider( 'Rolling Window', 2, 30, 5, 1,
+				key='visualization_timeseries_window', disabled=not show_rolling )
+
+		df_series = df_dataset[ [ date_column, value_column ] ].copy( )
+		df_series[ date_column ] = pd.to_datetime( df_series[ date_column ], errors='coerce' )
+		df_series[ value_column ] = pd.to_numeric( df_series[ value_column ], errors='coerce' )
+		df_series = df_series.dropna( ).sort_values( date_column )
+		if df_series.empty:
+			st.info( 'No valid time-series observations are available.' )
+			st.stop( )
+
+		frequency_map = { 'Daily': 'D', 'Weekly': 'W', 'Monthly': 'ME',
+			'Quarterly': 'QE', 'Annual': 'YE' }
+		aggregation_map = { 'Mean': 'mean', 'Sum': 'sum', 'Median': 'median',
+			'Minimum': 'min', 'Maximum': 'max' }
+		if frequency != 'Original':
+			df_series = df_series.set_index( date_column ).resample(
+				frequency_map[ frequency ] )[ value_column ].agg(
+				aggregation_map[ aggregation ] ).dropna( ).reset_index( )
+
+		figure = go.Figure( )
+		figure.add_trace( go.Scatter( x=df_series[ date_column ], y=df_series[ value_column ],
+			mode='lines+markers', name=value_column,
+			line={ 'color': '#38BDF8', 'width': 2.5 }, marker={ 'size': 5 } ) )
+		if show_rolling:
+			df_series[ 'Rolling Average' ] = df_series[ value_column ].rolling(
+				rolling_window, min_periods=1 ).mean( )
+			figure.add_trace( go.Scatter( x=df_series[ date_column ],
+				y=df_series[ 'Rolling Average' ], mode='lines', name='Rolling Average',
+				line={ 'color': '#F472B6', 'width': 3 } ) )
+		figure.update_xaxes( rangeslider={ 'visible': True }, rangeselector={ 'buttons': [
+			{ 'count': 1, 'label': '1m', 'step': 'month', 'stepmode': 'backward' },
+			{ 'count': 6, 'label': '6m', 'step': 'month', 'stepmode': 'backward' },
+			{ 'count': 1, 'label': '1y', 'step': 'year', 'stepmode': 'backward' },
+			{ 'step': 'all', 'label': 'All' } ] } )
+		render_mathy_plotly_chart( figure, 'visualization_timeseries_chart',
+			'mathy_time_series', f'{value_column} over Time', 650 )
+
+		first_value = float( df_series[ value_column ].iloc[ 0 ] )
+		last_value = float( df_series[ value_column ].iloc[ -1 ] )
+		net_change = last_value - first_value
+		percent_change = net_change / first_value * 100.0 if first_value != 0 else np.nan
+		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
+		m1.metric( 'Observations', f'{len( df_series ):,}' )
+		m2.metric( 'Minimum', f'{float( df_series[ value_column ].min( ) ):,.2f}' )
+		m3.metric( 'Maximum', f'{float( df_series[ value_column ].max( ) ):,.2f}' )
+		m4.metric( 'Net Change', f'{net_change:,.2f}' )
+		m5.metric( 'Percent Change', f'{percent_change:,.2f}%'
+			if np.isfinite( percent_change ) else 'n/a' )
+		st.data_editor( df_series, use_container_width=True, hide_index=True, disabled=True,
+			key='visualization_timeseries_table' )
+
+# ============================================
+# MISSING DATA VISUALIZATION MODE
+# ============================================
+elif mode == 'Missing Data Visualization':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Missing Data Visualization', divider='gray' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		missing_columns = get_visualization_columns( df_dataset )[ 'missing' ]
+		if not missing_columns:
+			st.info( 'The dataset does not contain missing values.' )
+			st.stop( )
+
+		c1, c2, c3 = st.columns( 3, border=True )
+		with c1:
+			selected_columns = st.multiselect( 'Columns', df_dataset.columns.tolist( ),
+				default=missing_columns, key='visualization_missing_columns' )
+		with c2:
+			display_mode = st.radio( 'Display', [ 'Count', 'Percentage' ], horizontal=True,
+				key='visualization_missing_display' )
+		with c3:
+			matrix_rows = st.slider( 'Matrix Rows', 10,
+				max( 10, min( 500, len( df_dataset ) ) ),
+				min( 100, max( 10, len( df_dataset ) ) ), 10,
+				key='visualization_missing_rows' )
+
+		if not selected_columns:
+			st.info( 'Select one or more columns.' )
+			st.stop( )
+
+		df_selected = df_dataset[ selected_columns ].copy( )
+		missing_counts = df_selected.isna( ).sum( )
+		df_missing = pd.DataFrame( { 'Column': selected_columns,
+			'Missing': [ int( missing_counts[ column ] ) for column in selected_columns ] } )
+		df_missing[ 'Missing %' ] = df_missing[ 'Missing' ] / len( df_selected ) * 100.0
+		df_missing = df_missing.sort_values( 'Missing %', ascending=False, ignore_index=True )
+		value_column = 'Missing' if display_mode == 'Count' else 'Missing %'
+		figure = px.bar( df_missing.sort_values( value_column ), x=value_column, y='Column',
+			orientation='h', color=value_column, color_continuous_scale='Reds', text=value_column )
+		figure.update_traces( texttemplate='%{text:.2f}' if display_mode == 'Percentage' else '%{text}' )
+		render_mathy_plotly_chart( figure, 'visualization_missing_bar_chart',
+			'mathy_missing_values', 'Missing Values by Column', 520 )
+		st.data_editor( df_missing, use_container_width=True, hide_index=True, disabled=True,
+			key='visualization_missing_table' )
+
+		blue_divider( )
+		st.markdown( '##### Missingness Matrix' )
+		if len( df_selected ) > matrix_rows:
+			positions = np.linspace( 0, len( df_selected ) - 1, matrix_rows, dtype=int )
+			df_matrix = df_selected.iloc[ positions ]
+		else:
+			df_matrix = df_selected
+		matrix_values = df_matrix.notna( ).astype( int ).to_numpy( )
+		figure = go.Figure( data=go.Heatmap( z=matrix_values,
+			x=df_matrix.columns.tolist( ), y=df_matrix.index.astype( str ).tolist( ),
+			zmin=0, zmax=1, colorscale=[ [ 0.0, '#EF4444' ], [ 0.499, '#EF4444' ],
+				[ 0.5, '#0F172A' ], [ 1.0, '#0F172A' ] ], showscale=False,
+			hovertemplate='Row: %{y}<br>Column: %{x}<br>Present: %{z}<extra></extra>' ) )
+		render_mathy_plotly_chart( figure, 'visualization_missing_matrix_chart',
+			'mathy_missingness_matrix', 'Present and Missing Cells', 600 )
+
+		total_cells = int( df_dataset.shape[ 0 ] * df_dataset.shape[ 1 ] )
+		missing_cells = int( df_dataset.isna( ).sum( ).sum( ) )
+		complete_rows = int( df_dataset.notna( ).all( axis=1 ).sum( ) )
+		incomplete_rows = len( df_dataset ) - complete_rows
+		completeness = (total_cells - missing_cells) / max( 1, total_cells ) * 100.0
+		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
+		m1.metric( 'Total Cells', f'{total_cells:,}' )
+		m2.metric( 'Missing Cells', f'{missing_cells:,}' )
+		m3.metric( 'Complete Rows', f'{complete_rows:,}' )
+		m4.metric( 'Incomplete Rows', f'{incomplete_rows:,}' )
+		m5.metric( 'Completeness', f'{completeness:,.2f}%' )
 
 # ============================================
 # DATA MANAGEMENT MODE
@@ -19046,7 +19726,7 @@ elif mode == 'Data Management':
 			st.header( '' )
 			tables = list_tables( )
 			if tables:
-				explore_c1, explore_c2, explore_c3 = st.columns( 3, border=True )			
+				explore_c1, explore_c2, explore_c3 = st.columns( 3, border=True )
 				with explore_c1:
 					table = st.selectbox( 'Table', tables, key='explore_table' )
 				
