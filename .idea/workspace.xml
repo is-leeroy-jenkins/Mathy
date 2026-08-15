@@ -40,6 +40,29 @@
         </option>
       </LargeFiles>
     </option>
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="foundry-snapshot" />
+                    <option name="lastUsedInstant" value="1786829334" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="foundry-deploy" />
+                    <option name="lastUsedInstant" value="1786829333" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
   </component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
