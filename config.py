@@ -200,13 +200,12 @@ LLM_PATH = ''
 DEFAULT_CTX = 4096
 CORES = multiprocessing.cpu_count( )
 MODES = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
-	'Classification Models', 'Regression Models', 'Clustering Models', 'Clustering Models',
+	'Classification Models', 'Regression Models', 'Clustering Models',
 	'Time-Series Models', 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
 	'Data Aggregation', 'SQL Console' ]
 
 ML_MODE = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
-	'Classification Models', 'Regression Models', 'Clustering Models', 'Clustering Models',
-	'Time-Series Models' ]
+	'Classification Models', 'Regression Models', 'Clustering Models',  'Time-Series Models' ]
 
 DB_MODE = [ 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
 	'Data Aggregation', 'SQL Console' ]
