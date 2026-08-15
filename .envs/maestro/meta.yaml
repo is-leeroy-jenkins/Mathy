@@ -1,0 +1,16 @@
+package:
+  name: '{{ PACKAGE_NAME }}'
+  version: '{{ PACKAGE_VERSION }}'
+requirements:
+  build: []
+  run:
+    - ipykernel
+    - pip
+    - foundry-transforms-lib-python
+    - pandas
+  run_constrained: []
+source:
+  path: ../src
+build: null
+test: null
+about: null
