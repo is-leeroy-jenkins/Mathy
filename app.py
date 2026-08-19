@@ -269,6 +269,15 @@ if 'data_upload_sheet_names' not in st.session_state:
 if 'data_upload_filename' not in st.session_state:
 	st.session_state[ 'data_upload_filename' ] = None
 
+if 'active_source_kind' not in st.session_state:
+	st.session_state[ 'active_source_kind' ] = ''
+
+if 'active_database_table' not in st.session_state:
+	st.session_state[ 'active_database_table' ] = ''
+
+if 'active_declared_schema' not in st.session_state:
+	st.session_state[ 'active_declared_schema' ] = { }
+
 # ============================================
 # Session State
 # ============================================
@@ -407,7 +416,9 @@ def synchronize_dataset_columns( df_dataset: pd.DataFrame ) -> tuple[ List[ str 
 		st.session_state[ 'df_analysis' ] = pd.DataFrame( )
 		return [ ], [ ]
 
-	profiles = profile_dataframe_schema( df_dataset )
+	declared_schema = st.session_state.get( 'active_declared_schema', { } ) if (
+		st.session_state.get( 'active_source_kind', '' ) == 'database') else { }
+	profiles = profile_dataframe_schema( df_dataset, declared_schema )
 	schema = { column: str( profile[ 'analytical_role' ] ) for column, profile in
 		profiles.items( ) }
 	numeric_columns = [ column for column, role in schema.items( ) if role == 'numeric' ]
@@ -1276,23 +1287,73 @@ def parse_datetime_series( series: pd.Series ) -> pd.Series:
 	except (TypeError, ValueError):
 		return pd.to_datetime( series.astype( 'string' ).str.strip( ), errors='coerce' )
 
-def profile_column( column_name: str, series: pd.Series,
-	override_role: str = '' ) -> Dict[ str, object ]:
-	"""Infer the storage type and analytical role of one dataframe column.
+def get_declared_type_family( declared_type: str ) -> str:
+	"""Return the physical type family for a declared SQLite column type.
 
 	Purpose:
-	    Combines native pandas type information, exact column-name tokens, conversion success,
-	    cardinality, leading-zero evidence, and value characteristics to distinguish measures,
-	    categories, ordered categories, identifiers, booleans, and datetimes. An explicit valid
-	    override takes precedence over automatic inference.
+	    Maps SQLite declared type names into stable numeric, datetime, boolean, text, or unknown
+	    families so database-backed datasets use authoritative schema metadata before analytical
+	    column-name semantics are applied.
+
+	Args:
+	    declared_type (str): SQLite declared type returned by ``PRAGMA table_info``.
+
+	Returns:
+	    str: Normalized physical type family used by the schema classifier.
+	"""
+	if not declared_type:
+		return 'unknown'
+
+	type_name = declared_type.strip( ).upper( )
+	if any( token in type_name for token in ( 'DATE', 'TIME', 'TIMESTAMP' ) ):
+		return 'datetime'
+	if 'BOOL' in type_name:
+		return 'boolean'
+	if any( token in type_name for token in (
+			'INT', 'REAL', 'FLOA', 'DOUB', 'NUMERIC', 'DECIMAL' ) ):
+		return 'numeric'
+	if any( token in type_name for token in (
+			'CHAR', 'CLOB', 'TEXT', 'VARCHAR', 'NVARCHAR' ) ):
+		return 'text'
+	return 'unknown'
+
+
+def create_declared_schema_map( schema_rows: List[ Tuple ] ) -> Dict[ str, str ]:
+	"""Create a declared-type mapping from SQLite schema metadata.
+
+	Purpose:
+	    Converts ``PRAGMA table_info`` rows into a column-to-declared-type mapping that can be
+	    passed to the dataframe schema profiler without coupling the profiler to database I/O.
+
+	Args:
+	    schema_rows (List[Tuple]): SQLite ``PRAGMA table_info`` rows.
+
+	Returns:
+	    Dict[str, str]: Declared SQLite type keyed by column name.
+	"""
+	if not schema_rows:
+		return { }
+	return { str( row[ 1 ] ): str( row[ 2 ] or '' ) for row in schema_rows }
+
+
+def profile_column( column_name: str, series: pd.Series, override_role: str = '',
+	declared_type: str = '' ) -> Dict[ str, object ]:
+	"""Infer the physical type and analytical role of one dataframe column.
+
+	Purpose:
+	    Uses an authoritative SQLite declared type when available, then applies exact column-name
+	    semantics to distinguish identifiers, categories, ordered variables, measures, booleans,
+	    and datetimes. Dataframe value inference remains the fallback for non-database sources.
+	    Explicit user overrides retain highest priority for the analytical role.
 
 	Args:
 	    column_name (str): Column name associated with the supplied series.
 	    series (pd.Series): Column values evaluated by the profiler.
 	    override_role (str): Optional user-selected analytical role.
+	    declared_type (str): Optional SQLite declared type for database-backed data.
 
 	Returns:
-	    Dict[str, object]: Detailed profile containing the inferred dtype, analytical role,
+	    Dict[str, object]: Detailed profile containing storage type, inferred dtype, analytical role,
 	        confidence, evidence, and cardinality statistics.
 	"""
 	throw_if( 'column_name', column_name )
@@ -1308,48 +1369,102 @@ def profile_column( column_name: str, series: pd.Series,
 	numeric_success = float( numeric_values[ populated_mask ].notna( ).mean( ) ) if (
 		populated_count > 0) else 0.0
 	integer_like = bool( numeric_values[ populated_mask ].dropna( ).mod( 1 ).eq( 0 ).all( ) ) if (
-		numeric_success > 0 and populated_count > 0) else False
+		numeric_values[ populated_mask ].notna( ).any( )) else False
 	leading_zero_ratio = float( text_values[ populated_mask ].str.match(
 		r'^[+-]?0\d+$', na=False ).mean( ) ) if populated_count > 0 else 0.0
 
-	date_tokens = { 'date', 'datetime', 'timestamp', 'time', 'effective', 'expiration',
-		'expiry' }
+	date_tokens = { 'date', 'datetime', 'timestamp', 'time', 'effective', 'expiration', 'expiry' }
 	identifier_tokens = { 'id', 'identifier', 'key', 'uuid', 'guid', 'index', 'sequence' }
-	number_identifier_tokens = { 'account', 'transaction', 'reference', 'document', 'invoice',
-		'order', 'record', 'control', 'serial', 'case', 'project' }
 	ordinal_tokens = { 'rank', 'grade', 'level', 'rating', 'priority', 'stage', 'tier', 'fy' }
-	measure_tokens = { 'amount', 'balance', 'total', 'value', 'cost', 'price', 'rate',
-		'percent', 'percentage', 'quantity', 'count', 'outlay', 'outlays', 'obligation',
-		'obligations', 'budget', 'estimate', 'mean', 'average', 'score', 'py', 'cy', 'by',
-		'oy' }
-	category_tokens = { 'category', 'categories', 'class', 'type', 'status', 'account',
-		'agency', 'program', 'symbol', 'split', 'authority', 'footnote', 'footnotes', 'code' }
+	category_tokens = { 'category', 'categories', 'class', 'type', 'status', 'agency', 'program',
+		'symbol', 'split', 'authority', 'footnote', 'footnotes', 'code' }
+	name_tokens = { 'name', 'title', 'description', 'label', 'caption' }
 	boolean_values = { 'yes', 'no', 'true', 'false', 'y', 'n', '0', '1' }
 	normalized_values = set( text_values[ populated_mask ].str.lower( ).unique( ).tolist( ) )
 	boolean_candidate = bool( normalized_values ) and normalized_values.issubset( boolean_values )
-	number_identifier_evidence = 'number' in tokens and bool( tokens & number_identifier_tokens )
-	date_name_evidence = bool( tokens & date_tokens ) or ('start' in tokens and 'date' in tokens) or (
-		'end' in tokens and 'date' in tokens)
+	identifier_evidence = bool( tokens & identifier_tokens )
+	ordinal_evidence = bool( tokens & ordinal_tokens ) or ({ 'fiscal', 'year' }.issubset( tokens )) or (
+		{ 'calendar', 'year' }.issubset( tokens ))
+	date_name_evidence = bool( tokens & date_tokens ) or ({ 'start', 'date' }.issubset( tokens )) or (
+		{ 'end', 'date' }.issubset( tokens ))
+	category_evidence = bool( tokens & category_tokens )
+	name_evidence = bool( tokens & name_tokens )
+
 	date_lexical_mask = text_values[ populated_mask ].str.contains(
 		r'[-/:T]|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b',
 		case=False, regex=True, na=False )
 	date_lexical_ratio = float( date_lexical_mask.mean( ) ) if populated_count > 0 else 0.0
 	datetime_values = parse_datetime_series( series ) if (
 		pd.api.types.is_datetime64_any_dtype( series ) or date_name_evidence or
-		date_lexical_ratio >= 0.80) else pd.Series( pd.NaT, index=series.index, dtype='datetime64[ns]' )
+		date_lexical_ratio >= 0.80) else pd.Series( pd.NaT, index=series.index,
+		dtype='datetime64[ns]' )
 	datetime_success = float( datetime_values[ populated_mask ].notna( ).mean( ) ) if (
 		populated_count > 0) else 0.0
 
+	declared_family = get_declared_type_family( declared_type )
+	storage_dtype = declared_type if declared_type else str( series.dtype )
 	analytical_role = 'categorical'
 	inferred_dtype = 'text'
 	confidence = 0.60
-	reason = 'Non-numeric values default to a categorical analytical role.'
+	reason = 'Text values default to a categorical analytical role.'
 
 	if override_role in valid_roles:
 		analytical_role = override_role
 		inferred_dtype = 'overridden'
 		confidence = 1.0
 		reason = f'User override selected the {override_role} analytical role.'
+	elif declared_family != 'unknown':
+		if declared_family == 'datetime':
+			analytical_role = 'datetime'
+			inferred_dtype = 'datetime'
+			confidence = 1.0
+			reason = f'SQLite declares the column as {declared_type}.'
+		elif declared_family == 'boolean':
+			analytical_role = 'categorical'
+			inferred_dtype = 'boolean'
+			confidence = 1.0
+			reason = f'SQLite declares the column as {declared_type}; booleans are categorical.'
+		elif declared_family == 'numeric':
+			inferred_dtype = 'integer' if 'INT' in declared_type.upper( ) else 'float'
+			if identifier_evidence:
+				analytical_role = 'identifier'
+				confidence = 0.99
+				reason = 'SQLite declares a numeric type and the column name identifies a key or ID.'
+			elif ordinal_evidence:
+				analytical_role = 'ordinal'
+				confidence = 0.99
+				reason = 'SQLite declares a numeric type and the column name indicates an ordered variable.'
+			elif category_evidence:
+				analytical_role = 'categorical'
+				confidence = 0.99
+				reason = 'SQLite declares a numeric type but the column name indicates a category or code.'
+			else:
+				analytical_role = 'numeric'
+				confidence = 1.0
+				reason = f'SQLite declares the column as numeric type {declared_type}.'
+		elif declared_family == 'text':
+			inferred_dtype = 'text'
+			if date_name_evidence:
+				analytical_role = 'datetime'
+				inferred_dtype = 'datetime'
+				confidence = 0.98
+				reason = 'SQLite declares text storage and the column name indicates a date or time.'
+			elif identifier_evidence:
+				analytical_role = 'identifier'
+				confidence = 0.98
+				reason = 'SQLite declares text storage and the column name identifies a key or ID.'
+			elif ordinal_evidence:
+				analytical_role = 'ordinal'
+				confidence = 0.98
+				reason = 'SQLite declares text storage and the column name indicates an ordered variable.'
+			elif category_evidence or name_evidence:
+				analytical_role = 'categorical'
+				confidence = 0.98
+				reason = 'SQLite declares text storage and the column name indicates categorical text.'
+			else:
+				analytical_role = 'categorical'
+				confidence = 0.95
+				reason = f'SQLite declares the column as text type {declared_type}.'
 	elif pd.api.types.is_datetime64_any_dtype( series ):
 		analytical_role = 'datetime'
 		inferred_dtype = 'datetime'
@@ -1360,64 +1475,55 @@ def profile_column( column_name: str, series: pd.Series,
 		inferred_dtype = 'boolean'
 		confidence = 0.98
 		reason = 'The values form a boolean or two-state category.'
-	elif datetime_success >= 0.95 and (date_name_evidence or date_lexical_ratio >= 0.80):
+	elif date_name_evidence and datetime_success > 0:
 		analytical_role = 'datetime'
 		inferred_dtype = 'datetime'
-		confidence = min( 1.0, datetime_success )
-		reason = 'Populated values contain date evidence and parse reliably as datetimes.'
-	elif (tokens & identifier_tokens or number_identifier_evidence) and (
-			unique_ratio >= 0.50 or leading_zero_ratio > 0):
+		confidence = 0.95
+		reason = 'The column name indicates a date or time and populated values parse as datetimes.'
+	elif identifier_evidence:
 		analytical_role = 'identifier'
 		inferred_dtype = 'integer' if integer_like else 'text'
 		confidence = 0.95
-		reason = 'Identifier name tokens are supported by uniqueness or code-format evidence.'
-	elif numeric_success >= 0.98:
+		reason = 'The column name identifies a key or ID.'
+	elif numeric_success == 1.0 and populated_count > 0:
 		inferred_dtype = 'integer' if integer_like else 'float'
-		if tokens & measure_tokens:
-			analytical_role = 'numeric'
-			confidence = 0.98
-			reason = 'Measure name tokens and values provide strong numeric evidence.'
-		elif tokens & ordinal_tokens or ({ 'fiscal', 'year' }.issubset( tokens )) or (
-				{ 'calendar', 'year' }.issubset( tokens )):
+		if ordinal_evidence:
 			analytical_role = 'ordinal'
-			confidence = 0.92
-			reason = 'Ordered name tokens and integer-like values indicate an ordinal variable.'
-		elif tokens & category_tokens or ({ 'line', 'number' }.issubset( tokens )) or (
-				{ 'account', 'number' }.issubset( tokens )) or leading_zero_ratio >= 0.05:
+			confidence = 0.95
+			reason = 'Numeric values and the column name indicate an ordered variable.'
+		elif category_evidence:
 			analytical_role = 'categorical'
-			confidence = 0.94
-			reason = 'Code/category name tokens or leading-zero evidence outweigh storage dtype.'
-		elif integer_like and distinct_count <= max( 10, min( 50, int( np.sqrt(
-				max( 1, populated_count ) ) ) ) ):
-			analytical_role = 'categorical'
-			confidence = 0.82
-			reason = 'Repeated low-cardinality integers are treated as unordered categories.'
+			confidence = 0.95
+			reason = 'Numeric values are used by a column whose name indicates a category or code.'
 		else:
 			analytical_role = 'numeric'
-			confidence = max( 0.85, numeric_success )
-			reason = 'Values parse reliably as numbers without categorical or identifier evidence.'
+			confidence = 0.95
+			reason = 'All populated values parse as numeric values.'
 	elif isinstance( series.dtype, pd.CategoricalDtype ):
 		analytical_role = 'categorical'
 		inferred_dtype = 'category'
 		confidence = 1.0
 		reason = 'The pandas storage dtype is categorical.'
 
-	return { 'column': column_name, 'storage_dtype': str( series.dtype ),
+	return { 'column': column_name, 'storage_dtype': storage_dtype,
 		'inferred_dtype': inferred_dtype, 'analytical_role': analytical_role,
 		'non_null_count': populated_count, 'distinct_count': distinct_count,
 		'unique_ratio': unique_ratio, 'numeric_success_ratio': numeric_success,
 		'datetime_success_ratio': datetime_success, 'leading_zero_ratio': leading_zero_ratio,
 		'is_integer_like': integer_like, 'confidence': confidence, 'reason': reason }
 
-def profile_dataframe_schema( df: pd.DataFrame ) -> Dict[ str, Dict[ str, object ] ]:
+
+def profile_dataframe_schema( df: pd.DataFrame,
+	declared_schema: Dict[ str, str ] = None ) -> Dict[ str, Dict[ str, object ] ]:
 	"""Profile every dataframe column using the authoritative schema classifier.
 
 	Purpose:
-	    Produces detailed column profiles from one consistent classifier and applies only overrides
-	    associated with columns that exist in the active dataframe.
+	    Profiles dataframe columns with optional SQLite declared-type metadata while preserving the
+	    established detailed profile contract and dataset-specific analytical-role overrides.
 
 	Args:
 	    df (pd.DataFrame): Dataframe whose storage types and analytical roles are profiled.
+	    declared_schema (Dict[str, str]): Optional SQLite declared types keyed by column name.
 
 	Returns:
 	    Dict[str, Dict[str, object]]: Detailed profile keyed by dataframe column name.
@@ -1434,8 +1540,9 @@ def profile_dataframe_schema( df: pd.DataFrame ) -> Dict[ str, Dict[ str, object
 	else:
 		overrides = overrides_by_schema.get( schema_signature, { } ) if isinstance(
 			overrides_by_schema, dict ) else { }
+	declared_types = declared_schema if isinstance( declared_schema, dict ) else { }
 	return { column: profile_column( str( column ), df[ column ], str( overrides.get(
-		column, '' ) ) ) for column in df.columns }
+		column, '' ) ), str( declared_types.get( column, '' ) ) ) for column in df.columns }
 
 def infer_schema( df: pd.DataFrame ) -> Dict[ str, str ]:
 	"""Return backward-compatible analytical roles for dataframe columns.
@@ -2438,7 +2545,8 @@ def create_profile_table( table: str ):
 	    pd.DataFrame: Dataframe containing one profile record for each source column.
 	"""
 	df = read_table( table )
-	profiles = profile_dataframe_schema( df )
+	declared_schema = create_declared_schema_map( create_schema( table ) )
+	profiles = profile_dataframe_schema( df, declared_schema )
 	df_analysis = create_typed_analysis_dataframe( df, profiles )
 	profile_rows = [ ]
 	total_rows = len( df )
@@ -3077,11 +3185,15 @@ with st.sidebar:
 		loaded_original: pd.DataFrame | None = None
 		loaded_source_signature: tuple | None = None
 		loaded_source_message = ''
+		loaded_source_kind = ''
+		loaded_database_table = ''
+		loaded_declared_schema: Dict[ str, str ] = { }
 		if source == 'Default Data':
 			df_loaded = pd.read_excel( cfg.DEFAULT_DATA )
 			loaded_original = df_loaded.copy( )
 			loaded_source_signature = ('Default Data', str( cfg.DEFAULT_DATA ))
 			loaded_source_message = 'Loaded Default Dataset'
+			loaded_source_kind = 'default'
 		
 		elif source == 'Database Data':
 			try:
@@ -3102,9 +3214,14 @@ with st.sidebar:
 						if selected_table:
 							df_loaded = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
 								connection )
+							schema_rows = connection.execute(
+								f'PRAGMA table_info("{selected_table}");' ).fetchall( )
 							loaded_original = df_loaded.copy( )
 							loaded_source_signature = ('Database Data', selected_table)
 							loaded_source_message = f'Loaded Database Table: {selected_table}'
+							loaded_source_kind = 'database'
+							loaded_database_table = selected_table
+							loaded_declared_schema = create_declared_schema_map( schema_rows )
 					else:
 						st.warning( 'No tables were found in the database.' )
 			except Exception as ex:
@@ -3122,6 +3239,7 @@ with st.sidebar:
 				loaded_original = df_loaded.copy( )
 				loaded_source_signature = ('Custom Data', uploaded.name, uploaded.size)
 				loaded_source_message = f'Loaded uploaded file: {uploaded.name}'
+				loaded_source_kind = 'custom'
 			else:
 				st.info( 'Upload a spreadsheet to load data.' )
 		
@@ -3129,6 +3247,9 @@ with st.sidebar:
 		if has_loaded_dataset( df_loaded ) and (not has_loaded_dataset(
 				st.session_state.get( 'df_dataset', None ) ) or
 				loaded_source_signature != active_source_signature):
+			st.session_state[ 'active_source_kind' ] = loaded_source_kind
+			st.session_state[ 'active_database_table' ] = loaded_database_table
+			st.session_state[ 'active_declared_schema' ] = loaded_declared_schema.copy( )
 			store_loaded_dataset( df_loaded, loaded_original )
 			st.session_state[ 'active_source_signature' ] = loaded_source_signature
 			log_step( loaded_source_message )
@@ -3278,6 +3399,16 @@ with st.sidebar:
 	if st.session_state.get( 'visualization_mode_radio', None ) not in visualization_modes:
 		st.session_state[ 'visualization_mode_radio' ] = None
 	
+	# ------- Data Visualization Selection Mode
+	st.sidebar.divider( )
+	st.subheader( 'Data Visualization' )
+	with st.expander( 'Select Method', expanded=True ):
+		if not visualization_modes:
+			st.info( 'Load a dataset to enable visualization modes.' )
+		else:
+			st.radio( label='Select', options=visualization_modes, index=None,
+				key='visualization_mode_radio', on_change=handle_visualization_mode_change )
+	
 	# ------- Machine Learning Selection Mode
 	st.sidebar.divider( )
 	st.subheader( 'Machine Learning' )
@@ -3291,16 +3422,6 @@ with st.sidebar:
 	with st.expander( 'Select Mode', expanded=True ):
 		st.radio( label='Select', options=db_modes, index=None, key='db_mode_radio',
 			on_change=handle_db_mode_change )
-	
-	# ------- Data Visualization Selection Mode
-	st.sidebar.divider( )
-	st.subheader( 'Data Visualization' )
-	with st.expander( 'Select Method', expanded=True ):
-		if not visualization_modes:
-			st.info( 'Load a dataset to enable visualization modes.' )
-		else:
-			st.radio( label='Select', options=visualization_modes, index=None,
-				key='visualization_mode_radio', on_change=handle_visualization_mode_change )
 	
 	# ------- Active Application Mode
 	mode = st.session_state[ 'active_mode' ]
