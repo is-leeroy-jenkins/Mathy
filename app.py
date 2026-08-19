@@ -1374,6 +1374,8 @@ def profile_column( column_name: str, series: pd.Series, override_role: str = ''
 		r'^[+-]?0\d+$', na=False ).mean( ) ) if populated_count > 0 else 0.0
 
 	date_tokens = { 'date', 'datetime', 'timestamp', 'time', 'effective', 'expiration', 'expiry' }
+	temporal_context_tokens = { 'approved', 'approval', 'created', 'modified', 'updated',
+		'submitted', 'posted', 'received', 'processed', 'opened', 'closed' }
 	identifier_tokens = { 'id', 'identifier', 'key', 'uuid', 'guid', 'index', 'sequence' }
 	ordinal_tokens = { 'rank', 'grade', 'level', 'rating', 'priority', 'stage', 'tier', 'fy' }
 	category_tokens = { 'category', 'categories', 'class', 'type', 'status', 'agency', 'program',
@@ -1387,6 +1389,7 @@ def profile_column( column_name: str, series: pd.Series, override_role: str = ''
 		{ 'calendar', 'year' }.issubset( tokens ))
 	date_name_evidence = bool( tokens & date_tokens ) or ({ 'start', 'date' }.issubset( tokens )) or (
 		{ 'end', 'date' }.issubset( tokens ))
+	temporal_context_evidence = bool( tokens & temporal_context_tokens )
 	category_evidence = bool( tokens & category_tokens )
 	name_evidence = bool( tokens & name_tokens )
 
@@ -1396,10 +1399,12 @@ def profile_column( column_name: str, series: pd.Series, override_role: str = ''
 	date_lexical_ratio = float( date_lexical_mask.mean( ) ) if populated_count > 0 else 0.0
 	datetime_values = parse_datetime_series( series ) if (
 		pd.api.types.is_datetime64_any_dtype( series ) or date_name_evidence or
-		date_lexical_ratio >= 0.80) else pd.Series( pd.NaT, index=series.index,
-		dtype='datetime64[ns]' )
+		temporal_context_evidence or date_lexical_ratio > 0.0) else pd.Series( pd.NaT,
+		index=series.index, dtype='datetime64[ns]' )
 	datetime_success = float( datetime_values[ populated_mask ].notna( ).mean( ) ) if (
 		populated_count > 0) else 0.0
+	datetime_value_evidence = bool( populated_count > 0 and datetime_success == 1.0 and (
+		date_name_evidence or temporal_context_evidence or date_lexical_ratio > 0.0) )
 
 	declared_family = get_declared_type_family( declared_type )
 	storage_dtype = declared_type if declared_type else str( series.dtype )
@@ -1444,11 +1449,20 @@ def profile_column( column_name: str, series: pd.Series, override_role: str = ''
 				reason = f'SQLite declares the column as numeric type {declared_type}.'
 		elif declared_family == 'text':
 			inferred_dtype = 'text'
-			if date_name_evidence:
+			if date_name_evidence and datetime_success > 0.0:
+				analytical_role = 'datetime'
+				inferred_dtype = 'datetime'
+				confidence = 0.99
+				reason = (
+					'SQLite declares text storage, the column name indicates a date or time, '
+					'and populated values parse as datetimes.' )
+			elif datetime_value_evidence:
 				analytical_role = 'datetime'
 				inferred_dtype = 'datetime'
 				confidence = 0.98
-				reason = 'SQLite declares text storage and the column name indicates a date or time.'
+				reason = (
+					'SQLite declares text storage and all populated values contain date-like '
+					'structure and parse as datetimes.' )
 			elif identifier_evidence:
 				analytical_role = 'identifier'
 				confidence = 0.98
@@ -1475,11 +1489,16 @@ def profile_column( column_name: str, series: pd.Series, override_role: str = ''
 		inferred_dtype = 'boolean'
 		confidence = 0.98
 		reason = 'The values form a boolean or two-state category.'
-	elif date_name_evidence and datetime_success > 0:
+	elif date_name_evidence and datetime_success > 0.0:
+		analytical_role = 'datetime'
+		inferred_dtype = 'datetime'
+		confidence = 0.96
+		reason = 'The column name indicates a date or time and populated values parse as datetimes.'
+	elif datetime_value_evidence:
 		analytical_role = 'datetime'
 		inferred_dtype = 'datetime'
 		confidence = 0.95
-		reason = 'The column name indicates a date or time and populated values parse as datetimes.'
+		reason = 'All populated values contain date-like structure and parse as datetimes.'
 	elif identifier_evidence:
 		analytical_role = 'identifier'
 		inferred_dtype = 'integer' if integer_like else 'text'
@@ -2873,6 +2892,130 @@ def get_visualization_columns( df_frame: pd.DataFrame ) -> Dict[ str, List[ str 
 		'missing': missing_columns
 	}
 
+def get_usable_categorical_columns( df_frame: pd.DataFrame,
+	categorical_columns: List[ str ] = None ) -> List[ str ]:
+	"""Return categorical columns containing comparative information.
+
+	Purpose:
+	    Filters categorical and ordinal visualization fields so columns containing only one
+	    populated category are not offered for comparisons, distributions, hierarchies, flows,
+	    or heatmaps. The underlying analytical schema remains unchanged for non-visualization
+	    workflows.
+
+	Args:
+	    df_frame (pd.DataFrame): Dataframe containing categorical values evaluated for variation.
+	    categorical_columns (List[str]): Optional categorical columns to evaluate. When omitted,
+	        the authoritative visualization classification is used.
+
+	Returns:
+	    List[str]: Categorical columns containing at least two distinct populated values.
+	"""
+	throw_if( 'df_frame', df_frame )
+	columns = categorical_columns if categorical_columns is not None else \
+		get_visualization_columns( df_frame )[ 'categorical' ]
+	return [ column for column in columns if column in df_frame.columns and
+		df_frame[ column ].nunique( dropna=True ) > 1 ]
+
+def aggregate_visualization_dataframe( df_frame: pd.DataFrame, group_columns: List[ str ],
+	value_column: str, aggregation: str ) -> pd.DataFrame:
+	"""Aggregate a dataframe for visualization.
+
+	Purpose:
+	    Converts the selected measure to numeric form, removes unusable observations, groups values
+	    by the requested dimensions, and applies one supported aggregation consistently across the
+	    advanced visualization modes.
+
+	Args:
+	    df_frame (pd.DataFrame): Source dataframe containing grouping dimensions and a numeric measure.
+	    group_columns (List[str]): Ordered categorical, ordinal, or datetime grouping columns.
+	    value_column (str): Numeric measure aggregated for visualization.
+	    aggregation (str): Supported aggregation display name.
+
+	Returns:
+	    pd.DataFrame: Aggregated dataframe containing the grouping columns and numeric measure.
+	"""
+	throw_if( 'df_frame', df_frame )
+	throw_if( 'group_columns', group_columns )
+	throw_if( 'value_column', value_column )
+	throw_if( 'aggregation', aggregation )
+	aggregation_map = { 'Sum': 'sum', 'Mean': 'mean', 'Median': 'median',
+		'Minimum': 'min', 'Maximum': 'max', 'Count': 'count' }
+	if aggregation not in aggregation_map:
+		raise ValueError( f'Unsupported aggregation: {aggregation}' )
+	columns = list( dict.fromkeys( group_columns + [ value_column ] ) )
+	df_result = df_frame[ columns ].copy( )
+	df_result[ value_column ] = pd.to_numeric( df_result[ value_column ], errors='coerce' )
+	df_result = df_result.dropna( subset=group_columns + [ value_column ] )
+	if df_result.empty:
+		return pd.DataFrame( columns=columns )
+	df_result = df_result.groupby( group_columns, observed=True, dropna=False )[ value_column ].agg(
+		aggregation_map[ aggregation ] ).reset_index( )
+	return df_result
+
+def create_sankey_from_stages( df_frame: pd.DataFrame, stage_columns: List[ str ],
+	value_column: str = '', aggregation: str = 'Count' ) -> go.Figure:
+	"""Create a Sankey diagram from ordered categorical stages.
+
+	Purpose:
+	    Aggregates transitions between adjacent categorical stages and creates one Sankey diagram
+	    whose link widths represent observation counts or an explicitly selected numeric measure.
+
+	Args:
+	    df_frame (pd.DataFrame): Source dataframe containing stage fields and optional measure values.
+	    stage_columns (List[str]): Ordered categorical fields defining adjacent lifecycle stages.
+	    value_column (str): Optional numeric measure used as link weight.
+	    aggregation (str): Aggregation applied when a numeric measure is supplied.
+
+	Returns:
+	    go.Figure: Sankey diagram representing transitions across selected stages.
+	"""
+	throw_if( 'df_frame', df_frame )
+	throw_if( 'stage_columns', stage_columns )
+	if len( stage_columns ) < 2:
+		raise ValueError( 'At least two stage columns are required.' )
+
+	labels: List[ str ] = [ ]
+	label_index: Dict[ str, int ] = { }
+	sources: List[ int ] = [ ]
+	targets: List[ int ] = [ ]
+	values: List[ float ] = [ ]
+
+	for stage_index in range( len( stage_columns ) - 1 ):
+		left_column = stage_columns[ stage_index ]
+		right_column = stage_columns[ stage_index + 1 ]
+		columns = [ left_column, right_column ] + ([ value_column ] if value_column else [ ])
+		df_stage = df_frame[ columns ].copy( ).dropna( subset=[ left_column, right_column ] )
+		if df_stage.empty:
+			continue
+		if value_column:
+			df_stage[ value_column ] = pd.to_numeric( df_stage[ value_column ], errors='coerce' )
+			df_stage = df_stage.dropna( subset=[ value_column ] )
+			if df_stage.empty:
+				continue
+			df_links = aggregate_visualization_dataframe( df_stage, [ left_column, right_column ],
+				value_column, aggregation )
+			weight_column = value_column
+		else:
+			df_links = df_stage.groupby( [ left_column, right_column ], observed=True,
+				dropna=False ).size( ).reset_index( name='Weight' )
+			weight_column = 'Weight'
+
+		for _, row in df_links.iterrows( ):
+			left_label = f'{left_column}: {row[ left_column ]}'
+			right_label = f'{right_column}: {row[ right_column ]}'
+			for label in (left_label, right_label):
+				if label not in label_index:
+					label_index[ label ] = len( labels )
+					labels.append( label )
+			sources.append( label_index[ left_label ] )
+			targets.append( label_index[ right_label ] )
+			values.append( abs( float( row[ weight_column ] ) ) )
+
+	figure = go.Figure( data=[ go.Sankey(
+		node={ 'label': labels, 'pad': 15, 'thickness': 18 },
+		link={ 'source': sources, 'target': targets, 'value': values } ) ] )
+	return figure
+
 def render_visualization_metric_styles( ) -> None:
 	"""Render the established Mathy metric typography.
 
@@ -3258,8 +3401,10 @@ with st.sidebar:
 		"""Return visualization modes supported by the loaded dataframe.
 
 		Purpose:
-		    Examines the loaded dataframe for numeric, datetime, categorical, and missing-value
-		    content, then returns the visualization modes whose data requirements are satisfied.
+		    Examines authoritative visualization column groups and actual categorical variation,
+		    then exposes only visualization modes whose minimum data requirements are satisfied.
+		    Single-valued categorical fields remain part of the analytical schema but are excluded
+		    from comparative visualization capability checks.
 
 		Args:
 		    df_frame (pd.DataFrame | None): Currently loaded dataframe evaluated for visualization
@@ -3270,35 +3415,52 @@ with st.sidebar:
 		"""
 		if df_frame is None or df_frame.empty:
 			return [ ]
-		
+
 		column_groups = get_visualization_columns( df_frame )
 		numeric_columns = column_groups[ 'numeric' ]
 		datetime_columns = column_groups[ 'datetime' ]
 		categorical_columns = column_groups[ 'categorical' ]
-		
+		usable_categorical_columns = get_usable_categorical_columns( df_frame,
+			categorical_columns )
+
 		visualization_modes = [ 'Data Overview' ]
-		
+
 		if numeric_columns:
 			visualization_modes.append( 'Numeric Distributions' )
-		
+			visualization_modes.append( 'KPI Summary' )
+
 		if len( numeric_columns ) >= 2:
 			visualization_modes.append( 'Correlation Analysis' )
 			visualization_modes.append( 'Scatter Analysis' )
-		
-		if categorical_columns:
+
+		if usable_categorical_columns:
 			visualization_modes.append( 'Categorical Distributions' )
-		
-		if numeric_columns and categorical_columns:
+
+		if numeric_columns and usable_categorical_columns:
 			visualization_modes.append( 'Category Comparisons' )
-		
+
+		if len( numeric_columns ) >= 2 or (numeric_columns and usable_categorical_columns):
+			visualization_modes.append( 'Variance & Decomposition' )
+
 		if datetime_columns and numeric_columns:
 			visualization_modes.append( 'Time-Series Visualization' )
-		
+
+		if len( usable_categorical_columns ) >= 2 and numeric_columns:
+			visualization_modes.append( 'Composition & Allocation' )
+
+		if len( usable_categorical_columns ) >= 2 or (
+				usable_categorical_columns and datetime_columns and numeric_columns):
+			visualization_modes.append( 'Pattern Heatmaps' )
+
+		if len( usable_categorical_columns ) >= 2 or (
+				len( datetime_columns ) >= 2 and usable_categorical_columns):
+			visualization_modes.append( 'Lifecycle & Flow' )
+
 		if df_frame.isna( ).any( ).any( ):
 			visualization_modes.append( 'Missing Data Visualization' )
-		
+
 		return visualization_modes
-		
+
 	def handle_ml_mode_change( ) -> None:
 		"""Activate the selected machine-learning mode.
 
@@ -19725,7 +19887,8 @@ elif mode == 'Categorical Distributions':
 			st.info( 'No data loaded.' )
 			st.stop( )
 
-		categorical_columns = get_visualization_columns( df_dataset )[ 'categorical' ]
+		categorical_columns = get_usable_categorical_columns( df_dataset,
+			get_visualization_columns( df_dataset )[ 'categorical' ] )
 		if not categorical_columns:
 			st.info( 'No categorical columns are available.' )
 			st.stop( )
@@ -19780,7 +19943,9 @@ elif mode == 'Categorical Distributions':
 elif mode == 'Category Comparisons':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( 'Category Comparisons', divider='gray' )
+		st.subheader( 'Category Comparisons', divider='gray',
+			help='Compare numeric measures across categorical groups using aggregated bars, '
+				'distribution plots, or hierarchical treemaps.' )
 		render_visualization_metric_styles( )
 		df_dataset = get_visualization_dataframe( )
 		if df_dataset.empty:
@@ -19788,27 +19953,58 @@ elif mode == 'Category Comparisons':
 			st.stop( )
 
 		groups = get_visualization_columns( df_dataset )
-		if not groups[ 'numeric' ] or not groups[ 'categorical' ]:
-			st.info( 'At least one numeric and one categorical column are required.' )
+		usable_categories = get_usable_categorical_columns( df_dataset, groups[ 'categorical' ] )
+		if not groups[ 'numeric' ] or not usable_categories:
+			st.info( 'At least one numeric field and one categorical field containing multiple '
+				'categories are required.' )
 			st.stop( )
 
 		c1, c2, c3, c4 = st.columns( 4, border=True )
 		with c1:
 			measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
-				key='visualization_comparison_measure' )
+				key='visualization_comparison_measure',
+				help='Numeric variable summarized or distributed across the selected groups.' )
 		with c2:
-			category = st.selectbox( 'Grouping Variable', groups[ 'categorical' ],
-				key='visualization_comparison_category' )
+			category = st.selectbox( 'Grouping Variable', usable_categories,
+				key='visualization_comparison_category',
+				help='Categorical or ordinal field used to define comparison groups. Single-valued '
+					'fields are excluded automatically.' )
 		with c3:
-			chart_type = st.radio( 'Chart', [ 'Box', 'Violin' ], horizontal=True,
-				key='visualization_comparison_chart_type' )
+			chart_type = st.selectbox( 'Chart', [ 'Bar', 'Column', 'Box', 'Violin', 'Treemap' ],
+				key='visualization_comparison_chart_type',
+				help='Bar and Column compare aggregated values; Box and Violin show distributions; '
+					'Treemap shows relative magnitude within a categorical hierarchy.' )
 		with c4:
 			category_limit = st.slider( 'Maximum Categories', 2, 30, 12, 1,
-				key='visualization_comparison_limit' )
+				key='visualization_comparison_limit',
+				help='Limits the number of groups displayed to keep labels and comparisons readable.' )
 
-		show_points = st.checkbox( 'Show Individual Observations', value=True,
-			key='visualization_comparison_points' )
-		df_plot = df_dataset[ [ category, measure ] ].copy( )
+		aggregation = 'Mean'
+		show_points = False
+		hierarchy_columns: List[ str ] = [ category ]
+		if chart_type in [ 'Bar', 'Column', 'Treemap' ]:
+			option_c1, option_c2 = st.columns( 2, border=True )
+			with option_c1:
+				aggregation = st.selectbox( 'Aggregation',
+					[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
+					key='visualization_comparison_aggregation',
+					help='Determines how observations within each category are summarized.' )
+			with option_c2:
+				if chart_type == 'Treemap':
+					hierarchy_candidates = [ column for column in usable_categories if column != category ]
+					secondary = st.selectbox( 'Secondary Hierarchy', [ '<None>' ] + hierarchy_candidates,
+						key='visualization_comparison_hierarchy',
+						help='Optional second categorical level nested beneath the grouping variable.' )
+					if secondary != '<None>':
+						hierarchy_columns.append( secondary )
+				else:
+					st.caption( 'Aggregated charts summarize the measure before plotting.' )
+		else:
+			show_points = st.checkbox( 'Show Individual Observations', value=True,
+				key='visualization_comparison_points',
+				help='Overlays individual records on Box or Violin distributions.' )
+
+		df_plot = df_dataset[ list( dict.fromkeys( hierarchy_columns + [ measure ] ) ) ].copy( )
 		df_plot[ measure ] = pd.to_numeric( df_plot[ measure ], errors='coerce' )
 		df_plot = df_plot.dropna( subset=[ category, measure ] )
 		top_categories = df_plot[ category ].value_counts( ).head( category_limit ).index
@@ -19817,15 +20013,35 @@ elif mode == 'Category Comparisons':
 			st.info( 'No valid grouped observations are available.' )
 			st.stop( )
 
-		points = 'all' if show_points else False
-		if chart_type == 'Box':
-			figure = px.box( df_plot, x=category, y=measure, color=category, points=points )
+		if chart_type in [ 'Bar', 'Column', 'Treemap' ]:
+			df_chart = aggregate_visualization_dataframe( df_plot, hierarchy_columns, measure,
+				aggregation )
+			if df_chart.empty:
+				st.info( 'No aggregated observations are available.' )
+				st.stop( )
+			if chart_type == 'Bar':
+				df_chart = df_chart.sort_values( measure, ascending=True )
+				figure = px.bar( df_chart, x=measure, y=category, orientation='h',
+					color=measure, color_continuous_scale='Blues', text=measure )
+			elif chart_type == 'Column':
+				df_chart = df_chart.sort_values( measure, ascending=False )
+				figure = px.bar( df_chart, x=category, y=measure, color=measure,
+					color_continuous_scale='Blues', text=measure )
+			else:
+				df_chart[ 'Plot Magnitude' ] = df_chart[ measure ].abs( )
+				figure = px.treemap( df_chart, path=hierarchy_columns, values='Plot Magnitude',
+					color=measure, color_continuous_scale='RdBu' )
 		else:
-			figure = px.violin( df_plot, x=category, y=measure, color=category,
-				box=True, points=points )
-		figure.update_xaxes( categoryorder='total descending' )
+			points = 'all' if show_points else False
+			if chart_type == 'Box':
+				figure = px.box( df_plot, x=category, y=measure, color=category, points=points )
+			else:
+				figure = px.violin( df_plot, x=category, y=measure, color=category,
+					box=True, points=points )
+			figure.update_xaxes( categoryorder='total descending' )
+
 		render_mathy_plotly_chart( figure, 'visualization_comparison_chart',
-			'mathy_category_comparison', f'{measure} by {category}', 620 )
+			'mathy_category_comparison', f'{chart_type} — {measure} by {category}', 620 )
 
 		df_summary = df_plot.groupby( category, observed=True )[ measure ].agg(
 			[ 'count', 'mean', 'median', 'std', 'min', 'max' ] ).reset_index( )
@@ -19845,7 +20061,9 @@ elif mode == 'Category Comparisons':
 elif mode == 'Time-Series Visualization':
 	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
 	with center:
-		st.subheader( 'Time-Series Visualization', divider='gray' )
+		st.subheader( 'Time-Series Visualization', divider='gray',
+			help='Visualize numeric measures across time with line, area, or category-ranking '
+				'trajectories.' )
 		render_visualization_metric_styles( )
 		df_dataset = get_visualization_dataframe( )
 		if df_dataset.empty:
@@ -19853,82 +20071,617 @@ elif mode == 'Time-Series Visualization':
 			st.stop( )
 
 		groups = get_visualization_columns( df_dataset )
+		usable_categories = get_usable_categorical_columns( df_dataset, groups[ 'categorical' ] )
 		if not groups[ 'datetime' ] or not groups[ 'numeric' ]:
 			st.info( 'At least one datetime and one numeric column are required.' )
 			st.stop( )
 
+		chart_options = [ 'Line', 'Area' ]
+		if usable_categories:
+			chart_options.append( 'Ribbon / Ranking' )
+
 		c1, c2, c3, c4 = st.columns( 4, border=True )
 		with c1:
 			date_column = st.selectbox( 'Datetime Variable', groups[ 'datetime' ],
-				key='visualization_timeseries_date' )
+				key='visualization_timeseries_date',
+				help='Date or timestamp used to order observations and define resampling periods.' )
 		with c2:
 			value_column = st.selectbox( 'Numeric Variable', groups[ 'numeric' ],
-				key='visualization_timeseries_value' )
+				key='visualization_timeseries_value',
+				help='Numeric measure summarized and plotted across time.' )
 		with c3:
+			chart_type = st.selectbox( 'Chart', chart_options,
+				key='visualization_timeseries_chart_type',
+				help='Line shows trend, Area emphasizes magnitude, and Ribbon / Ranking shows how '
+					'category rank changes across periods.' )
+		with c4:
 			frequency = st.selectbox( 'Frequency',
 				[ 'Original', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annual' ],
-				key='visualization_timeseries_frequency' )
-		with c4:
+				key='visualization_timeseries_frequency',
+				help='Optional resampling interval used to summarize observations over time.' )
+
+		option_c1, option_c2, option_c3 = st.columns( 3, border=True )
+		with option_c1:
 			aggregation = st.selectbox( 'Aggregation',
 				[ 'Mean', 'Sum', 'Median', 'Minimum', 'Maximum' ],
-				key='visualization_timeseries_aggregation' )
-
-		rolling_c1, rolling_c2 = st.columns( 2, border=True )
-		with rolling_c1:
-			show_rolling = st.checkbox( 'Show Rolling Average', value=True,
-				key='visualization_timeseries_rolling' )
-		with rolling_c2:
-			rolling_window = st.slider( 'Rolling Window', 2, 30, 5, 1,
-				key='visualization_timeseries_window', disabled=not show_rolling )
-
-		df_series = df_dataset[ [ date_column, value_column ] ].copy( )
-		df_series[ date_column ] = pd.to_datetime( df_series[ date_column ], errors='coerce' )
-		df_series[ value_column ] = pd.to_numeric( df_series[ value_column ], errors='coerce' )
-		df_series = df_series.dropna( ).sort_values( date_column )
-		if df_series.empty:
-			st.info( 'No valid time-series observations are available.' )
-			st.stop( )
+				key='visualization_timeseries_aggregation',
+				help='Summary statistic applied when multiple observations occur in the same period.' )
+		with option_c2:
+			if chart_type == 'Ribbon / Ranking':
+				rank_category = st.selectbox( 'Ranking Category', usable_categories,
+					key='visualization_timeseries_rank_category',
+					help='Category whose relative rank is calculated independently within each period.' )
+			else:
+				show_rolling = st.checkbox( 'Show Rolling Average', value=True,
+					key='visualization_timeseries_rolling',
+					help='Adds a moving average to smooth short-term variation in the selected measure.' )
+		with option_c3:
+			if chart_type == 'Ribbon / Ranking':
+				rank_limit = st.slider( 'Maximum Ranked Categories', 2, 20, 8, 1,
+					key='visualization_timeseries_rank_limit',
+					help='Limits the ranking chart to the leading categories by total measure.' )
+			else:
+				rolling_window = st.slider( 'Rolling Window', 2, 30, 5, 1,
+					key='visualization_timeseries_window', disabled=not show_rolling,
+					help='Number of plotted periods included in each rolling-average calculation.' )
 
 		frequency_map = { 'Daily': 'D', 'Weekly': 'W', 'Monthly': 'ME',
 			'Quarterly': 'QE', 'Annual': 'YE' }
 		aggregation_map = { 'Mean': 'mean', 'Sum': 'sum', 'Median': 'median',
 			'Minimum': 'min', 'Maximum': 'max' }
-		if frequency != 'Original':
-			df_series = df_series.set_index( date_column ).resample(
-				frequency_map[ frequency ] )[ value_column ].agg(
-				aggregation_map[ aggregation ] ).dropna( ).reset_index( )
 
-		figure = go.Figure( )
-		figure.add_trace( go.Scatter( x=df_series[ date_column ], y=df_series[ value_column ],
-			mode='lines+markers', name=value_column,
-			line={ 'color': '#38BDF8', 'width': 2.5 }, marker={ 'size': 5 } ) )
-		if show_rolling:
-			df_series[ 'Rolling Average' ] = df_series[ value_column ].rolling(
-				rolling_window, min_periods=1 ).mean( )
-			figure.add_trace( go.Scatter( x=df_series[ date_column ],
-				y=df_series[ 'Rolling Average' ], mode='lines', name='Rolling Average',
-				line={ 'color': '#F472B6', 'width': 3 } ) )
-		figure.update_xaxes( rangeslider={ 'visible': True }, rangeselector={ 'buttons': [
-			{ 'count': 1, 'label': '1m', 'step': 'month', 'stepmode': 'backward' },
-			{ 'count': 6, 'label': '6m', 'step': 'month', 'stepmode': 'backward' },
-			{ 'count': 1, 'label': '1y', 'step': 'year', 'stepmode': 'backward' },
-			{ 'step': 'all', 'label': 'All' } ] } )
-		render_mathy_plotly_chart( figure, 'visualization_timeseries_chart',
-			'mathy_time_series', f'{value_column} over Time', 650 )
+		if chart_type == 'Ribbon / Ranking':
+			df_series = df_dataset[ [ date_column, rank_category, value_column ] ].copy( )
+			df_series[ date_column ] = pd.to_datetime( df_series[ date_column ], errors='coerce' )
+			df_series[ value_column ] = pd.to_numeric( df_series[ value_column ], errors='coerce' )
+			df_series = df_series.dropna( subset=[ date_column, rank_category, value_column ] )
+			if df_series.empty:
+				st.info( 'No valid ranked time-series observations are available.' )
+				st.stop( )
+			if frequency == 'Original':
+				df_series[ 'Period' ] = df_series[ date_column ].dt.normalize( )
+			else:
+				df_series = df_series.set_index( date_column ).groupby( rank_category,
+					observed=True )[ value_column ].resample( frequency_map[ frequency ] ).agg(
+						aggregation_map[ aggregation ] ).dropna( ).reset_index( )
+				df_series = df_series.rename( columns={ date_column: 'Period' } )
+			if 'Period' not in df_series.columns:
+				df_series = df_series.groupby( [ 'Period', rank_category ], observed=True )[
+					value_column ].agg( aggregation_map[ aggregation ] ).reset_index( )
+			else:
+				df_series = df_series.groupby( [ 'Period', rank_category ], observed=True )[
+					value_column ].agg( aggregation_map[ aggregation ] ).reset_index( )
+			top_categories = df_series.groupby( rank_category, observed=True )[ value_column ].sum( ).nlargest(
+				rank_limit ).index
+			df_series = df_series[ df_series[ rank_category ].isin( top_categories ) ].copy( )
+			df_series[ 'Rank' ] = df_series.groupby( 'Period' )[ value_column ].rank(
+				method='dense', ascending=False )
+			figure = px.line( df_series, x='Period', y='Rank', color=rank_category, markers=True,
+				hover_data=[ value_column ] )
+			figure.update_yaxes( autorange='reversed', dtick=1,
+				title_text='Rank (1 = highest)' )
+			figure.update_xaxes( title_text='Period' )
+			render_mathy_plotly_chart( figure, 'visualization_timeseries_chart',
+				'mathy_time_series', f'Ranking of {rank_category} by {value_column}', 650 )
+			render_data_editor( df_series, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_timeseries_table' )
+			m1, m2, m3 = st.columns( 3, border=True )
+			m1.metric( 'Periods', f'{df_series[ "Period" ].nunique( ):,}' )
+			m2.metric( 'Categories', f'{df_series[ rank_category ].nunique( ):,}' )
+			m3.metric( 'Observations', f'{len( df_series ):,}' )
+		else:
+			df_series = df_dataset[ [ date_column, value_column ] ].copy( )
+			df_series[ date_column ] = pd.to_datetime( df_series[ date_column ], errors='coerce' )
+			df_series[ value_column ] = pd.to_numeric( df_series[ value_column ], errors='coerce' )
+			df_series = df_series.dropna( ).sort_values( date_column )
+			if df_series.empty:
+				st.info( 'No valid time-series observations are available.' )
+				st.stop( )
 
-		first_value = float( df_series[ value_column ].iloc[ 0 ] )
-		last_value = float( df_series[ value_column ].iloc[ -1 ] )
-		net_change = last_value - first_value
-		percent_change = net_change / first_value * 100.0 if first_value != 0 else np.nan
-		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
-		m1.metric( 'Observations', f'{len( df_series ):,}' )
-		m2.metric( 'Minimum', f'{float( df_series[ value_column ].min( ) ):,.2f}' )
-		m3.metric( 'Maximum', f'{float( df_series[ value_column ].max( ) ):,.2f}' )
-		m4.metric( 'Net Change', f'{net_change:,.2f}' )
-		m5.metric( 'Percent Change', f'{percent_change:,.2f}%'
-			if np.isfinite( percent_change ) else 'n/a' )
-		render_data_editor( df_series, use_container_width=True, hide_index=True, disabled=True,
-			key='visualization_timeseries_table' )
+			if frequency != 'Original':
+				df_series = df_series.set_index( date_column ).resample(
+					frequency_map[ frequency ] )[ value_column ].agg(
+						aggregation_map[ aggregation ] ).dropna( ).reset_index( )
+
+			figure = go.Figure( )
+			if chart_type == 'Area':
+				figure.add_trace( go.Scatter( x=df_series[ date_column ], y=df_series[ value_column ],
+					mode='lines', name=value_column, fill='tozeroy',
+					line={ 'color': '#38BDF8', 'width': 2.5 } ) )
+			else:
+				figure.add_trace( go.Scatter( x=df_series[ date_column ], y=df_series[ value_column ],
+					mode='lines+markers', name=value_column,
+					line={ 'color': '#38BDF8', 'width': 2.5 }, marker={ 'size': 5 } ) )
+			if show_rolling:
+				df_series[ 'Rolling Average' ] = df_series[ value_column ].rolling(
+					rolling_window, min_periods=1 ).mean( )
+				figure.add_trace( go.Scatter( x=df_series[ date_column ],
+					y=df_series[ 'Rolling Average' ], mode='lines', name='Rolling Average',
+					line={ 'color': '#F472B6', 'width': 3 } ) )
+			figure.update_xaxes( rangeslider={ 'visible': True }, rangeselector={ 'buttons': [
+				{ 'count': 1, 'label': '1m', 'step': 'month', 'stepmode': 'backward' },
+				{ 'count': 6, 'label': '6m', 'step': 'month', 'stepmode': 'backward' },
+				{ 'count': 1, 'label': '1y', 'step': 'year', 'stepmode': 'backward' },
+				{ 'step': 'all', 'label': 'All' } ] } )
+			render_mathy_plotly_chart( figure, 'visualization_timeseries_chart',
+				'mathy_time_series', f'{chart_type} — {value_column} over Time', 650 )
+
+			first_value = float( df_series[ value_column ].iloc[ 0 ] )
+			last_value = float( df_series[ value_column ].iloc[ -1 ] )
+			net_change = last_value - first_value
+			percent_change = net_change / first_value * 100.0 if first_value != 0 else np.nan
+			m1, m2, m3, m4, m5 = st.columns( 5, border=True )
+			m1.metric( 'Observations', f'{len( df_series ):,}' )
+			m2.metric( 'Minimum', f'{float( df_series[ value_column ].min( ) ):,.2f}' )
+			m3.metric( 'Maximum', f'{float( df_series[ value_column ].max( ) ):,.2f}' )
+			m4.metric( 'Net Change', f'{net_change:,.2f}' )
+			m5.metric( 'Percent Change', f'{percent_change:,.2f}%'
+				if np.isfinite( percent_change ) else 'n/a' )
+			render_data_editor( df_series, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_timeseries_table' )
+
+# ============================================
+# VARIANCE & DECOMPOSITION MODE
+# ============================================
+elif mode == 'Variance & Decomposition':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Variance & Decomposition', divider='gray',
+			help='Explain numeric change using waterfall contributions, pairwise variance, or '
+				'hierarchical decomposition of a measure.' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		if df_dataset.empty:
+			st.info( 'No data loaded.' )
+			st.stop( )
+
+		groups = get_visualization_columns( df_dataset )
+		usable_categories = get_usable_categorical_columns( df_dataset, groups[ 'categorical' ] )
+		chart_options: List[ str ] = [ ]
+		if usable_categories and groups[ 'numeric' ]:
+			chart_options.extend( [ 'Waterfall', 'Decomposition Hierarchy' ] )
+		if len( groups[ 'numeric' ] ) >= 2:
+			chart_options.append( 'Variance Bars' )
+		if not chart_options:
+			st.info( 'The loaded data does not satisfy the requirements for variance analysis.' )
+			st.stop( )
+
+		chart_type = st.selectbox( 'Visualization', chart_options,
+			key='visualization_variance_type',
+			help='Waterfall shows sequential contributions; Variance Bars compare two measures; '
+				'Decomposition Hierarchy breaks a measure into successive categorical drivers.' )
+
+		if chart_type == 'Waterfall':
+			c1, c2, c3, c4 = st.columns( 4, border=True )
+			with c1:
+				category = st.selectbox( 'Contribution Category', usable_categories,
+					key='visualization_waterfall_category',
+					help='Categorical field whose aggregated groups form the waterfall steps.' )
+			with c2:
+				measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
+					key='visualization_waterfall_measure',
+					help='Numeric value aggregated for each contribution step.' )
+			with c3:
+				aggregation = st.selectbox( 'Aggregation',
+					[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
+					key='visualization_waterfall_aggregation',
+					help='Summary statistic used to calculate each category contribution.' )
+			with c4:
+				category_limit = st.slider( 'Maximum Categories', 2, 30, 12, 1,
+					key='visualization_waterfall_limit',
+					help='Maximum number of contribution steps shown before the total.' )
+
+			df_plot = aggregate_visualization_dataframe( df_dataset, [ category ], measure,
+				aggregation )
+			df_plot = df_plot.reindex( df_plot[ measure ].abs( ).sort_values(
+				ascending=False ).index ).head( category_limit )
+			if df_plot.empty:
+				st.info( 'No valid waterfall contributions are available.' )
+				st.stop( )
+			figure = go.Figure( go.Waterfall( x=df_plot[ category ].astype( str ).tolist( ) + [ 'Total' ],
+				y=df_plot[ measure ].astype( float ).tolist( ) + [ 0.0 ],
+				measure=[ 'relative' ] * len( df_plot ) + [ 'total' ],
+				text=[ f'{value:,.2f}' for value in df_plot[ measure ] ] + [ 'Total' ],
+				textposition='outside', connector={ 'line': { 'width': 1 } } ) )
+			render_mathy_plotly_chart( figure, 'visualization_waterfall_chart',
+				'mathy_waterfall', f'Waterfall — {measure} by {category}', 620 )
+			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_waterfall_table' )
+
+		elif chart_type == 'Variance Bars':
+			c1, c2, c3, c4 = st.columns( 4, border=True )
+			with c1:
+				base_measure = st.selectbox( 'Baseline Measure', groups[ 'numeric' ],
+					key='visualization_variance_base',
+					help='Reference measure subtracted from the comparison measure.' )
+			with c2:
+				comparison_options = [ column for column in groups[ 'numeric' ] if column != base_measure ]
+				comparison_measure = st.selectbox( 'Comparison Measure', comparison_options,
+					key='visualization_variance_compare',
+					help='Measure compared against the baseline.' )
+			with c3:
+				category = st.selectbox( 'Grouping Variable', [ '<None>' ] + usable_categories,
+					key='visualization_variance_category',
+					help='Optional categorical dimension used to calculate separate variances.' )
+			with c4:
+				display_mode = st.radio( 'Variance', [ 'Absolute', 'Percentage' ], horizontal=True,
+					key='visualization_variance_display',
+					help='Absolute uses Comparison − Baseline; Percentage divides that difference by '
+						'the baseline amount.' )
+
+			if category == '<None>':
+				df_plot = df_dataset[ [ base_measure, comparison_measure ] ].copy( )
+				for column in [ base_measure, comparison_measure ]:
+					df_plot[ column ] = pd.to_numeric( df_plot[ column ], errors='coerce' )
+				df_plot = df_plot.dropna( )
+				df_plot = pd.DataFrame( { 'Category': [ 'Overall' ],
+					'Baseline': [ df_plot[ base_measure ].sum( ) ],
+					'Comparison': [ df_plot[ comparison_measure ].sum( ) ] } )
+				category_column = 'Category'
+			else:
+				df_plot = df_dataset[ [ category, base_measure, comparison_measure ] ].copy( )
+				for column in [ base_measure, comparison_measure ]:
+					df_plot[ column ] = pd.to_numeric( df_plot[ column ], errors='coerce' )
+				df_plot = df_plot.dropna( subset=[ category, base_measure, comparison_measure ] )
+				df_plot = df_plot.groupby( category, observed=True )[ [ base_measure,
+					comparison_measure ] ].sum( ).reset_index( ).rename( columns={
+					base_measure: 'Baseline', comparison_measure: 'Comparison' } )
+				category_column = category
+			df_plot[ 'Variance' ] = df_plot[ 'Comparison' ] - df_plot[ 'Baseline' ]
+			if display_mode == 'Percentage':
+				df_plot[ 'Variance %' ] = np.where( df_plot[ 'Baseline' ].ne( 0 ),
+					df_plot[ 'Variance' ] / df_plot[ 'Baseline' ] * 100.0, np.nan )
+				value_column = 'Variance %'
+			else:
+				value_column = 'Variance'
+			df_chart = df_plot.dropna( subset=[ value_column ] ).sort_values( value_column )
+			figure = px.bar( df_chart, x=value_column, y=category_column, orientation='h',
+				color=value_column, color_continuous_scale='RdBu', text=value_column )
+			render_mathy_plotly_chart( figure, 'visualization_variance_bar_chart',
+				'mathy_variance_bars', f'{display_mode} Variance — {comparison_measure} vs {base_measure}',
+				620 )
+			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_variance_table' )
+
+		else:
+			c1, c2, c3 = st.columns( 3, border=True )
+			with c1:
+				measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
+					key='visualization_decomposition_measure',
+					help='Measure decomposed across the selected hierarchy levels.' )
+			with c2:
+				aggregation = st.selectbox( 'Aggregation',
+					[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
+					key='visualization_decomposition_aggregation',
+					help='Summary statistic used at every hierarchy branch.' )
+			with c3:
+				hierarchy_limit = min( 4, len( usable_categories ) )
+				hierarchy_count = st.slider( 'Hierarchy Levels', 1, hierarchy_limit,
+					min( 2, hierarchy_limit ), 1, key='visualization_decomposition_levels',
+					help='Number of categorical levels used to break the measure into nested drivers.' )
+
+			hierarchy_columns: List[ str ] = [ ]
+			hierarchy_controls = st.columns( hierarchy_count, border=True )
+			available = usable_categories.copy( )
+			for index in range( hierarchy_count ):
+				with hierarchy_controls[ index ]:
+					selected = st.selectbox( f'Hierarchy {index + 1}', available,
+						key=f'visualization_decomposition_hierarchy_{index}',
+						help='Categorical dimension used at this decomposition level.' )
+					hierarchy_columns.append( selected )
+				available = [ column for column in available if column != selected ] or available
+			df_plot = aggregate_visualization_dataframe( df_dataset, hierarchy_columns, measure,
+				aggregation )
+			df_plot[ 'Plot Magnitude' ] = df_plot[ measure ].abs( )
+			figure = px.treemap( df_plot, path=hierarchy_columns, values='Plot Magnitude',
+				color=measure, color_continuous_scale='RdBu' )
+			render_mathy_plotly_chart( figure, 'visualization_decomposition_chart',
+				'mathy_decomposition', f'Decomposition Hierarchy — {measure}', 650 )
+			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_decomposition_table' )
+
+# ============================================
+# COMPOSITION & ALLOCATION MODE
+# ============================================
+elif mode == 'Composition & Allocation':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Composition & Allocation', divider='gray',
+			help='Show how numeric totals are distributed across categorical components using '
+				'stacked bars, hierarchical sunbursts, or category-to-category flows.' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		groups = get_visualization_columns( df_dataset )
+		usable_categories = get_usable_categorical_columns( df_dataset, groups[ 'categorical' ] )
+		if df_dataset.empty or len( usable_categories ) < 2 or not groups[ 'numeric' ]:
+			st.info( 'At least two varying categorical fields and one numeric measure are required.' )
+			st.stop( )
+
+		chart_type = st.selectbox( 'Visualization', [ 'Stacked Bar', 'Sunburst', 'Sankey' ],
+			key='visualization_composition_type',
+			help='Stacked Bar compares component contributions; Sunburst shows nested composition; '
+				'Sankey shows weighted flow between categories.' )
+		if chart_type == 'Stacked Bar':
+			c1, c2, c3, c4 = st.columns( 4, border=True )
+			with c1:
+				x_category = st.selectbox( 'Primary Category', usable_categories,
+					key='visualization_stacked_primary', help='Category defining each complete bar.' )
+			with c2:
+				stack_options = [ column for column in usable_categories if column != x_category ]
+				stack_category = st.selectbox( 'Stack Category', stack_options,
+					key='visualization_stacked_stack',
+					help='Category defining colored components within each bar.' )
+			with c3:
+				measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
+					key='visualization_stacked_measure', help='Numeric value summarized in each stack.' )
+			with c4:
+				aggregation = st.selectbox( 'Aggregation', [ 'Sum', 'Mean', 'Median', 'Count' ],
+					key='visualization_stacked_aggregation',
+					help='Summary statistic calculated for each category combination.' )
+			df_plot = aggregate_visualization_dataframe( df_dataset,
+				[ x_category, stack_category ], measure, aggregation )
+			figure = px.bar( df_plot, x=x_category, y=measure, color=stack_category,
+				barmode='stack' )
+			render_mathy_plotly_chart( figure, 'visualization_stacked_chart',
+				'mathy_stacked_bar', f'Stacked {measure} by {x_category}', 650 )
+			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_stacked_table' )
+
+		elif chart_type == 'Sunburst':
+			c1, c2, c3 = st.columns( 3, border=True )
+			with c1:
+				measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
+					key='visualization_sunburst_measure',
+					help='Numeric value controlling sector size within the hierarchy.' )
+			with c2:
+				aggregation = st.selectbox( 'Aggregation', [ 'Sum', 'Mean', 'Median', 'Count' ],
+					key='visualization_sunburst_aggregation',
+					help='Summary statistic used for each hierarchy path.' )
+			with c3:
+				max_levels = min( 4, len( usable_categories ) )
+				hierarchy_count = st.slider( 'Hierarchy Levels', 2, max_levels,
+					min( 3, max_levels ), 1, key='visualization_sunburst_levels',
+					help='Number of nested categorical levels shown from center outward.' )
+			hierarchy_columns: List[ str ] = [ ]
+			hierarchy_controls = st.columns( hierarchy_count, border=True )
+			available = usable_categories.copy( )
+			for index in range( hierarchy_count ):
+				with hierarchy_controls[ index ]:
+					selected = st.selectbox( f'Hierarchy {index + 1}', available,
+						key=f'visualization_sunburst_hierarchy_{index}',
+						help='Categorical field used at this sunburst level.' )
+					hierarchy_columns.append( selected )
+				available = [ column for column in available if column != selected ] or available
+			df_plot = aggregate_visualization_dataframe( df_dataset, hierarchy_columns, measure,
+				aggregation )
+			df_plot[ 'Plot Magnitude' ] = df_plot[ measure ].abs( )
+			figure = px.sunburst( df_plot, path=hierarchy_columns, values='Plot Magnitude',
+				color=measure, color_continuous_scale='RdBu' )
+			render_mathy_plotly_chart( figure, 'visualization_sunburst_chart',
+				'mathy_sunburst', f'Sunburst — {measure}', 680 )
+			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_sunburst_table' )
+
+		else:
+			c1, c2, c3, c4 = st.columns( 4, border=True )
+			with c1:
+				source_column = st.selectbox( 'Source Category', usable_categories,
+					key='visualization_sankey_source',
+					help='Categorical field defining the starting nodes in the flow.' )
+			with c2:
+				target_options = [ column for column in usable_categories if column != source_column ]
+				target_column = st.selectbox( 'Target Category', target_options,
+					key='visualization_sankey_target',
+					help='Categorical field defining destination nodes in the flow.' )
+			with c3:
+				measure = st.selectbox( 'Weight Measure', groups[ 'numeric' ],
+					key='visualization_sankey_measure',
+					help='Numeric measure controlling the width of each flow link.' )
+			with c4:
+				aggregation = st.selectbox( 'Aggregation', [ 'Sum', 'Mean', 'Median', 'Count' ],
+					key='visualization_sankey_aggregation',
+					help='Summary statistic used to combine repeated source-target links.' )
+			figure = create_sankey_from_stages( df_dataset, [ source_column, target_column ],
+				measure, aggregation )
+			render_mathy_plotly_chart( figure, 'visualization_sankey_chart',
+				'mathy_sankey', f'Sankey — {source_column} to {target_column}', 680 )
+
+# ============================================
+# PATTERN HEATMAPS MODE
+# ============================================
+elif mode == 'Pattern Heatmaps':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Pattern Heatmaps', divider='gray',
+			help='Use color intensity to reveal concentration or magnitude across two categorical, '
+				'ordinal, or time-based dimensions.' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		groups = get_visualization_columns( df_dataset )
+		usable_categories = get_usable_categorical_columns( df_dataset, groups[ 'categorical' ] )
+		axis_columns = usable_categories + groups[ 'datetime' ]
+		if df_dataset.empty or len( axis_columns ) < 2:
+			st.info( 'At least two varying categorical, ordinal, or datetime dimensions are required.' )
+			st.stop( )
+
+		c1, c2, c3, c4 = st.columns( 4, border=True )
+		with c1:
+			row_column = st.selectbox( 'Row Dimension', axis_columns,
+				key='visualization_heatmap_row',
+				help='Field displayed on the vertical heatmap axis.' )
+		with c2:
+			column_options = [ column for column in axis_columns if column != row_column ]
+			column_column = st.selectbox( 'Column Dimension', column_options,
+				key='visualization_heatmap_column',
+				help='Field displayed on the horizontal heatmap axis.' )
+		with c3:
+			value_options = [ '<Count>' ] + groups[ 'numeric' ]
+			value_column = st.selectbox( 'Value', value_options,
+				key='visualization_heatmap_value',
+				help='Use Count for frequency intensity or choose a numeric measure to aggregate.' )
+		with c4:
+			aggregation = st.selectbox( 'Aggregation', [ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum' ],
+				key='visualization_heatmap_aggregation', disabled=value_column == '<Count>',
+				help='Summary statistic used when a numeric heatmap value is selected.' )
+
+		df_plot = df_dataset[ [ row_column, column_column ] +
+			([] if value_column == '<Count>' else [ value_column ]) ].copy( )
+		for dimension in [ row_column, column_column ]:
+			if dimension in groups[ 'datetime' ]:
+				df_plot[ dimension ] = pd.to_datetime( df_plot[ dimension ], errors='coerce' ).dt.date
+		df_plot = df_plot.dropna( subset=[ row_column, column_column ] )
+		if value_column == '<Count>':
+			df_matrix = pd.crosstab( df_plot[ row_column ], df_plot[ column_column ] )
+			value_label = 'Count'
+		else:
+			df_plot[ value_column ] = pd.to_numeric( df_plot[ value_column ], errors='coerce' )
+			df_plot = df_plot.dropna( subset=[ value_column ] )
+			aggregation_map = { 'Sum': 'sum', 'Mean': 'mean', 'Median': 'median',
+				'Minimum': 'min', 'Maximum': 'max' }
+			df_matrix = pd.pivot_table( df_plot, index=row_column, columns=column_column,
+				values=value_column, aggfunc=aggregation_map[ aggregation ] )
+			value_label = value_column
+		figure = go.Figure( data=[ go.Heatmap( z=df_matrix.to_numpy( ),
+			x=[ str( value ) for value in df_matrix.columns.tolist( ) ],
+			y=[ str( value ) for value in df_matrix.index.tolist( ) ], colorscale='Blues',
+			hovertemplate=f'{row_column}: %{{y}}<br>{column_column}: %{{x}}<br>'
+				f'{value_label}: %{{z:.4g}}<extra></extra>' ) ] )
+		render_mathy_plotly_chart( figure, 'visualization_pattern_heatmap_chart',
+			'mathy_pattern_heatmap', f'Heatmap — {row_column} × {column_column}', 650 )
+
+# ============================================
+# LIFECYCLE & FLOW MODE
+# ============================================
+elif mode == 'Lifecycle & Flow':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'Lifecycle & Flow', divider='gray',
+			help='Follow categorical transitions through ordered stages or display activities across '
+				'start and end dates.' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		groups = get_visualization_columns( df_dataset )
+		usable_categories = get_usable_categorical_columns( df_dataset, groups[ 'categorical' ] )
+		chart_options: List[ str ] = [ ]
+		if len( usable_categories ) >= 2:
+			chart_options.append( 'Lifecycle Flow' )
+		if len( groups[ 'datetime' ] ) >= 2 and usable_categories:
+			chart_options.append( 'Gantt Timeline' )
+		if not chart_options:
+			st.info( 'Lifecycle Flow requires two varying categories; Gantt Timeline requires a '
+				'label field and two datetime fields.' )
+			st.stop( )
+
+		chart_type = st.selectbox( 'Visualization', chart_options,
+			key='visualization_lifecycle_type',
+			help='Lifecycle Flow maps stage-to-stage transitions; Gantt Timeline shows activity '
+				'duration and overlap.' )
+		if chart_type == 'Lifecycle Flow':
+			c1, c2, c3 = st.columns( 3, border=True )
+			with c1:
+				stage_count = st.slider( 'Lifecycle Stages', 2, min( 4, len( usable_categories ) ), 2, 1,
+					key='visualization_lifecycle_stage_count',
+					help='Number of ordered categorical stages included in the flow.' )
+			with c2:
+				weight_column = st.selectbox( 'Flow Weight', [ '<Count>' ] + groups[ 'numeric' ],
+					key='visualization_lifecycle_weight',
+					help='Use Count for record frequency or choose a numeric measure for link width.' )
+			with c3:
+				aggregation = st.selectbox( 'Aggregation', [ 'Sum', 'Mean', 'Median', 'Count' ],
+					key='visualization_lifecycle_aggregation', disabled=weight_column == '<Count>',
+					help='Summary statistic applied to the selected numeric flow weight.' )
+			stage_columns: List[ str ] = [ ]
+			stage_controls = st.columns( stage_count, border=True )
+			available = usable_categories.copy( )
+			for index in range( stage_count ):
+				with stage_controls[ index ]:
+					selected = st.selectbox( f'Stage {index + 1}', available,
+						key=f'visualization_lifecycle_stage_{index}',
+						help='Categorical state used at this point in the lifecycle.' )
+				stage_columns.append( selected )
+				available = [ column for column in available if column != selected ] or available
+			figure = create_sankey_from_stages( df_dataset, stage_columns,
+				'' if weight_column == '<Count>' else weight_column, aggregation )
+			render_mathy_plotly_chart( figure, 'visualization_lifecycle_flow_chart',
+				'mathy_lifecycle_flow', 'Lifecycle Flow', 700 )
+		else:
+			c1, c2, c3, c4 = st.columns( 4, border=True )
+			with c1:
+				label_column = st.selectbox( 'Activity Label', usable_categories,
+					key='visualization_gantt_label',
+					help='Categorical field naming each task, activity, phase, or reporting item.' )
+			with c2:
+				start_column = st.selectbox( 'Start Datetime', groups[ 'datetime' ],
+					key='visualization_gantt_start', help='Date or timestamp at which each activity begins.' )
+			with c3:
+				end_options = [ column for column in groups[ 'datetime' ] if column != start_column ]
+				end_column = st.selectbox( 'End Datetime', end_options,
+					key='visualization_gantt_end', help='Date or timestamp at which each activity ends.' )
+			with c4:
+				color_column = st.selectbox( 'Color Group', [ '<None>' ] + usable_categories,
+					key='visualization_gantt_color',
+					help='Optional categorical field used to color related activities.' )
+			df_plot = df_dataset[ [ label_column, start_column, end_column ] +
+				([] if color_column == '<None>' else [ color_column ]) ].copy( )
+			df_plot[ start_column ] = pd.to_datetime( df_plot[ start_column ], errors='coerce' )
+			df_plot[ end_column ] = pd.to_datetime( df_plot[ end_column ], errors='coerce' )
+			df_plot = df_plot.dropna( subset=[ label_column, start_column, end_column ] )
+			df_plot = df_plot[ df_plot[ end_column ] >= df_plot[ start_column ] ]
+			figure = px.timeline( df_plot, x_start=start_column, x_end=end_column, y=label_column,
+				color=None if color_column == '<None>' else color_column,
+				hover_data=df_plot.columns.tolist( ) )
+			figure.update_yaxes( autorange='reversed' )
+			render_mathy_plotly_chart( figure, 'visualization_gantt_chart',
+				'mathy_gantt_timeline', f'Gantt Timeline — {label_column}', 680 )
+			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
+				key='visualization_gantt_table' )
+
+# ============================================
+# KPI SUMMARY MODE
+# ============================================
+elif mode == 'KPI Summary':
+	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
+	with center:
+		st.subheader( 'KPI Summary', divider='gray',
+			help='Summarize selected numeric measures into high-level indicators for rapid '
+				'comparison and executive review.' )
+		render_visualization_metric_styles( )
+		df_dataset = get_visualization_dataframe( )
+		groups = get_visualization_columns( df_dataset )
+		if df_dataset.empty or not groups[ 'numeric' ]:
+			st.info( 'At least one numeric measure is required.' )
+			st.stop( )
+
+		c1, c2 = st.columns( 2, border=True )
+		with c1:
+			selected_measures = st.multiselect( 'KPI Measures', groups[ 'numeric' ],
+				default=groups[ 'numeric' ][ :min( 4, len( groups[ 'numeric' ] ) ) ],
+				key='visualization_kpi_measures',
+				help='Select up to five numeric fields to summarize as KPI cards.' )
+		with c2:
+			aggregation = st.selectbox( 'Aggregation',
+				[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
+				key='visualization_kpi_aggregation',
+				help='Summary statistic displayed for each selected KPI measure.' )
+		selected_measures = selected_measures[ :5 ]
+		if not selected_measures:
+			st.info( 'Select at least one KPI measure.' )
+			st.stop( )
+		aggregation_map = { 'Sum': 'sum', 'Mean': 'mean', 'Median': 'median',
+			'Minimum': 'min', 'Maximum': 'max', 'Count': 'count' }
+		metric_columns = st.columns( len( selected_measures ), border=True )
+		rows: List[ Dict[ str, object ] ] = [ ]
+		for index, measure in enumerate( selected_measures ):
+			series = pd.to_numeric( df_dataset[ measure ], errors='coerce' ).dropna( )
+			value = float( getattr( series, aggregation_map[ aggregation ] )( ) ) if not series.empty else np.nan
+			with metric_columns[ index ]:
+				st.metric( measure, f'{value:,.2f}' if np.isfinite( value ) else 'n/a',
+					help=f'{aggregation} of populated numeric observations in {measure}.' )
+			rows.append( { 'Measure': measure, 'Aggregation': aggregation, 'Value': value,
+				'Observations': int( len( series ) ) } )
+		df_kpis = pd.DataFrame( rows )
+		render_data_editor( df_kpis, use_container_width=True, hide_index=True, disabled=True,
+			key='visualization_kpi_table' )
 
 # ============================================
 # MISSING DATA VISUALIZATION MODE
