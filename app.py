@@ -1317,7 +1317,6 @@ def get_declared_type_family( declared_type: str ) -> str:
 		return 'text'
 	return 'unknown'
 
-
 def create_declared_schema_map( schema_rows: List[ Tuple ] ) -> Dict[ str, str ]:
 	"""Create a declared-type mapping from SQLite schema metadata.
 
@@ -1334,7 +1333,6 @@ def create_declared_schema_map( schema_rows: List[ Tuple ] ) -> Dict[ str, str ]
 	if not schema_rows:
 		return { }
 	return { str( row[ 1 ] ): str( row[ 2 ] or '' ) for row in schema_rows }
-
 
 def profile_column( column_name: str, series: pd.Series, override_role: str = '',
 	declared_type: str = '' ) -> Dict[ str, object ]:
@@ -1530,7 +1528,6 @@ def profile_column( column_name: str, series: pd.Series, override_role: str = ''
 		'unique_ratio': unique_ratio, 'numeric_success_ratio': numeric_success,
 		'datetime_success_ratio': datetime_success, 'leading_zero_ratio': leading_zero_ratio,
 		'is_integer_like': integer_like, 'confidence': confidence, 'reason': reason }
-
 
 def profile_dataframe_schema( df: pd.DataFrame,
 	declared_schema: Dict[ str, str ] = None ) -> Dict[ str, Dict[ str, object ] ]:
@@ -3320,7 +3317,6 @@ pd.options.display.float_format = '{:,.2f}'.format
 with st.sidebar:
 	st.sidebar.divider( )
 	st.subheader( 'Data Source' )
-	
 	with st.expander( 'Select Source', expanded=False ):
 		src = [ 'Default Data', 'Database Data', 'Custom Data' ]
 		source = st.selectbox( label='Select Source', options=src, key='source_selectbox' )
