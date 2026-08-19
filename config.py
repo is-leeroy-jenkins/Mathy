@@ -191,7 +191,7 @@ ROOT_DIR = Path( __file__ ).resolve( ).parent
 LOG_DIR: Path = get_path( 'LOG_DIR', ROOT_DIR / 'logging' )
 LOG_PATH: str = get_text( 'LOG_PATH', str( LOG_DIR / 'Exceptions.db' ) )
 LOG_FILE: str = get_text( 'LOG_FILE', 'Exceptions' )
-LOGO = r'resources/img/mathy_logo.png'
+LOGO = r'resources/mathy_logo.png'
 FAVICON = r'resources/favicon.ico'
 BLUE_DIVIDER = "<div style='height:1.5px;align:left;background:#0078FC;margin:30px 0px 30px 0px;'></div>"
 DEFAULT_DATA = r'stores/excel/Combined Schedules.xlsx'
