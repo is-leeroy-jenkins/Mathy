@@ -278,6 +278,21 @@ if 'active_database_table' not in st.session_state:
 if 'active_declared_schema' not in st.session_state:
 	st.session_state[ 'active_declared_schema' ] = { }
 
+if 'custom_upload_signature' not in st.session_state:
+	st.session_state[ 'custom_upload_signature' ] = None
+
+if 'custom_upload_tables' not in st.session_state:
+	st.session_state[ 'custom_upload_tables' ] = { }
+
+if 'custom_upload_filename' not in st.session_state:
+	st.session_state[ 'custom_upload_filename' ] = None
+
+if 'database_operation_result' not in st.session_state:
+	st.session_state[ 'database_operation_result' ] = None
+
+if 'crud_next_table' not in st.session_state:
+	st.session_state[ 'crud_next_table' ] = ''
+
 # ============================================
 # Session State
 # ============================================
@@ -505,6 +520,41 @@ def clear_keys( keys: List[ str ] ) -> None:
 	for key in keys:
 		if key in st.session_state:
 			del st.session_state[ key ]
+
+def reset_session_keys( keys: List[ str ] ) -> None:
+	"""Reset Streamlit widget state before controls are recreated.
+
+	Purpose:
+	    Removes an explicit collection of widget-owned session-state keys from a Streamlit callback
+	    so reset operations occur before the affected controls are instantiated on the subsequent
+	    application rerun.
+
+	Args:
+	    keys (List[str]): Widget session-state keys removed by the reset callback.
+
+	Returns:
+	    None: This function delegates session-state removal to ``clear_keys``.
+	"""
+	clear_keys( keys )
+
+
+def reset_session_prefixes( prefixes: Tuple[ str, ... ] ) -> None:
+	"""Reset Streamlit widget state matching one or more key prefixes.
+
+	Purpose:
+	    Finds dynamic CRUD widget keys owned by the supplied prefixes and clears them from a
+	    Streamlit callback before the corresponding controls are recreated.
+
+	Args:
+	    prefixes (Tuple[str, ...]): Session-state key prefixes identifying controls to reset.
+
+	Returns:
+	    None: This function removes matching session-state keys in place.
+	"""
+	throw_if( 'prefixes', prefixes )
+	keys = [ key for key in st.session_state.keys( ) if str( key ).startswith( prefixes ) ]
+	clear_keys( keys )
+
 
 def reset_classification_mode_state( ) -> None:
 	"""Reset state owned by the classification workflow.
@@ -1631,6 +1681,553 @@ def create_connection( ) -> sqlite3.Connection:
 	    sqlite3.Connection: Open SQLite database connection.
 	"""
 	return sqlite3.connect( cfg.DB_PATH )
+
+
+def read_table_with_rowid( table: str ) -> pd.DataFrame:
+	"""Read a SQLite table with its internal row identifier.
+
+	Purpose:
+	    Reads the selected SQLite table while exposing the internal ``rowid`` under an application-
+	    owned column name. The internal identifier is used only by CRUD workflows so dataframe row
+	    positions are never assumed to be SQLite row identifiers.
+
+	Args:
+	    table (str): SQLite table read into dataframe form.
+
+	Returns:
+	    pd.DataFrame: Table rows containing ``__mathy_rowid__`` followed by the stored columns.
+	"""
+	throw_if( 'table', table )
+	with create_connection( ) as conn:
+		return pd.read_sql_query( f'SELECT rowid AS "__mathy_rowid__", * FROM "{table}";', conn )
+
+
+def read_database_record( table: str, rowid: int ) -> Dict[ str, object ] | None:
+	"""Read one SQLite record by internal row identifier.
+
+	Purpose:
+	    Retrieves the current values of a selected database record so CRUD controls are populated
+	    from authoritative SQLite state instead of placeholder values or dataframe row positions.
+
+	Args:
+	    table (str): SQLite table containing the requested record.
+	    rowid (int): SQLite internal row identifier.
+
+	Returns:
+	    Dict[str, object] | None: Column/value mapping for the record, or ``None`` when the row does
+	        not exist.
+	"""
+	throw_if( 'table', table )
+	throw_if( 'rowid', rowid )
+	with create_connection( ) as conn:
+		cursor = conn.execute( f'SELECT * FROM "{table}" WHERE rowid=?;', (int( rowid ),) )
+		row = cursor.fetchone( )
+		if row is None:
+			return None
+		columns = [ description[ 0 ] for description in cursor.description or [ ] ]
+		return { column: row[ index ] for index, column in enumerate( columns ) }
+
+
+def coerce_sqlite_value( value: object, declared_type: str ) -> object:
+	"""Coerce an edited control value to its declared SQLite storage family.
+
+	Purpose:
+	    Converts text-oriented CRUD inputs to stable Python values compatible with the selected
+	    column's SQLite declared type. Empty non-text inputs become ``None`` while text values retain
+	    an intentionally entered empty string.
+
+	Args:
+	    value (object): User-edited value prepared for persistence.
+	    declared_type (str): SQLite declared type associated with the target column.
+
+	Returns:
+	    object: Converted SQLite-compatible scalar value.
+	"""
+	family = get_declared_type_family( declared_type )
+	if value is None:
+		return None
+	if isinstance( value, str ):
+		text = value.strip( )
+		if family != 'text' and text == '':
+			return None
+	else:
+		text = str( value )
+
+	if family == 'numeric':
+		parsed = pd.to_numeric( pd.Series( [ text ] ), errors='coerce' ).iloc[ 0 ]
+		if pd.isna( parsed ):
+			raise ValueError( f'Value "{value}" is not valid for SQLite type {declared_type}.' )
+		if 'INT' in declared_type.upper( ):
+			if float( parsed ) % 1 != 0:
+				raise ValueError( f'Value "{value}" is not a whole number.' )
+			return int( parsed )
+		return float( parsed )
+	if family == 'boolean':
+		if isinstance( value, bool ):
+			return int( value )
+		normalized = text.lower( )
+		if normalized in ( '1', 'true', 'yes', 'y', 'on' ):
+			return 1
+		if normalized in ( '0', 'false', 'no', 'n', 'off' ):
+			return 0
+		raise ValueError( f'Value "{value}" is not valid for SQLite type {declared_type}.' )
+	if family == 'datetime':
+		parsed = pd.to_datetime( text, errors='coerce' )
+		if pd.isna( parsed ):
+			raise ValueError( f'Value "{value}" is not a valid datetime.' )
+		return parsed.isoformat( )
+	if 'BLOB' in declared_type.upper( ):
+		return value if isinstance( value, bytes ) else text.encode( 'utf-8' )
+	return str( value )
+
+
+def database_record_exists( table: str, values: Dict[ str, object ],
+	exclude_rowid: int = 0 ) -> bool:
+	"""Determine whether an equivalent complete SQLite record already exists.
+
+	Purpose:
+	    Compares every supplied persisted field against existing rows so Add Row can prevent exact
+	    duplicate records without incorrectly prohibiting legitimate reuse of individual categorical
+	    or dimensional values.
+
+	Args:
+	    table (str): SQLite table checked for a duplicate record.
+	    values (Dict[str, object]): Persisted column/value mapping for the proposed record.
+	    exclude_rowid (int): Optional row identifier excluded from duplicate detection during edits.
+
+	Returns:
+	    bool: ``True`` when an equivalent record exists; otherwise ``False``.
+	"""
+	throw_if( 'table', table )
+	throw_if( 'values', values )
+	clauses = [ f'"{column}" IS ?' for column in values.keys( ) ]
+	parameters = list( values.values( ) )
+	if exclude_rowid > 0:
+		clauses.append( 'rowid <> ?' )
+		parameters.append( int( exclude_rowid ) )
+	query = f'SELECT 1 FROM "{table}" WHERE {" AND ".join( clauses )} LIMIT 1;'
+	with create_connection( ) as conn:
+		return conn.execute( query, parameters ).fetchone( ) is not None
+
+
+def database_record_matches( table: str, rowid: int, values: Dict[ str, object ] ) -> bool:
+	"""Verify persisted values for one SQLite record.
+
+	Purpose:
+	    Confirms that a committed row contains the exact SQLite values submitted by a CRUD update or
+	    insert operation so success messages are emitted only after database readback verification.
+
+	Args:
+	    table (str): SQLite table containing the record.
+	    rowid (int): SQLite internal row identifier of the record.
+	    values (Dict[str, object]): Expected persisted column/value mapping.
+
+	Returns:
+	    bool: ``True`` when the selected row contains all expected values; otherwise ``False``.
+	"""
+	throw_if( 'table', table )
+	throw_if( 'rowid', rowid )
+	throw_if( 'values', values )
+	clauses = [ 'rowid=?' ] + [ f'"{column}" IS ?' for column in values.keys( ) ]
+	parameters = [ int( rowid ) ] + list( values.values( ) )
+	query = f'SELECT 1 FROM "{table}" WHERE {" AND ".join( clauses )} LIMIT 1;'
+	with create_connection( ) as conn:
+		return conn.execute( query, parameters ).fetchone( ) is not None
+
+
+def refresh_crud_database_state( table: str ) -> pd.DataFrame:
+	"""Refresh CRUD and active analytical state after a committed SQLite mutation.
+
+	Purpose:
+	    Re-reads the selected SQLite table after a successful mutation. When the table is also the
+	    active Mathy database source, the loaded dataset, original baseline, declared schema, and
+	    analytical column classifications are synchronized to the committed database state.
+
+	Args:
+	    table (str): SQLite table whose committed state is refreshed.
+
+	Returns:
+	    pd.DataFrame: Fresh dataframe read from the selected table.
+	"""
+	throw_if( 'table', table )
+	df_database = read_table( table )
+	if (st.session_state.get( 'active_source_kind', '' ) == 'database' and
+			st.session_state.get( 'active_database_table', '' ) == table):
+		st.session_state[ 'active_declared_schema' ] = create_declared_schema_map(
+			create_schema( table ) )
+		store_loaded_dataset( df_database, df_database )
+	return df_database
+
+
+
+def queue_database_success( message: str ) -> None:
+	"""Queue a database success message for the next Streamlit render.
+
+	Purpose:
+	    Stores one verified database-operation result in session state so a success dialog can be
+	    rendered after the operation-triggered rerun without losing the acknowledgement.
+
+	Args:
+	    message (str): Success message displayed in the database operation dialog.
+
+	Returns:
+	    None: This function updates Streamlit session state in place.
+	"""
+	throw_if( 'message', message )
+	st.session_state[ 'database_operation_result' ] = str( message )
+
+
+def activate_database_table( table: str ) -> pd.DataFrame:
+	"""Activate one persisted SQLite table as the Mathy dataset.
+
+	Purpose:
+	    Reads the selected table and declared SQLite schema, records the database-backed source
+	    identity, and synchronizes the active, original, raw, typed, and analytical dataset state.
+
+	Args:
+	    table (str): Existing SQLite table activated as the current Mathy dataset.
+
+	Returns:
+	    pd.DataFrame: Fresh dataframe read from the activated SQLite table.
+	"""
+	throw_if( 'table', table )
+	if table not in list_tables( ):
+		raise ValueError( f'Table "{table}" does not exist.' )
+	df_database = read_table( table )
+	st.session_state[ 'active_source_kind' ] = 'database'
+	st.session_state[ 'active_database_table' ] = table
+	st.session_state[ 'active_declared_schema' ] = create_declared_schema_map(
+		create_schema( table ) )
+	st.session_state[ 'active_source_signature' ] = ('Database Data', table)
+	store_loaded_dataset( df_database, df_database )
+	return df_database
+
+
+def clear_active_database_table( ) -> None:
+	"""Clear active database-backed dataset state.
+
+	Purpose:
+	    Removes a deleted database table from the active source contract and resets loaded dataset
+	    state when no replacement table is available.
+
+	Returns:
+	    None: This function updates Streamlit session state in place.
+	"""
+	st.session_state[ 'active_source_kind' ] = ''
+	st.session_state[ 'active_database_table' ] = ''
+	st.session_state[ 'active_declared_schema' ] = { }
+	st.session_state[ 'active_source_signature' ] = None
+	st.session_state[ 'raw_df' ] = pd.DataFrame( )
+	st.session_state[ 'df_original' ] = pd.DataFrame( )
+	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
+	synchronize_dataset_columns( pd.DataFrame( ) )
+
+
+def create_available_table_names( requested_names: List[ str ], existing_tables: List[ str ] ) -> List[ str ]:
+	"""Create collision-safe SQLite table names.
+
+	Purpose:
+	    Normalizes requested names to valid identifiers and appends numeric suffixes when a requested
+	    name conflicts with an existing or already-reserved table name.
+
+	Args:
+	    requested_names (List[str]): Source names converted to database table identifiers.
+	    existing_tables (List[str]): Current database tables reserved against collisions.
+
+	Returns:
+	    List[str]: Unique SQLite-safe table names in source order.
+	"""
+	throw_if( 'requested_names', requested_names )
+	reserved = { str( table ).lower( ) for table in existing_tables }
+	available: List[ str ] = [ ]
+	for requested_name in requested_names:
+		base_name = create_identifier( requested_name )
+		candidate = base_name
+		suffix = 2
+		while candidate.lower( ) in reserved:
+			candidate = f'{base_name}_{suffix}'
+			suffix += 1
+		reserved.add( candidate.lower( ) )
+		available.append( candidate )
+	return available
+
+
+def write_dataframe_tables_to_database( df_tables: Dict[ str, pd.DataFrame ],
+	overwrite: bool=False ) -> Dict[ str, pd.DataFrame ]:
+	"""Persist dataframe tables to SQLite in one transaction.
+
+	Purpose:
+	    Normalizes uploaded dataframe column identifiers, creates each requested SQLite table, bulk
+	    inserts normalized values, and rolls back the entire operation when any table fails.
+
+	Args:
+	    df_tables (Dict[str, pd.DataFrame]): Desired table names mapped to source dataframes.
+	    overwrite (bool): Whether existing tables with matching names may be replaced.
+
+	Returns:
+	    Dict[str, pd.DataFrame]: Fresh persisted dataframes keyed by created table name.
+	"""
+	throw_if( 'df_tables', df_tables )
+	with create_connection( ) as conn:
+		try:
+			conn.execute( 'BEGIN' )
+			for requested_name, df_source in df_tables.items( ):
+				throw_if( 'requested_name', requested_name )
+				throw_if( 'df_source', df_source )
+				if len( df_source.columns ) == 0:
+					raise ValueError( f'Table "{requested_name}" does not contain any columns.' )
+				table_name = create_identifier( requested_name )
+				df_table = df_source.copy( )
+				df_table.columns = create_unique_upload_identifiers( df_table.columns.tolist( ) )
+				if overwrite:
+					conn.execute( f'DROP TABLE IF EXISTS "{table_name}";' )
+				elif table_name in list_tables( ):
+					raise ValueError( f'Table "{table_name}" already exists.' )
+				columns: List[ str ] = [ ]
+				for column in df_table.columns:
+					sql_type = get_sqlite_type( df_table[ column ].dtype )
+					columns.append( f'"{column}" {sql_type}' )
+				conn.execute( f'CREATE TABLE "{table_name}" ({", ".join( columns )});' )
+				if not df_table.empty:
+					placeholders = ', '.join( [ '?' ] * len( df_table.columns ) )
+					rows = [ tuple( normalize_upload_sql_value( value ) for value in row )
+						for row in df_table.itertuples( index=False, name=None ) ]
+					conn.executemany( f'INSERT INTO "{table_name}" VALUES ({placeholders});', rows )
+			conn.commit( )
+		except Exception:
+			conn.rollback( )
+			raise
+
+	persisted_tables: Dict[ str, pd.DataFrame ] = { }
+	for table_name, df_source in df_tables.items( ):
+		created_name = create_identifier( table_name )
+		df_persisted = read_table( created_name )
+		if len( df_persisted ) != len( df_source ) or len( df_persisted.columns ) != len( df_source.columns ):
+			raise RuntimeError( f'Table "{created_name}" could not be verified after import.' )
+		persisted_tables[ created_name ] = df_persisted
+	return persisted_tables
+
+
+def reconcile_import_table_metadata( old_table: str, new_table: str = '' ) -> None:
+	"""Reconcile upload metadata after a table rename or deletion.
+
+	Purpose:
+	    Updates sidebar and Data Upload table mappings so renamed or deleted SQLite tables do not
+	    remain as stale session-state references.
+
+	Args:
+	    old_table (str): Previous table name removed from metadata mappings.
+	    new_table (str): Replacement table name for a rename; empty for deletion.
+
+	Returns:
+	    None: This function updates upload-related session state in place.
+	"""
+	throw_if( 'old_table', old_table )
+	for key in ( 'data_upload_tables', 'custom_upload_tables' ):
+		table_map = st.session_state.get( key, { } )
+		if not isinstance( table_map, dict ) or old_table not in table_map:
+			continue
+		value = table_map.pop( old_table )
+		if new_table:
+			table_map[ new_table ] = read_table( new_table ) if new_table in list_tables( ) else value
+		st.session_state[ key ] = table_map
+		if key == 'data_upload_tables':
+			if st.session_state.get( 'data_upload_selected_table', None ) == old_table:
+				if new_table:
+					st.session_state[ 'data_upload_selected_table' ] = new_table
+				else:
+					clear_keys( [ 'data_upload_selected_table' ] )
+			if not table_map and not new_table:
+				st.session_state[ 'data_upload_signature' ] = None
+		elif key == 'custom_upload_tables' and not table_map and not new_table:
+			st.session_state[ 'custom_upload_signature' ] = None
+
+	sheet_names = st.session_state.get( 'data_upload_sheet_names', { } )
+	if isinstance( sheet_names, dict ) and old_table in sheet_names:
+		value = sheet_names.pop( old_table )
+		if new_table:
+			sheet_names[ new_table ] = value
+		st.session_state[ 'data_upload_sheet_names' ] = sheet_names
+
+
+def split_sqlite_definitions( sql_text: str ) -> List[ str ]:
+	"""Split a SQLite table-definition body at top-level commas.
+
+	Purpose:
+	    Separates column and table-constraint definitions while preserving commas contained inside
+	    quoted text, parentheses, default expressions, and check constraints.
+
+	Args:
+	    sql_text (str): Text contained inside a SQLite ``CREATE TABLE`` parenthesized definition.
+
+	Returns:
+	    List[str]: Ordered top-level SQL definitions.
+	"""
+	throw_if( 'sql_text', sql_text )
+	definitions: List[ str ] = [ ]
+	buffer: List[ str ] = [ ]
+	depth = 0
+	quote = ''
+	for char in sql_text:
+		if quote:
+			buffer.append( char )
+			if char == quote:
+				quote = ''
+			continue
+		if char in ( '"', "'", '`' ):
+			quote = char
+			buffer.append( char )
+		elif char == '(':
+			depth += 1
+			buffer.append( char )
+		elif char == ')':
+			depth = max( 0, depth - 1 )
+			buffer.append( char )
+		elif char == ',' and depth == 0:
+			definitions.append( ''.join( buffer ).strip( ) )
+			buffer = [ ]
+		else:
+			buffer.append( char )
+	if buffer:
+		definitions.append( ''.join( buffer ).strip( ) )
+	return definitions
+
+
+def replace_sqlite_column_type( create_sql: str, table: str, column: str,
+	new_type: str, temp_table: str ) -> str:
+	"""Build a temporary CREATE TABLE statement with one revised declared type.
+
+	Purpose:
+	    Preserves the original SQLite column definitions and table-level constraints while replacing
+	    only the selected column's declared type and temporary table name for an atomic schema rebuild.
+
+	Args:
+	    create_sql (str): Original SQLite ``CREATE TABLE`` statement.
+	    table (str): Existing table name.
+	    column (str): Column whose declared type is changed.
+	    new_type (str): Replacement SQLite declared type.
+	    temp_table (str): Temporary table name used during reconstruction.
+
+	Returns:
+	    str: Temporary ``CREATE TABLE`` statement containing the revised declared type.
+	"""
+	throw_if( 'create_sql', create_sql )
+	throw_if( 'table', table )
+	throw_if( 'column', column )
+	throw_if( 'new_type', new_type )
+	throw_if( 'temp_table', temp_table )
+	open_paren = create_sql.find( '(' )
+	close_paren = create_sql.rfind( ')' )
+	if open_paren < 0 or close_paren <= open_paren:
+		raise ValueError( 'Malformed CREATE TABLE statement.' )
+
+	definitions = split_sqlite_definitions( create_sql[ open_paren + 1: close_paren ] )
+	constraint_tokens = { 'PRIMARY', 'NOT', 'UNIQUE', 'CHECK', 'DEFAULT', 'COLLATE',
+		'REFERENCES', 'GENERATED' }
+	updated = False
+	for index, definition in enumerate( definitions ):
+		match = re.match( r'^\s*(?:"([^"]+)"|`([^`]+)`|\[([^\]]+)\]|([^\s]+))\s+(.*)$',
+			definition, flags=re.DOTALL )
+		if not match:
+			continue
+		name = next( (group for group in match.groups( )[ :4 ] if group is not None), '' )
+		if name != column:
+			continue
+		remainder = match.group( 5 ).strip( )
+		parts = remainder.split( )
+		constraint_index = next( (position for position, token in enumerate( parts )
+			if token.upper( ) in constraint_tokens), len( parts ) )
+		constraints = ' '.join( parts[ constraint_index: ] )
+		quoted_name = f'"{column}"'
+		definitions[ index ] = f'{quoted_name} {new_type}' + (
+			f' {constraints}' if constraints else '' )
+		updated = True
+		break
+	if not updated:
+		raise ValueError( f'Column "{column}" was not found in the table definition.' )
+
+	suffix = create_sql[ close_paren + 1: ].strip( ).rstrip( ';' )
+	return f'CREATE TABLE "{temp_table}" ({", ".join( definitions )})' + (
+		f' {suffix};' if suffix else ';' )
+
+
+def change_column_type( table: str, column: str, new_type: str ) -> None:
+	"""Change a SQLite column's declared type with an atomic table rebuild.
+
+	Purpose:
+	    Validates convertibility of populated values, recreates the table using its original schema
+	    and constraints with one revised declared type, casts the selected column during data copy,
+	    recreates explicit indexes and triggers, and commits the change as one transaction.
+
+	Args:
+	    table (str): Existing SQLite table containing the target column.
+	    column (str): Column whose declared type is changed.
+	    new_type (str): Supported replacement SQLite type.
+
+	Returns:
+	    None: This function changes the SQLite schema and stored values in place.
+	"""
+	throw_if( 'table', table )
+	throw_if( 'column', column )
+	throw_if( 'new_type', new_type )
+	supported_types = { 'INTEGER', 'REAL', 'NUMERIC', 'TEXT', 'BLOB' }
+	target_type = new_type.upper( )
+	if target_type not in supported_types:
+		raise ValueError( f'Unsupported SQLite type: {new_type}' )
+
+	df_table = read_table( table )
+	if column not in df_table.columns:
+		raise ValueError( f'Column "{column}" does not exist.' )
+	series = df_table[ column ]
+	populated = get_populated_mask( series )
+	if target_type in ( 'INTEGER', 'REAL', 'NUMERIC' ) and populated.any( ):
+		parsed = parse_numeric_series( series )
+		if not parsed[ populated ].notna( ).all( ):
+			raise ValueError( f'Column "{column}" contains values that cannot be converted to {target_type}.' )
+		if target_type == 'INTEGER' and not parsed[ populated ].dropna( ).mod( 1 ).eq( 0 ).all( ):
+			raise ValueError( f'Column "{column}" contains non-integer numeric values.' )
+
+	temp_table = f'{table}__mathy_type_rebuild'
+	with create_connection( ) as conn:
+		row = conn.execute( "SELECT sql FROM sqlite_master WHERE type='table' AND name=?;",
+			(table,) ).fetchone( )
+		if row is None or not row[ 0 ]:
+			raise ValueError( 'Table definition not found.' )
+		create_sql = str( row[ 0 ] )
+		index_sql = [ item[ 0 ] for item in conn.execute(
+			"SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql IS NOT NULL;",
+			(table,) ).fetchall( ) if item[ 0 ] ]
+		trigger_sql = [ item[ 0 ] for item in conn.execute(
+			"SELECT sql FROM sqlite_master WHERE type='trigger' AND tbl_name=? AND sql IS NOT NULL;",
+			(table,) ).fetchall( ) if item[ 0 ] ]
+		columns = [ str( item[ 1 ] ) for item in conn.execute(
+			f'PRAGMA table_info("{table}");' ).fetchall( ) ]
+		new_create_sql = replace_sqlite_column_type( create_sql, table, column, target_type,
+			temp_table )
+		select_expressions = [ (
+			f'CASE WHEN "{name}" IS NULL OR TRIM(CAST("{name}" AS TEXT)) = '' THEN NULL '
+			f'ELSE CAST("{name}" AS {target_type}) END'
+			if name == column and target_type in ( 'INTEGER', 'REAL', 'NUMERIC' ) else
+			f'CAST("{name}" AS {target_type})' if name == column else f'"{name}"' )
+			for name in columns ]
+		column_list = ', '.join( f'"{name}"' for name in columns )
+		select_list = ', '.join( select_expressions )
+
+		try:
+			conn.execute( 'BEGIN' )
+			conn.execute( f'DROP TABLE IF EXISTS "{temp_table}";' )
+			conn.execute( new_create_sql )
+			conn.execute( f'INSERT INTO "{temp_table}" ({column_list}) SELECT {select_list} FROM "{table}";' )
+			conn.execute( f'DROP TABLE "{table}";' )
+			conn.execute( f'ALTER TABLE "{temp_table}" RENAME TO "{table}";' )
+			for statement in index_sql:
+				conn.execute( statement )
+			for statement in trigger_sql:
+				conn.execute( statement )
+			conn.commit( )
+		except Exception:
+			conn.rollback( )
+			raise
 
 def list_tables( ) -> List[ str ]:
 	"""Return SQLite table names from the configured database.
@@ -3311,6 +3908,30 @@ st.set_page_config( page_title='Mathy', layout='wide', page_icon=cfg.FAVICON,
 st.logo( image=cfg.LOGO, size='large', link=cfg.REPO_URL )
 pd.options.display.float_format = '{:,.2f}'.format
 
+
+@st.dialog( 'Operation Successful' )
+def render_database_success_dialog( message: str ) -> None:
+	"""Render a queued database-operation success dialog.
+
+	Purpose:
+	    Displays one verified database success message after a rerun while preserving the operation
+	    context that triggered the acknowledgement.
+
+	Args:
+	    message (str): Database operation result displayed to the user.
+
+	Returns:
+	    None: This function renders a Streamlit dialog.
+	"""
+	throw_if( 'message', message )
+	st.success( message )
+
+
+pending_database_result = st.session_state.get( 'database_operation_result', None )
+if pending_database_result:
+	st.session_state[ 'database_operation_result' ] = None
+	render_database_success_dialog( str( pending_database_result ) )
+
 # ============================================
 # SIDEBAR
 # ============================================
@@ -3336,33 +3957,25 @@ with st.sidebar:
 		
 		elif source == 'Database Data':
 			try:
-				with sqlite3.connect( cfg.DB_PATH ) as connection:
-					df_tables = pd.read_sql_query( """
-	                                               SELECT name
-	                                               FROM sqlite_master
-	                                               WHERE type = 'table'
-	                                                 AND name NOT LIKE 'sqlite_%'
-	                                               ORDER BY name;
-					                               """, connection )
-					
-					table_options = df_tables[ 'name' ].tolist( )[ : ]
-					if table_options:
-						selected_table = st.selectbox( label='Select Database Table',
-							options=table_options, key='database_table_selectbox' )
-						
-						if selected_table:
-							df_loaded = pd.read_sql_query( f'SELECT * FROM "{selected_table}"',
-								connection )
-							schema_rows = connection.execute(
-								f'PRAGMA table_info("{selected_table}");' ).fetchall( )
-							loaded_original = df_loaded.copy( )
-							loaded_source_signature = ('Database Data', selected_table)
-							loaded_source_message = f'Loaded Database Table: {selected_table}'
-							loaded_source_kind = 'database'
-							loaded_database_table = selected_table
-							loaded_declared_schema = create_declared_schema_map( schema_rows )
-					else:
-						st.warning( 'No tables were found in the database.' )
+				table_options = [ table for table in list_tables( ) if not table.startswith( 'sqlite_' ) ]
+				if table_options:
+					active_table = st.session_state.get( 'active_database_table', '' )
+					if active_table in table_options and st.session_state.get(
+							'database_table_selectbox', None ) not in table_options:
+						st.session_state[ 'database_table_selectbox' ] = active_table
+					selected_table = st.selectbox( label='Select Database Table',
+						options=table_options, key='database_table_selectbox' )
+					if selected_table:
+						df_loaded = read_table( selected_table )
+						loaded_original = df_loaded.copy( )
+						loaded_source_signature = ('Database Data', selected_table)
+						loaded_source_message = f'Loaded Database Table: {selected_table}'
+						loaded_source_kind = 'database'
+						loaded_database_table = selected_table
+						loaded_declared_schema = create_declared_schema_map(
+							create_schema( selected_table ) )
+				else:
+					st.warning( 'No tables were found in the database.' )
 			except Exception as ex:
 				st.error( f'Error loading database data: {ex}' )
 		
@@ -3370,18 +3983,57 @@ with st.sidebar:
 			uploaded = st.file_uploader( label='Upload Spreadsheet', type=[ 'xlsx', 'xls', 'csv' ],
 				key='source_uploader' )
 			if uploaded is not None:
-				if uploaded.name.lower( ).endswith( ('.xlsx', '.xls') ):
-					df_loaded = pd.read_excel( uploaded )
-				else:
-					df_loaded = pd.read_csv( uploaded )
-				
-				loaded_original = df_loaded.copy( )
-				loaded_source_signature = ('Custom Data', uploaded.name, uploaded.size)
-				loaded_source_message = f'Loaded uploaded file: {uploaded.name}'
-				loaded_source_kind = 'custom'
+				try:
+					file_bytes = uploaded.getvalue( )
+					upload_signature = (uploaded.name, len( file_bytes ), hash( file_bytes ))
+					if st.session_state.get( 'custom_upload_signature', None ) != upload_signature:
+						uploaded.seek( 0 )
+						file_stem = Path( uploaded.name ).stem
+						if uploaded.name.lower( ).endswith( ('.xlsx', '.xls') ):
+							sheets = pd.read_excel( uploaded, sheet_name=None )
+							if not sheets:
+								raise ValueError( 'The uploaded workbook does not contain any worksheets.' )
+							source_names = list( sheets.keys( ) )
+							requested_names = ([ file_stem ] if len( source_names ) == 1 else
+								[ f'{file_stem}_{sheet_name}' for sheet_name in source_names ])
+							table_names = create_available_table_names( requested_names, list_tables( ) )
+							df_tables = { table_name: sheets[ sheet_name ] for sheet_name, table_name
+								in zip( source_names, table_names ) }
+						else:
+							df_csv = pd.read_csv( uploaded )
+							table_name = create_available_table_names( [ file_stem ], list_tables( ) )[ 0 ]
+							df_tables = { table_name: df_csv }
+
+						persisted_tables = write_dataframe_tables_to_database( df_tables, overwrite=False )
+						first_table = next( iter( persisted_tables ) )
+						st.session_state[ 'custom_upload_signature' ] = upload_signature
+						st.session_state[ 'custom_upload_tables' ] = persisted_tables
+						st.session_state[ 'custom_upload_filename' ] = uploaded.name
+						activate_database_table( first_table )
+						queue_database_success(
+							f'Imported {len( persisted_tables ):,} table(s) from "{uploaded.name}". '
+							f'"{first_table}" is now the active table.' )
+						st.rerun( )
+
+					persisted_tables = st.session_state.get( 'custom_upload_tables', { } )
+					available_tables = [ table for table in persisted_tables if table in list_tables( ) ]
+					if available_tables:
+						active_custom_table = st.session_state.get( 'active_database_table', '' )
+						selected_custom_table = active_custom_table if active_custom_table in available_tables else available_tables[ 0 ]
+						df_loaded = read_table( selected_custom_table )
+						loaded_original = df_loaded.copy( )
+						loaded_source_signature = ('Database Data', selected_custom_table)
+						loaded_source_message = f'Loaded Database Table: {selected_custom_table}'
+						loaded_source_kind = 'database'
+						loaded_database_table = selected_custom_table
+						loaded_declared_schema = create_declared_schema_map(
+							create_schema( selected_custom_table ) )
+				except Exception as ex:
+					st.session_state[ 'custom_upload_signature' ] = None
+					st.error( f'Unable to import spreadsheet: {ex}' )
 			else:
 				st.info( 'Upload a spreadsheet to load data.' )
-		
+
 		active_source_signature = st.session_state.get( 'active_source_signature', None )
 		if has_loaded_dataset( df_loaded ) and (not has_loaded_dataset(
 				st.session_state.get( 'df_dataset', None ) ) or
@@ -21290,83 +21942,32 @@ elif mode == 'Data Upload':
 						uploaded_file.seek( 0 )
 						sheets = pd.read_excel( uploaded_file, sheet_name=None )
 						if not sheets:
-							raise ValueError(
-								'The uploaded workbook does not contain any worksheets.' )
-						
+							raise ValueError( 'The uploaded workbook does not contain any worksheets.' )
+
 						source_sheet_names = list( sheets.keys( ) )
 						table_names = create_unique_upload_identifiers( source_sheet_names )
 						sheet_table_map = dict( zip( source_sheet_names, table_names ) )
-						with create_connection( ) as conn:
-							try:
-								conn.execute( 'BEGIN' )
-								for sheet_name, df_sheet in sheets.items( ):
-									if not isinstance( df_sheet, pd.DataFrame ):
-										raise TypeError(
-											f'Worksheet "{sheet_name}" did not produce a '
-											f'dataframe.' )
-									
-									if len( df_sheet.columns ) == 0:
-										raise ValueError(
-											f'Worksheet "{sheet_name}" does not contain any '
-											f'columns.' )
-									
-									table_name = sheet_table_map[ sheet_name ]
-									df_table = df_sheet.copy( )
-									df_table.columns = create_unique_upload_identifiers(
-										df_table.columns.tolist( ) )
-									
-									if overwrite:
-										conn.execute( f'DROP TABLE IF EXISTS "{table_name}"' )
-									
-									columns: list[ str ] = [ ]
-									for column in df_table.columns:
-										sql_type = get_sqlite_type( df_table[ column ].dtype )
-										columns.append( f'"{column}" {sql_type}' )
-									
-									create_stmt = (f'CREATE TABLE "{table_name}" '
-									               f'({", ".join( columns )});')
-									conn.execute( create_stmt )
-									
-									if not df_table.empty:
-										placeholders = ', '.join(
-											[ '?' ] * len( df_table.columns ) )
-										insert_stmt = (f'INSERT INTO "{table_name}" '
-										               f'VALUES ({placeholders});')
-										
-										rows = [ tuple(
-											normalize_upload_sql_value( value ) for value in row )
-											for row in
-											df_table.itertuples( index=False, name=None ) ]
-										
-										conn.executemany( insert_stmt, rows )
-								
-								conn.commit( )
-							except Exception:
-								conn.rollback( )
-								raise
-						
-						imported_tables: Dict[ str, pd.DataFrame ] = { }
-						imported_sheet_names: Dict[ str, str ] = { }
-						for sheet_name, table_name in sheet_table_map.items( ):
-							imported_tables[ table_name ] = read_table( table_name )
-							imported_sheet_names[ table_name ] = sheet_name
-						
+						df_tables = { table_name: sheets[ sheet_name ] for sheet_name, table_name
+							in sheet_table_map.items( ) }
+						imported_tables = write_dataframe_tables_to_database( df_tables,
+							overwrite=overwrite )
+						imported_sheet_names = { table_name: sheet_name for sheet_name, table_name
+							in sheet_table_map.items( ) }
+
 						st.session_state[ 'data_upload_tables' ] = imported_tables
 						st.session_state[ 'data_upload_sheet_names' ] = imported_sheet_names
 						st.session_state[ 'data_upload_filename' ] = uploaded_file.name
 						st.session_state[ 'data_upload_signature' ] = upload_signature
 						first_table_name = next( iter( imported_tables ) )
-						df_first_table = imported_tables[ first_table_name ]
-						if has_loaded_dataset( df_first_table ):
-							store_loaded_dataset( df_first_table )
-						
-						st.success( f'Imported {len( imported_tables ):,} worksheet table(s) from '
-						            f'{uploaded_file.name}.' )
-					
+						activate_database_table( first_table_name )
+						queue_database_success(
+							f'Imported {len( imported_tables ):,} worksheet table(s) from '
+							f'"{uploaded_file.name}". "{first_table_name}" is now the active table.' )
+						st.rerun( )
 					except Exception as e:
 						st.session_state[ 'data_upload_signature' ] = None
 						st.error( f'Import failed — transaction rolled back.\n\n{e}' )
-		
+
 		# ------------------------------------------------------------------
 		# IMPORTED TABLE SELECTION
 		# ------------------------------------------------------------------
@@ -21384,8 +21985,13 @@ elif mode == 'Data Upload':
 			else:
 				selected_table = table_options[ 0 ]
 			
-			df_uploaded = imported_tables[ selected_table ].copy( )
-			schema = infer_schema( df_uploaded )
+			if st.session_state.get( 'active_database_table', '' ) != selected_table:
+				activate_database_table( selected_table )
+			df_uploaded = read_table( selected_table )
+			st.session_state[ 'data_upload_tables' ][ selected_table ] = df_uploaded.copy( )
+			declared_schema = create_declared_schema_map( create_schema( selected_table ) )
+			profiles = profile_dataframe_schema( df_uploaded, declared_schema )
+			schema = { column: str( profile[ 'analytical_role' ] ) for column, profile in profiles.items( ) }
 			type_counts = pd.Series( schema ).value_counts( )
 			
 			# ------------------------------------------------------------------
@@ -21413,40 +22019,6 @@ elif mode == 'Data Upload':
 				disabled=True, key=f'data_upload_editor_{selected_table}' )
 		
 # ============================================
-# DATA BROWSE MODE
-# ============================================
-elif mode == 'Data Browse':
-	left, center, right = st.columns( [ 0.025, 0.95, 0.025 ] )
-	with center:
-		st.subheader( cfg.MODE[ 'Data Browse' ] )
-		st.divider( )
-		tables = list_tables( )
-		if tables:
-			brs_c1, brs_c2, brs_c3, brs_c4, brs_c5 = st.columns( 5, border=True )
-			with brs_c1:
-				table = st.selectbox( 'Select Table:', tables, key='table_name' )
-			
-			df = read_table( table )
-			schema = infer_schema( df )
-			type_counts = pd.Series( schema ).value_counts( )
-			with brs_c2:
-				st.metric( 'Total Records', f'{len( df ):,}' )
-			
-			with brs_c3:
-				st.metric( 'Numeric Fields', int( type_counts.get( 'numeric', 0 ) ) )
-			
-			with brs_c4:
-				st.metric( 'Ordinal Fields', int( type_counts.get( 'ordinal', 0 ) ) )
-			
-			with brs_c5:
-				st.metric( 'Categorical Fields', int( type_counts.get( 'categorical', 0 ) ) )
-			
-			blue_divider( )
-			render_data_editor( df, use_container_width=True, height=400 )
-		else:
-			st.info( 'No tables available.' )
-
-# ============================================
 # CRUD OPS MODE
 # ============================================
 elif mode == 'CRUD Ops':
@@ -21454,306 +22026,484 @@ elif mode == 'CRUD Ops':
 	with center:
 		st.subheader( cfg.MODE[ 'CRUD Ops' ] )
 		blue_divider( )
-		
-		# =====================================================================================
-		# ACTIVE DATASET CRUD
-		# =====================================================================================
-		df_active = get_loaded_dataset( )
-		if df_active is None:
-			st.info( 'No active dataset is available to edit.' )
-		else:
-			synchronize_dataset_columns( df_active )
-			active_profiles = st.session_state[ 'column_profiles' ].copy( )
-			active_schema = st.session_state[ 'column_schema' ].copy( )
-			active_schema_signature = (tuple( df_active.columns.tolist( ) ), tuple(
-				active_schema.items( ) ))
-			if st.session_state.get( 'crud_active_schema_signature', None ) != (
-					active_schema_signature):
-				dynamic_keys = [ key for key in st.session_state.keys( ) if str( key ).startswith(
-					'crud_active_row_' ) ]
-				clear_keys( dynamic_keys + [ 'crud_active_drop_columns',
-					'crud_active_rename_column', 'crud_active_new_column_name' ] )
-			
+
 		# =====================================================================================
 		# DATABASE TABLE CRUD
 		# =====================================================================================
-		st.markdown( '##### Select Table' )
-		tables = list_tables( )
+		st.markdown( '##### Select Data' )
+		tables = [ table_name for table_name in list_tables( ) if not table_name.startswith( 'sqlite_' ) ]
 		if not tables:
 			st.info( 'No database tables are available.' )
 		else:
-			crud_c1, crud_c2, crud_c3, crud_c4 = st.columns( 4 )
+			pending_table = st.session_state.get( 'crud_next_table', '' )
+			if pending_table and pending_table in tables:
+				st.session_state[ 'crud_table' ] = pending_table
+				st.session_state[ 'crud_next_table' ] = ''
+			elif st.session_state.get( 'crud_table', None ) not in tables:
+				clear_keys( [ 'crud_table' ] )
+
+			crud_c1, crud_c2, crud_c3, crud_c4, crud_c5 = st.columns( 5, border=True )
 			with crud_c1:
-				table = st.selectbox( 'Select', tables, key='crud_table' )
-			df = read_table( table )
+				table = st.selectbox( 'Select Table', tables, key='crud_table' )
+
+			df_database = read_table( table )
+			df_database_rows = read_table_with_rowid( table )
 			database_schema = create_schema( table )
-			
-			# ------------------------------------------------------------------
-			# Build Type Map
-			# ------------------------------------------------------------------
-			type_map = { column[ 1 ]: column[ 2 ].upper( ) for column in database_schema
-				if column[ 1 ] != 'rowid' }
-			
+			declared_schema = create_declared_schema_map( database_schema )
+			crud_profiles = profile_dataframe_schema( df_database, declared_schema )
+			crud_type_counts = pd.Series( { column: str( profile[ 'analytical_role' ] )
+				for column, profile in crud_profiles.items( ) } ).value_counts( )
+			with crud_c2:
+				st.metric( 'Total Records', f'{len( df_database ):,}' )
+			with crud_c3:
+				st.metric( 'Numeric Fields', int( crud_type_counts.get( 'numeric', 0 ) ) )
+			with crud_c4:
+				st.metric( 'Ordinal Fields', int( crud_type_counts.get( 'ordinal', 0 ) ) )
+			with crud_c5:
+				st.metric( 'Categorical Fields', int( crud_type_counts.get( 'categorical', 0 ) ) )
+			type_map = { str( item[ 1 ] ): str( item[ 2 ] or 'TEXT' ).upper( )
+				for item in database_schema }
+			schema_signature = (table, tuple( (str( item[ 1 ] ), str( item[ 2 ] or '' ))
+				for item in database_schema ))
+			previous_signature = st.session_state.get( 'crud_database_schema_signature', None )
+			if previous_signature != schema_signature:
+				owned_prefixes = ( 'crud_insert_', 'crud_update_', 'crud_record_',
+					'crud_schema_drop_', 'crud_schema_rename_', 'crud_schema_type_',
+					'crud_table_manage_' )
+				stale_keys = [ key for key in st.session_state.keys( ) if str( key ).startswith(
+					owned_prefixes ) ]
+				clear_keys( stale_keys )
+				st.session_state[ 'crud_database_schema_signature' ] = schema_signature
+
 			# ------------------------------------------------------------------
 			# INSERT
 			# ------------------------------------------------------------------
 			blue_divider( )
-			st.markdown( '##### Insert Row' )
-			insert_data = { }
-			insert_columns = st.columns( 4 )
-			for index, (column, col_type) in enumerate( type_map.items( ) ):
-				target_column = insert_columns[ index % 4 ]
-				with target_column:
-					if 'INT' in col_type:
-						insert_data[ column ] = st.number_input( column, step=1,
-							key=f'ins_{column}' )
-					
-					elif 'REAL' in col_type:
-						insert_data[ column ] = st.number_input( column, format='%.6f',
-							key=f'ins_{column}' )
-					
-					elif 'BOOL' in col_type:
-						insert_data[ column ] = 1 if st.checkbox( column,
-							key=f'ins_{column}' ) else 0
-					
-					else:
-						insert_data[ column ] = st.text_input( column,
-							key=f'ins_{column}' )
-			
-			ins_c1, ins_c2, ins_c3, ins_c4 = st.columns( 4 )
-			with ins_c1:
-				if st.button( label='Insert Row', icon='➕', width='stretch' ):
-					cols = list( insert_data.keys( ) )
-					placeholders = ', '.join( [ '?' ] * len( cols ) )
-					stmt = f'INSERT INTO "{table}" ({", ".join( cols )}) VALUES ({placeholders});'
-					
-					with create_connection( ) as conn:
-						conn.execute( stmt, list( insert_data.values( ) ) )
-						conn.commit( )
-					
-					st.success( 'Row inserted.' )
-					st.rerun( )
+			st.markdown( '##### ➕ Add Record' )
+			with st.expander( label='Insert', expanded=True ):
+				insert_data_values: Dict[ str, object ] = { }
+				primary_key_columns = [ item for item in database_schema if int( item[ 5 ] or 0 ) > 0 ]
+				auto_generated_columns = { str( primary_key_columns[ 0 ][ 1 ] ) } if (
+					len( primary_key_columns ) == 1 and
+					str( primary_key_columns[ 0 ][ 2 ] or '' ).strip( ).upper( ) == 'INTEGER') else set( )
+				insert_schema = [ item for item in database_schema if str( item[ 1 ] ) not in
+					auto_generated_columns ]
+				insert_columns = st.columns( 4 )
+				for index, schema_item in enumerate( insert_schema ):
+					column = str( schema_item[ 1 ] )
+					declared_type = str( schema_item[ 2 ] or 'TEXT' ).upper( )
+					target_column = insert_columns[ index % 4 ]
+					with target_column:
+						unique_values = df_database[ column ].dropna( ).drop_duplicates( ).tolist( )
+						choice_key = f'crud_insert_choice_{table}_{index}'
+						new_key = f'crud_insert_new_{table}_{index}'
+						if unique_values:
+							display_map = { str( value ): value for value in unique_values }
+							options = [ '<Enter New Value>' ] + list( display_map.keys( ) )
+							selection = st.selectbox( column, options, key=choice_key,
+								help='Select an existing unique field value or choose Enter New Value.' )
+							if selection == '<Enter New Value>':
+								value = st.text_input( f'New {column}', key=new_key )
+							else:
+								value = display_map[ selection ]
+						else:
+							value = st.text_input( column, key=new_key )
+						insert_data_values[ column ] = value
 				
+				st.divider( )
+				
+				ins_c1, ins_c2 = st.columns( 2 )
+				with ins_c1:
+					if st.button( label='Insert Row', icon='➕', width='stretch',
+							key='crud_insert_submit_button' ):
+						try:
+							persisted_values = { column: coerce_sqlite_value( value,
+								type_map[ column ] ) for column, value in insert_data_values.items( ) }
+							if persisted_values and database_record_exists( table, persisted_values ):
+								st.warning( 'This record already exists. No row was inserted.' )
+							else:
+								with create_connection( ) as conn:
+									if persisted_values:
+										columns = list( persisted_values.keys( ) )
+										column_list = ', '.join( f'"{column}"' for column in columns )
+										placeholders = ', '.join( [ '?' ] * len( columns ) )
+										statement = f'INSERT INTO "{table}" ({column_list}) VALUES ({placeholders});'
+										cursor = conn.execute( statement,
+											[ persisted_values[ column ] for column in columns ] )
+									else:
+										cursor = conn.execute( f'INSERT INTO "{table}" DEFAULT VALUES;' )
+									inserted_rowid = int( cursor.lastrowid )
+									conn.commit( )
+								if persisted_values and not database_record_matches( table, inserted_rowid, persisted_values ):
+									raise RuntimeError( 'Inserted row could not be verified.' )
+								if not persisted_values and read_database_record( table, inserted_rowid ) is None:
+									raise RuntimeError( 'Inserted row could not be verified.' )
+								refresh_crud_database_state( table )
+								queue_database_success( f'Row inserted successfully into "{table}".' )
+								st.rerun( )
+						except Exception as ex:
+							st.error( f'Unable to insert row: {ex}' )
+				
+				with ins_c2:
+					st.button( label='Reset', icon='🔄', width='stretch',
+						key='crud_insert_reset_button', on_click=reset_session_prefixes,
+						args=((f'crud_insert_choice_{table}_', f'crud_insert_new_{table}_'),) )
+
 			# ------------------------------------------------------------------
 			# UPDATE
 			# ------------------------------------------------------------------
 			blue_divider( )
-			st.markdown( '##### Update Row' )
-			upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
-			with upd_c1:
-				rowid = st.number_input( 'Row ID', min_value=1, step=1,
-					key='crud_database_update_rowid' )
-			update_data = { }
-			update_columns = st.columns( 4 )
-			for index, (column, col_type) in enumerate( type_map.items( ) ):
-				target_column = update_columns[ index % 4 ]
-				with target_column:
-					if 'INT' in col_type:
-						val = st.number_input( column, step=1,
-							key=f'upd_{column}' )
-						update_data[ column ] = val
-					
-					elif 'REAL' in col_type:
-						val = st.number_input( column, format='%.6f',
-							key=f'upd_{column}' )
-						update_data[ column ] = val
-					
-					elif 'BOOL' in col_type:
-						val = 1 if st.checkbox( column,
-							key=f'upd_{column}' ) else 0
-						update_data[ column ] = val
-					
-					else:
-						val = st.text_input( column, key=f'upd_{column}' )
-						update_data[ column ] = val
-			
-			btn_c1, btn_c2, btn_c3, btn_c4 = st.columns( 4 )
-			with btn_c1:
-				if st.button( label='Update Row', icon='⬆️', width='stretch' ):
-					set_clause = ', '.join( [ f'"{column}"=?' for column in update_data ] )
-					stmt = f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;'
-					with create_connection( ) as conn:
-						conn.execute( stmt, list( update_data.values( ) ) + [ rowid ] )
-						conn.commit( )
-					
-					st.success( 'Row updated.' )
-					st.rerun( )
-			
+			st.markdown( '##### 📤 Update Data' )
+			with st.expander( label='Update', expanded=True ):
+				upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
+				with upd_c1:
+					rowid = st.number_input( 'Row ID', min_value=1, step=1,
+						key='crud_update_database_rowid' )
+				current_record = read_database_record( table, int( rowid ) )
+				update_values: Dict[ str, object ] = { }
+				if current_record is None:
+					st.info( 'Row ID not found.' )
+				else:
+					update_columns = st.columns( 4 )
+					for index, column in enumerate( current_record.keys( ) ):
+						target_column = update_columns[ index % 4 ]
+						with target_column:
+							current_value = current_record[ column ]
+							update_values[ column ] = st.text_input( column,
+								value='' if current_value is None else str( current_value ),
+								key=f'crud_update_value_{table}_{int( rowid )}_{index}' )
+
+				st.divider( )
+				
+				btn_c1, btn_c2 = st.columns( 2 )
+				with btn_c1:
+					if st.button( label='Update Row', icon='⬆️', width='stretch',
+							key='crud_update_submit_button', disabled=current_record is None ):
+						try:
+							persisted_values = { column: coerce_sqlite_value( value,
+								type_map[ column ] ) for column, value in update_values.items( ) }
+							set_clause = ', '.join( f'"{column}"=?' for column in persisted_values )
+							parameters = list( persisted_values.values( ) ) + [ int( rowid ) ]
+							with create_connection( ) as conn:
+								cursor = conn.execute(
+									f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;', parameters )
+								conn.commit( )
+							if cursor.rowcount == 0:
+								st.warning( 'Row ID not found. No row was updated.' )
+							else:
+								if not database_record_matches( table, int( rowid ), persisted_values ):
+									raise RuntimeError( 'Updated row could not be verified.' )
+								refresh_crud_database_state( table )
+								queue_database_success( f'Row {int( rowid )} updated successfully in "{table}".' )
+								st.rerun( )
+						except Exception as ex:
+							st.error( f'Unable to update row: {ex}' )
+				
+				with btn_c2:
+					st.button( label='Reset', icon='🔄', width='stretch',
+						key='crud_update_reset_button', on_click=reset_session_prefixes,
+						args=((f'crud_update_value_{table}_{int( rowid )}_',),) )
+
 			# ------------------------------------------------------------------
 			# DELETE
 			# ------------------------------------------------------------------
 			blue_divider( )
-			st.markdown( '##### Delete Row' )
-			delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
-			with delete_c1:
-				delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1,
-					key='crud_database_delete_rowid' )
-				if st.button( label='Delete Row', icon='❌', width='stretch',
-						key='crud_database_delete_button' ):
-					with create_connection( ) as conn:
-						conn.execute( f'DELETE FROM "{table}" WHERE rowid=?;', (delete_id,) )
-						conn.commit( )
-					
-					st.success( 'Row deleted.' )
-					st.rerun( )
-			
-			blue_divider( )
-			
-			# -------------------------------------------------------------------------------------
-			# RECORD CRUD
-			# -------------------------------------------------------------------------------------
-			st.markdown( '##### Edit Data' )
-			with st.expander( label='Records', icon='✏️', expanded=True ):
-				index_c1, index_c2 = st.columns( [ 0.20, 0.80 ] )
-				with index_c1:
-					max_row_position = len( df_active ) - 1
-					default_row_position = int( st.session_state.get(
-						'crud_active_row_position', 0 ) )
-					default_row_position = max( 0, min( default_row_position,
-						max_row_position ) )
-					row_position = st.number_input( 'Select Row Position', min_value=0,
-						max_value=max_row_position, value=default_row_position, step=1,
-						key='crud_active_row_position' )
-				with index_c2:
-					st.caption( f'Index label: {df_active.index[ row_position ]}' )
+			st.markdown( '##### ❌ Remove Record' )
+			with st.expander( label='Delete', expanded=True ):
+				delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
+				with delete_c1:
+					delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1,
+						key='crud_delete_database_rowid' )
 				
-				row = df_active.iloc[ row_position ]
-				updated_values: Dict[ str, object ] = { }
-				with st.form( 'crud_active_row_edit_form' ):
-					column_left, column_right = st.columns( 2 )
-					for index, (column, role) in enumerate( active_schema.items( ) ):
-						target = column_left if index % 2 == 0 else column_right
-						value = row[ column ]
-						profile = active_profiles[ column ]
-						with target:
-							if role == 'numeric':
-								parsed_value = parse_numeric_series( pd.Series( [ value ] ) ).iloc[ 0 ]
-								if profile[ 'inferred_dtype' ] == 'integer':
-									updated_values[ column ] = st.number_input( column,
-										value=int( parsed_value ) if pd.notna( parsed_value ) else 0,
-										step=1, key=f'crud_active_row_{index}' )
-								else:
-									updated_values[ column ] = st.number_input( column,
-										value=float( parsed_value ) if pd.notna( parsed_value ) else 0.0,
-										format='%.2f', key=f'crud_active_row_{index}' )
-							elif role == 'ordinal':
-								parsed_value = parse_numeric_series( pd.Series( [ value ] ) ).iloc[ 0 ]
-								if pd.notna( parsed_value ):
-									updated_values[ column ] = st.number_input( column,
-										value=int( parsed_value ), step=1,
-										key=f'crud_active_row_{index}' )
-								else:
-									updated_values[ column ] = st.text_input( column,
-										value='' if pd.isna( value ) else str( value ),
-										key=f'crud_active_row_{index}' )
-							elif role == 'datetime':
-								parsed_value = parse_datetime_series( pd.Series( [ value ] ) ).iloc[ 0 ]
-								updated_values[ column ] = st.date_input( column,
-									value=parsed_value.date( ) if pd.notna( parsed_value ) else None,
-									key=f'crud_active_row_{index}' )
-							elif role == 'categorical':
-								options = df_active[ column ].dropna( ).unique( ).tolist( )
-								if options:
-									selected_index = options.index( value ) if pd.notna(
-										value ) and value in options else 0
-									updated_values[ column ] = st.selectbox( column, options,
-										index=selected_index, key=f'crud_active_row_{index}' )
-								else:
-									updated_values[ column ] = st.text_input( column, value='',
-										key=f'crud_active_row_{index}' )
-							else:
-								updated_values[ column ] = st.text_input( column,
-									value='' if pd.isna( value ) else str( value ), disabled=True,
-									key=f'crud_active_row_{index}' )
-					
-					submitted = st.form_submit_button( label='Apply Row Update', icon='✔️' )
+				st.divider( )
 				
-				if submitted:
-					df_updated = df_active.copy( )
-					before = df_updated.iloc[ row_position ].copy( )
-					for column, value in updated_values.items( ):
-						column_position = df_updated.columns.get_loc( column )
-						if active_schema[ column ] == 'datetime':
-							df_updated.iat[ row_position, column_position ] = pd.to_datetime(
-								value ) if value is not None else pd.NaT
+				delete_btn_c1, delete_btn_c2  = st.columns( 2 )
+				with delete_btn_c1:
+					if st.button( label='Delete Row', icon='❌', width='stretch',
+							key='crud_delete_submit_button' ):
+						with create_connection( ) as conn:
+							cursor = conn.execute( f'DELETE FROM "{table}" WHERE rowid=?;',
+								(int( delete_id ),) )
+							conn.commit( )
+						if cursor.rowcount == 0:
+							st.warning( 'Row ID not found. No row was deleted.' )
 						else:
-							df_updated.iat[ row_position, column_position ] = value
-					
-					st.session_state[ 'df_dataset' ] = df_updated
-					synchronize_dataset_columns( df_updated )
-					after = df_updated.iloc[ row_position ].copy( )
-					st.success( f'Row position {row_position} updated.' )
-					render_data_editor( pd.DataFrame( { 'Before': before, 'After': after } ),
-						use_container_width=True,
-						key='crud_active_row_update_comparison' )
-					st.rerun( )
-			
+							if read_database_record( table, int( delete_id ) ) is not None:
+								st.error( 'Deleted row could not be verified.' )
+							else:
+								refresh_crud_database_state( table )
+								queue_database_success( f'Row {int( delete_id )} deleted successfully from "{table}".' )
+								st.rerun( )
+				with delete_btn_c2:
+					st.button( label='Reset', icon='🔄', width='stretch',
+						key='crud_delete_reset_button', on_click=reset_session_keys,
+						args=([ 'crud_delete_database_rowid' ],) )
+
 			blue_divider( )
-			
+
+			# -------------------------------------------------------------------------------------
+			# EDIT
+			# -------------------------------------------------------------------------------------
+			st.markdown( '##### 🛠️ Edit Data' )
+			with st.expander( label='Update', expanded=True ):
+				if df_database_rows.empty:
+					st.info( 'The selected table does not contain any records.' )
+				else:
+					index_c1, index_c2 = st.columns( [ 0.20, 0.80 ] )
+					with index_c1:
+						max_row_position = len( df_database_rows ) - 1
+						default_row_position = int( st.session_state.get(
+							'crud_record_row_position', 0 ) )
+						default_row_position = max( 0, min( default_row_position,
+							max_row_position ) )
+						row_position = st.number_input( 'Select Row Position', min_value=0,
+							max_value=max_row_position, value=default_row_position, step=1,
+							key='crud_record_row_position' )
+					selected_row = df_database_rows.iloc[ int( row_position ) ]
+					selected_rowid = int( selected_row[ '__mathy_rowid__' ] )
+					with index_c2:
+						st.caption( f'SQLite Row ID: {selected_rowid}' )
+
+					current_record = { column: selected_row[ column ] for column in df_database.columns }
+					updated_values: Dict[ str, object ] = { }
+					with st.form( f'crud_record_edit_form_{table}_{selected_rowid}' ):
+						record_columns = st.columns( 4 )
+						for index, column in enumerate( df_database.columns ):
+							target_column = record_columns[ index % 4 ]
+							with target_column:
+								current_value = current_record[ column ]
+								updated_values[ column ] = st.text_input( column,
+									value='' if pd.isna( current_value ) else str( current_value ),
+									key=f'crud_record_value_{table}_{selected_rowid}_{index}' )
+						
+						st.divider( )
+						
+						record_btn_c1, record_btn_c2 = st.columns( 2 )
+						with record_btn_c1:
+							apply_record = st.form_submit_button( label='Apply Row Update', icon='✔️',
+								width='stretch' )
+						
+						with record_btn_c2:
+							st.form_submit_button( label='Reset', icon='🔄', width='stretch',
+								on_click=reset_session_prefixes,
+								args=((f'crud_record_value_{table}_{selected_rowid}_',),) )
+
+					if apply_record:
+						try:
+							persisted_values = { column: coerce_sqlite_value( value,
+								type_map[ column ] ) for column, value in updated_values.items( ) }
+							set_clause = ', '.join( f'"{column}"=?' for column in persisted_values )
+							with create_connection( ) as conn:
+								cursor = conn.execute( f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;',
+									list( persisted_values.values( ) ) + [ selected_rowid ] )
+								conn.commit( )
+							if cursor.rowcount == 0:
+								st.warning( 'The selected record no longer exists.' )
+							else:
+								if not database_record_matches( table, selected_rowid, persisted_values ):
+									raise RuntimeError( 'Updated record could not be verified.' )
+								refresh_crud_database_state( table )
+								queue_database_success( f'Row position {int( row_position )} updated successfully in "{table}".' )
+								st.rerun( )
+						except Exception as ex:
+							st.error( f'Unable to update record: {ex}' )
+
+			blue_divider( )
+
 			# -------------------------------------------------------------------------------------
 			# COLUMN CRUD
 			# -------------------------------------------------------------------------------------
-			st.markdown( '##### Edit Schema' )
-			with st.expander( label='Columns', icon='✏️', expanded=True ):
+			st.markdown( '##### 🏗️ Edit Schema' )
+			with st.expander( label='Table', expanded=True ):
+				protected_tables = { 'chat_history', 'embeddings', 'Prompts' }
+				is_protected_table = table in protected_tables
+				table_mgmt_c1, table_mgmt_c2 = st.columns( 2, border=True )
+				with table_mgmt_c1:
+					new_table_name = st.text_input( 'New Table Name',
+						key='crud_table_manage_new_name', disabled=is_protected_table )
+					if is_protected_table:
+						st.info( 'This application infrastructure table is protected from schema-level table changes.' )
+					rename_table_c1, rename_table_c2 = st.columns( 2 )
+					with rename_table_c1:
+						if st.button( label='Rename Table', icon='✔️', width='stretch',
+								key='crud_table_manage_rename_submit', disabled=is_protected_table ):
+							try:
+								throw_if( 'new_table_name', new_table_name )
+								safe_table_name = create_identifier( new_table_name )
+								if safe_table_name == table:
+									st.info( 'The selected table already uses this name.' )
+								elif safe_table_name.lower( ) in { name.lower( ) for name in list_tables( ) }:
+									st.error( f'Table "{safe_table_name}" already exists.' )
+								else:
+									was_active = st.session_state.get( 'active_database_table', '' ) == table
+									rename_table( table, safe_table_name )
+									current_tables = list_tables( )
+									if table in current_tables or safe_table_name not in current_tables:
+										raise RuntimeError( 'Renamed table could not be verified.' )
+									reconcile_import_table_metadata( table, safe_table_name )
+									st.session_state[ 'crud_next_table' ] = safe_table_name
+									if was_active:
+										activate_database_table( safe_table_name )
+									queue_database_success(
+										f'Table "{table}" was renamed to "{safe_table_name}".' )
+									st.rerun( )
+							except Exception as ex:
+								st.error( f'Unable to rename table: {ex}' )
+					with rename_table_c2:
+						st.button( label='Reset', icon='🔄', width='stretch',
+							key='crud_table_manage_rename_reset', on_click=reset_session_keys,
+							args=([ 'crud_table_manage_new_name' ],) )
+
+				with table_mgmt_c2:
+					confirm_delete = st.checkbox( 'Confirm permanent table deletion', value=False,
+						key='crud_table_manage_delete_confirm', disabled=is_protected_table )
+					if is_protected_table:
+						st.info( 'This application infrastructure table is protected from deletion.' )
+					delete_table_c1, delete_table_c2 = st.columns( 2 )
+					with delete_table_c1:
+						if st.button( label='Delete Table', icon='❌', width='stretch',
+								key='crud_table_manage_delete_submit',
+								disabled=is_protected_table or not confirm_delete ):
+							try:
+								was_active = st.session_state.get( 'active_database_table', '' ) == table
+								drop_table( table )
+								if table in list_tables( ):
+									raise RuntimeError( 'Deleted table could not be verified.' )
+								reconcile_import_table_metadata( table )
+								remaining_tables = [ name for name in list_tables( )
+									if not name.startswith( 'sqlite_' ) and name not in protected_tables ]
+								replacement_table = remaining_tables[ 0 ] if remaining_tables else ''
+								if was_active:
+									if replacement_table:
+										activate_database_table( replacement_table )
+									else:
+										clear_active_database_table( )
+								if replacement_table:
+									st.session_state[ 'crud_next_table' ] = replacement_table
+								message = f'Table "{table}" was deleted.'
+								if was_active and replacement_table:
+									message += f' "{replacement_table}" is now the active table.'
+								queue_database_success( message )
+								st.rerun( )
+							except Exception as ex:
+								st.error( f'Unable to delete table: {ex}' )
+					with delete_table_c2:
+						st.button( label='Reset', icon='🔄', width='stretch',
+							key='crud_table_manage_delete_reset', on_click=reset_session_keys,
+							args=([ 'crud_table_manage_delete_confirm' ],) )
+
+			with st.expander( label='Columns', expanded=True ):
 				label_c1, label_c2 = st.columns( 2, border=True )
 				with label_c1:
-					drop_columns = st.multiselect( 'Columns to Drop',
-						df_active.columns.tolist( ), key='crud_active_drop_columns' )
-					if st.button( label='Drop Column', icon='❌',
-							key='crud_active_drop_button' ):
-						if not drop_columns:
-							st.info( 'Select one or more columns to drop.' )
-						elif len( drop_columns ) == len( df_active.columns ):
-							st.error( 'Cannot Drop All Columns.' )
-						else:
-							df_updated = df_active.drop( columns=drop_columns )
-							st.session_state[ 'df_dataset' ] = df_updated
-							synchronize_dataset_columns( df_updated )
-							st.rerun( )
-				
+					drop_columns = st.multiselect( 'Columns to Drop', df_database.columns.tolist( ),
+						key='crud_schema_drop_columns' )
+					drop_btn_c1, drop_btn_c2 = st.columns( 2 )
+					with drop_btn_c1:
+						if st.button( label='Drop Column', icon='❌', width='stretch',
+								key='crud_schema_drop_submit_button' ):
+							if not drop_columns:
+								st.info( 'Select one or more columns to drop.' )
+							elif len( drop_columns ) == len( df_database.columns ):
+								st.error( 'Cannot Drop All Columns.' )
+							else:
+								try:
+									for column in drop_columns:
+										drop_column( table, column )
+									remaining_columns = [ str( item[ 1 ] ) for item in create_schema( table ) ]
+									if any( column in remaining_columns for column in drop_columns ):
+										raise RuntimeError( 'Dropped column could not be verified.' )
+									refresh_crud_database_state( table )
+									queue_database_success( f'Selected column(s) dropped successfully from "{table}".' )
+									st.rerun( )
+								except Exception as ex:
+									st.error( f'Unable to drop column: {ex}' )
+					
+					with drop_btn_c2:
+						st.button( label='Reset', icon='🔄', width='stretch',
+							key='crud_schema_drop_reset_button', on_click=reset_session_keys,
+							args=([ 'crud_schema_drop_columns' ],) )
+
 				with label_c2:
-					rename_column = st.selectbox( 'Rename Column',
-						[ '<None>' ] + df_active.columns.tolist( ),
-						key='crud_active_rename_column' )
+					rename_target = st.selectbox( 'Rename Column',
+						[ '<None>' ] + df_database.columns.tolist( ), key='crud_schema_rename_column' )
+					
 					new_column_name = st.text_input( 'New Column Name',
-						key='crud_active_new_column_name' )
-					if st.button( label='Rename', icon='✔️', key='crud_active_rename_button' ):
-						if rename_column == '<None>' or not new_column_name:
-							st.info( 'Select a column and enter a new name.' )
-						elif new_column_name in df_active.columns:
-							st.error( 'Column Name Already Exists.' )
-						else:
-							df_updated = df_active.rename( columns={ rename_column: new_column_name } )
-							st.session_state[ 'df_dataset' ] = df_updated
-							synchronize_dataset_columns( df_updated )
-							st.rerun( )
+						key='crud_schema_rename_new_column_name' )
+					
+					rename_btn_c1, rename_btn_c2 = st.columns( 2 )
+					with rename_btn_c1:
+						if st.button( label='Rename', icon='✔️', width='stretch',
+								key='crud_schema_rename_submit_button' ):
+							if rename_target == '<None>' or not new_column_name:
+								st.info( 'Select a column and enter a new name.' )
+							elif new_column_name in df_database.columns:
+								st.error( 'Column Name Already Exists.' )
+							else:
+								try:
+									rename_column( table, rename_target, new_column_name )
+									updated_names = [ str( item[ 1 ] ) for item in create_schema( table ) ]
+									if new_column_name not in updated_names or rename_target in updated_names:
+										raise RuntimeError( 'Renamed column could not be verified.' )
+									refresh_crud_database_state( table )
+									queue_database_success( f'Column "{rename_target}" was renamed to "{new_column_name}" in "{table}".' )
+									st.rerun( )
+								except Exception as ex:
+									st.error( f'Unable to rename column: {ex}' )
+					
+					with rename_btn_c2:
+						st.button( label='Reset', icon='🔄', width='stretch',
+							key='crud_schema_rename_reset_button', on_click=reset_session_keys,
+							args=([ 'crud_schema_rename_column',
+								'crud_schema_rename_new_column_name' ],) )
+
+			st.markdown( '##### 📝 Define Data' )
+			with st.expander( label='Data Types', expanded=True ):
+				type_c1, type_c2, type_c3 = st.columns( 3 )
+				with type_c1:
+					type_column = st.selectbox( 'Column', df_database.columns.tolist( ),
+						key='crud_schema_type_column' )
+				current_type = type_map.get( type_column, 'TEXT' )
+				with type_c2:
+					st.text_input( 'Current Data Type', value=current_type, disabled=True,
+						key=f'crud_schema_type_current_{table}_{type_column}' )
+				supported_types = [ 'INTEGER', 'REAL', 'NUMERIC', 'TEXT', 'BLOB' ]
+				default_type = current_type if current_type in supported_types else 'TEXT'
+				with type_c3:
+					new_type = st.selectbox( 'New Data Type', supported_types,
+						index=supported_types.index( default_type ), key='crud_schema_type_new' )
 				
-				action_c1, action_c2 = st.columns( 2 )
-				with action_c1:
-					if st.button( label='Reset to Original', icon='🔄',
-							key='crud_active_reset_button' ):
-						df_baseline = st.session_state.get( 'raw_df', None )
-						if not has_loaded_dataset( df_baseline ):
-							df_baseline = st.session_state.get( 'df_original', None )
-						if has_loaded_dataset( df_baseline ):
-							st.session_state[ 'df_dataset' ] = df_baseline.copy( )
-							st.session_state[ 'pipeline_log' ].clear( )
-							synchronize_dataset_columns( df_baseline )
-							st.rerun( )
-						else:
-							st.error( 'The original dataset is not available.' )
+				st.divider( )
 				
-				with action_c2:
-					st.download_button( 'Export Dataset (CSV)', df_active.to_csv( index=False ),
-						'dataset.csv', 'text/csv', icon='📥',
-						key='crud_active_export_button' )
-			
+				type_btn_c1, type_btn_c2 = st.columns( 2 )
+				with type_btn_c1:
+					if st.button( label='Define Type', icon='✔️', width='stretch',
+							key='crud_schema_type_submit_button' ):
+						if new_type == current_type:
+							st.info( 'The selected column already uses this data type.' )
+						else:
+							try:
+								change_column_type( table, type_column, new_type )
+								updated_type_map = { str( item[ 1 ] ): str( item[ 2 ] or 'TEXT' ).upper( )
+									for item in create_schema( table ) }
+								if updated_type_map.get( type_column, '' ) != new_type:
+									raise RuntimeError( 'Updated column type could not be verified.' )
+								refresh_crud_database_state( table )
+								queue_database_success( f'Column "{type_column}" changed to {new_type} in "{table}".' )
+								st.rerun( )
+							except Exception as ex:
+								st.error( f'Unable to change data type: {ex}' )
+				
+				with type_btn_c2:
+					st.button( label='Reset', icon='🔄', width='stretch',
+						key='crud_schema_type_reset_button', on_click=reset_session_keys,
+						args=([ 'crud_schema_type_column', 'crud_schema_type_new' ],) )
+
 			if st.session_state[ 'pipeline_log' ]:
 				st.caption( 'Active Dataset Operations' )
 				for step in st.session_state[ 'pipeline_log' ]:
 					st.write( f'• {step}' )
-		
-	
+
+
 # ============================================
 # DATA FILTER MODE
 # ============================================
@@ -22055,7 +22805,7 @@ elif mode == 'SQL Console':
 							st.session_state[
 								'sql_console_last_saved_table' ] = safe_table_name
 							
-							st.success(
+							queue_database_success(
 								f'Query results saved as table "{safe_table_name}" with '
 								f'{row_count:,} row(s) and {column_count:,} column(s).' )
 							
@@ -22073,8 +22823,7 @@ elif mode == 'SQL Console':
 			# --------------------------------------------------------------
 			if undo_save:
 				try:
-					existing_tables = {
-						existing_table.lower( ): existing_table
+					existing_tables = { existing_table.lower( ): existing_table
 						for existing_table in list_tables( ) }
 					
 					tracked_table = existing_tables.get(
@@ -22088,12 +22837,8 @@ elif mode == 'SQL Console':
 					
 					else:
 						drop_table( tracked_table )
-						
-						st.session_state[
-							'sql_console_last_saved_table' ] = None
-						
-						st.success(
-							f'Table "{tracked_table}" was deleted. '
+						st.session_state[ 'sql_console_last_saved_table' ] = None
+						queue_database_success( f'Table "{tracked_table}" was deleted. '
 							f'The query and displayed results were preserved.' )
 					
 					st.rerun( )

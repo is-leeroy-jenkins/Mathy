@@ -86,13 +86,8 @@ def get_bool( name: str, default: bool = False ) -> bool:
 	try:
 		throw_if( 'name', name )
 		value = os.getenv( name )
-		return default if value is None else value.strip( ).lower( ) in (
-				'1',
-				'true',
-				'yes',
-				'y',
-				'on'
-		)
+		return default if value is None else value.strip( ).lower( ) in ('1', 'true', 'yes', 'y',
+			'on')
 	except Exception:
 		return default
 
@@ -201,13 +196,13 @@ DEFAULT_CTX = 4096
 CORES = multiprocessing.cpu_count( )
 MODES = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
 	'Classification Models', 'Regression Models', 'Clustering Models',
-	'Time-Series Models', 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
+	'Time-Series Models', 'Data Upload', 'CRUD Ops', 'Data Filter',
 	'Data Aggregation', 'SQL Console' ]
 
 ML_MODE = [ 'Data Profile', 'Descriptive Statistics',  'Inferential Statistics', 'Anomaly Detection',
 	'Classification Models', 'Regression Models', 'Clustering Models',  'Time-Series Models' ]
 
-DB_MODE = [ 'Data Upload', 'Data Browse', 'CRUD Ops', 'Data Filter',
+DB_MODE = [ 'Data Upload', 'CRUD Ops', 'Data Filter',
 	'Data Aggregation', 'SQL Console' ]
 
 REPO_URL = r'https://is-leeroy-jenkins.github.io/Mathy/'
@@ -221,7 +216,6 @@ MODE = { 'Data Profile': '🏗️ Data Profiling',
        'Clustering Models': '🕸️ Clustering Models',
        'Time-Series Models': '⏱️ Time-Series Models',
        'Data Upload': '📤 Upload Data',
-       'Data Browse': '👁️ Browse Data',
        'CRUD Ops': '➕ CRUD Operations',
        'Data Filter': '🔍 Filter Data' ,
        'Data Aggregation': '🧮 Aggregate Data',
@@ -893,7 +887,7 @@ NORMAL_SCALER = r''' Normalizes samples individually to unit norm. Each sample (
 '''
 
 MAXABS_SCALER = r'''Scale each feature by its maximum absolute value. This estimator scales and
-		transforms each feature individually such that the maximal absolute value of each feature 
+		transforms each feature individually such that the maximal absolute value of each feature
 		in the training set will be 1.0. It does not shift or center the data, and therefore
 		does not destroy sparsity. This scaler can also be applied to sparse CSR or CSC matrices.
 		MaxAbsScaler does not reduce the effect of outliers; it only linearly
@@ -924,9 +918,9 @@ DICT_VECTORIZER = r''''Transform lists of feature-value mappings to vectors. Str
 HASH_VECTORIZER = r'''Convert a collection of text to a matrix of token occurrences. It turns a
 		collection of text into a scipy.sparse matrix holding token occurrence counts
 		(or binary occurrence information), possibly normalized as token frequencies
-		if norm=’l1’ or projected on the Euclidean unit sphere if norm=’l2’. This text vectorizer 
-		implementation uses the hashing trick to find the token string name to feature integer index mapping. 
-		This strategy has several advantages it is very low memory scalable to large datasets as 
+		if norm=’l1’ or projected on the Euclidean unit sphere if norm=’l2’. This text vectorizer
+		implementation uses the hashing trick to find the token string name to feature integer index mapping.
+		This strategy has several advantages it is very low memory scalable to large datasets as
 		there is no need to store a vocabulary dictionary in memory.
 '''
 
@@ -942,7 +936,7 @@ TDIDF_VECTORIZER = r'''Tf means term-frequency while tf-idf means term-frequency
 		use in document classification. The goal of using tf-idf instead of the raw frequencies of
 		occurrence of a token in a given document is to scale down the impact of tokens that occur
 		very frequently in a given corpus and that are hence empirically less informative than
-		feature_names that occur in a small fraction of the training corpus. The formula that is used to 
+		feature_names that occur in a small fraction of the training corpus. The formula that is used to
 		compute the tf-idf for a term t of a document d in a document set is tf-idf(t, d) = tf(t, d) * idf(t), and the idf
 		is computed as idf(t) = log [ n / df(t) ] + 1 (if smooth_idf=False), where n is the total
 		number of text in the document set and df(t) is the document frequency of t;
@@ -966,7 +960,7 @@ TDIDF_TRANSFORMER = r'''Tf means term-frequency while tf-idf means term-frequenc
 		use in document classification. The goal of using tf-idf instead of the raw frequencies of
 		occurrence of a token in a given document is to scale down the impact of tokens that occur
 		very frequently in a given corpus and that are hence empirically less informative than
-		feature_names that occur in a small fraction of the training corpus. Transform a count matrix 
+		feature_names that occur in a small fraction of the training corpus. Transform a count matrix
 		to a normalized tf or tf-idf representation.
 '''
 
@@ -982,10 +976,10 @@ LABEL_BINARIZER = r'''Binarize labels in a one-vs-all fashion. This wrapper fits
 
 BINARIZER = r''''Binarize data (set feature values to 0 or 1) according to a threshold.
 		Values greater than the threshold map to 1, while values less than or equal to the
-		threshold map to 0. With the default threshold of 0, only positive values map to 1. 
+		threshold map to 0. With the default threshold of 0, only positive values map to 1.
 		Binarization is a common operation on text count data where the analyst can decide to only
 		consider the presence or absence of a feature rather than a quantified number of
-		occurrences for instance. It can also be used as a pre-processing step for estimators 
+		occurrences for instance. It can also be used as a pre-processing step for estimators
 		that consider boolean random variables (e.g. modelled using the Bernoulli distribution in a Bayesian setting).
 '''
 
