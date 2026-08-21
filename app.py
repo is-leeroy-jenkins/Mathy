@@ -5764,8 +5764,7 @@ elif mode == 'Classification Models':
 								st.rerun( )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁',
-								key='classification_standard_reset',
+						if st.button( label='Reset', icon='🔁', key='classification_standard_reset',
 								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
