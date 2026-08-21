@@ -22823,7 +22823,8 @@ elif mode == 'SQL Console':
 			# --------------------------------------------------------------
 			if undo_save:
 				try:
-					existing_tables = { existing_table.lower( ): existing_table
+					existing_tables = {
+						existing_table.lower( ): existing_table
 						for existing_table in list_tables( ) }
 					
 					tracked_table = existing_tables.get(
@@ -22837,8 +22838,12 @@ elif mode == 'SQL Console':
 					
 					else:
 						drop_table( tracked_table )
-						st.session_state[ 'sql_console_last_saved_table' ] = None
-						queue_database_success( f'Table "{tracked_table}" was deleted. '
+						
+						st.session_state[
+							'sql_console_last_saved_table' ] = None
+						
+						queue_database_success(
+							f'Table "{tracked_table}" was deleted. '
 							f'The query and displayed results were preserved.' )
 					
 					st.rerun( )
