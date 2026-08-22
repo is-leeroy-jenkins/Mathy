@@ -20573,6 +20573,8 @@ elif mode == 'Scatter Analysis':
 			marker_size = st.slider( 'Marker Size', 4, 24, 9, 1,
 				key='visualization_scatter_marker_size' )
 
+		st.blue_divider( )
+		
 		plot_columns = [ x_column, y_column ]
 		if color_column != '<None>':
 			plot_columns.append( color_column )
