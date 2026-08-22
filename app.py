@@ -1680,6 +1680,27 @@ def create_connection( ) -> sqlite3.Connection:
 	"""
 	return sqlite3.connect( cfg.DB_PATH )
 
+def table_supports_rowid( table: str ) -> bool:
+	"""Determine whether a SQLite table exposes the implicit rowid.
+
+	Purpose:
+	    Detects ``WITHOUT ROWID`` table definitions before CRUD workflows issue rowid-based
+	    selection, update, delete, or verification statements.
+
+	Args:
+	    table (str): Existing SQLite table inspected for rowid support.
+
+	Returns:
+	    bool: ``True`` when the table exposes SQLite rowid semantics; otherwise ``False``.
+	"""
+	throw_if( 'table', table )
+	with create_connection( ) as conn:
+		row = conn.execute(
+			"SELECT sql FROM sqlite_master WHERE type='table' AND name=?;", (table,) ).fetchone( )
+	if row is None or not row[ 0 ]:
+		raise ValueError( f'Table definition for "{table}" could not be found.' )
+	return 'WITHOUT ROWID' not in str( row[ 0 ] ).upper( )
+
 def read_table_with_rowid( table: str ) -> pd.DataFrame:
 	"""Read a SQLite table with its internal row identifier.
 
@@ -2286,7 +2307,7 @@ def change_column_type( table: str, column: str, new_type: str ) -> None:
 		new_create_sql = replace_sqlite_column_type( create_sql, table, column, target_type,
 			temp_table )
 		select_expressions = [ (
-			f'CASE WHEN "{name}" IS NULL OR TRIM(CAST("{name}" AS TEXT)) = '' THEN NULL '
+			f"""CASE WHEN "{name}" IS NULL OR TRIM(CAST("{name}" AS TEXT)) = '' THEN NULL """
 			f'ELSE CAST("{name}" AS {target_type}) END'
 			if name == column and target_type in ( 'INTEGER', 'REAL', 'NUMERIC' ) else
 			f'CAST("{name}" AS {target_type})' if name == column else f'"{name}"' )
@@ -3268,13 +3289,14 @@ def create_profile_table( table: str ):
 	
 	return pd.DataFrame( profile_rows )
 
-def drop_column( table: str, column: str ):
-	"""Remove a column from a SQLite table by rebuilding its schema.
+def drop_column( table: str, column: str ) -> None:
+	"""Remove a column from a SQLite table while preserving valid schema structure.
 
 	Purpose:
-	    Reads the source table definition, removes the selected column definition, creates a
-	    temporary replacement table, copies all remaining column values, replaces the source table,
-	    and recreates indexes that do not reference the removed column.
+	    Uses SQLite's native ``DROP COLUMN`` operation when supported. When native removal is not
+	    available, rebuilds the table with a top-level SQL-definition parser so commas inside
+	    constraints, defaults, and expressions do not corrupt the schema. Compatible indexes and
+	    triggers are recreated after the transaction.
 
 	Args:
 	    table (str): Existing SQLite table containing the column.
@@ -3282,90 +3304,100 @@ def drop_column( table: str, column: str ):
 
 	Returns:
 	    None: This function modifies the SQLite schema and does not return a value.
-
-	Raises:
-	    ValueError: Raised when required names are missing, the table definition is unavailable,
-	        the table definition is malformed, or the selected column does not exist.
 	"""
-	if not table or not column:
-		raise ValueError( 'Table and column required.' )
-	
+	throw_if( 'table', table )
+	throw_if( 'column', column )
+
 	with create_connection( ) as conn:
-		# ------------------------------------------------------------
-		# Fetch original CREATE TABLE statement
-		# ------------------------------------------------------------
-		row = conn.execute( """
-                            SELECT sql
-                            FROM sqlite_master
-                            WHERE type ='table' AND name =?
-		                    """, (table,) ).fetchone( )
-		
-		if not row or not row[ 0 ]:
+		schema = conn.execute( f'PRAGMA table_info("{table}");' ).fetchall( )
+		columns = [ str( row[ 1 ] ) for row in schema ]
+		if column not in columns:
+			raise ValueError( f'Column "{column}" does not exist.' )
+		if len( columns ) <= 1:
+			raise ValueError( 'The final remaining table column cannot be removed.' )
+
+		try:
+			conn.execute( 'BEGIN' )
+			conn.execute( f'ALTER TABLE "{table}" DROP COLUMN "{column}";' )
+			conn.commit( )
+			return
+		except sqlite3.OperationalError:
+			conn.rollback( )
+
+		row = conn.execute(
+			"SELECT sql FROM sqlite_master WHERE type='table' AND name=?;", (table,) ).fetchone( )
+		if row is None or not row[ 0 ]:
 			raise ValueError( 'Table definition not found.' )
-		
-		create_sql = row[ 0 ]
-		
-		# ------------------------------------------------------------
-		# Extract column definitions
-		# ------------------------------------------------------------
-		open_paren = create_sql.find( "(" )
-		close_paren = create_sql.rfind( ")" )
-		
-		if open_paren == -1 or close_paren == -1:
-			raise ValueError( "Malformed CREATE TABLE statement." )
-		
-		inner = create_sql[ open_paren + 1: close_paren ]
-		
-		column_defs = [ c.strip( ) for c in inner.split( "," ) ]
-		
-		# Remove target column
-		new_defs = [ ]
-		for col_def in column_defs:
-			col_name = col_def.split( )[ 0 ].strip( '"' )
-			if col_name != column:
-				new_defs.append( col_def )
-		
-		if len( new_defs ) == len( column_defs ):
-			raise ValueError( "Column not found." )
-		
-		# ------------------------------------------------------------
-		# Build new CREATE TABLE statement
-		# ------------------------------------------------------------
-		temp_table = f"{table}_rebuild_temp"
-		
-		new_create_sql = (f'CREATE TABLE "{temp_table}" (' + ", ".join( new_defs ) + ");")
-		
-		# ------------------------------------------------------------
-		# Begin transaction
-		# ------------------------------------------------------------
-		conn.execute( "BEGIN" )
-		
-		conn.execute( new_create_sql )
-		
-		remaining_cols = [ c.split( )[ 0 ].strip( '"' ) for c in new_defs ]
-		
-		col_list = ", ".join( [ f'"{c}"' for c in remaining_cols ] )
-		
-		conn.execute( f'INSERT INTO "{temp_table}" ({col_list}) '
-		              f'SELECT {col_list} FROM "{table}";' )
-		
-		# Preserve indexes
-		indexes = conn.execute( """
-                                SELECT sql
-                                FROM sqlite_master
-                                WHERE type ='index' AND tbl_name=? AND sql IS NOT NULL
-		                        """, (table,) ).fetchall( )
-		
-		conn.execute( f'DROP TABLE "{table}";' )
-		conn.execute( f'ALTER TABLE "{temp_table}" RENAME TO "{table}";' )
-		
-		# Recreate indexes
-		for idx in indexes:
-			idx_sql = idx[ 0 ]
-			if column not in idx_sql:
-				conn.execute( idx_sql )
-		
-		conn.commit( )
+
+		create_sql = str( row[ 0 ] )
+		open_paren = create_sql.find( '(' )
+		close_paren = create_sql.rfind( ')' )
+		if open_paren < 0 or close_paren <= open_paren:
+			raise ValueError( 'Malformed CREATE TABLE statement.' )
+
+		definitions = split_sqlite_definitions( create_sql[ open_paren + 1: close_paren ] )
+		table_constraint_tokens = { 'CONSTRAINT', 'PRIMARY', 'UNIQUE', 'CHECK', 'FOREIGN' }
+		remaining_definitions: List[ str ] = [ ]
+		column_removed = False
+
+		for definition in definitions:
+			stripped = definition.strip( )
+			first_token = stripped.split( None, 1 )[ 0 ].strip( '"`[]' ).upper( ) if stripped else ''
+			if first_token in table_constraint_tokens:
+				if re.search( rf'(?i)(?:"{re.escape( column )}"|\b{re.escape( column )}\b)',
+						stripped ):
+					raise ValueError(
+						f'Column "{column}" participates in a table-level constraint and cannot be '
+						'dropped safely.' )
+				remaining_definitions.append( definition )
+				continue
+
+			match = re.match( r'^\s*(?:"([^"]+)"|`([^`]+)`|\[([^\]]+)\]|([^\s]+))',
+				definition )
+			definition_name = next(
+				(group for group in match.groups( ) if group is not None), '' ) if match else ''
+			if definition_name == column:
+				column_removed = True
+				continue
+			remaining_definitions.append( definition )
+
+		if not column_removed:
+			raise ValueError( f'Column "{column}" was not found in the table definition.' )
+
+		remaining_columns = [ name for name in columns if name != column ]
+		temp_table = f'{table}__mathy_drop_rebuild'
+		suffix = create_sql[ close_paren + 1: ].strip( ).rstrip( ';' )
+		new_create_sql = f'CREATE TABLE "{temp_table}" ({", ".join( remaining_definitions )})' + (
+			f' {suffix};' if suffix else ';' )
+		column_list = ', '.join( f'"{name}"' for name in remaining_columns )
+		index_sql = [ item[ 0 ] for item in conn.execute(
+			"SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name=? AND sql IS NOT NULL;",
+			(table,) ).fetchall( ) if item[ 0 ] ]
+		trigger_sql = [ item[ 0 ] for item in conn.execute(
+			"SELECT sql FROM sqlite_master WHERE type='trigger' AND tbl_name=? AND sql IS NOT NULL;",
+			(table,) ).fetchall( ) if item[ 0 ] ]
+
+		try:
+			conn.execute( 'BEGIN' )
+			conn.execute( f'DROP TABLE IF EXISTS "{temp_table}";' )
+			conn.execute( new_create_sql )
+			conn.execute( f'INSERT INTO "{temp_table}" ({column_list}) '
+				f'SELECT {column_list} FROM "{table}";' )
+			conn.execute( f'DROP TABLE "{table}";' )
+			conn.execute( f'ALTER TABLE "{temp_table}" RENAME TO "{table}";' )
+			for statement in index_sql:
+				if not re.search( rf'(?i)(?:"{re.escape( column )}"|\b{re.escape( column )}\b)',
+						statement ):
+					conn.execute( statement )
+			for statement in trigger_sql:
+				if not re.search( rf'(?i)(?:"{re.escape( column )}"|\b{re.escape( column )}\b)',
+						statement ):
+					conn.execute( statement )
+			conn.commit( )
+		except Exception:
+			conn.rollback( )
+			raise
+
 
 def rename_table( old_name: str, new_name: str ) -> None:
 	"""Rename an existing SQLite table.
@@ -4699,8 +4731,15 @@ elif mode == 'Descriptive Statistics':
 				default=default_pick( all_num_cols, 4 ) )
 		
 		with pca_c2:
-			max_components = max( 2, min( 6, len( pca_vars ) ) ) if pca_vars else 2
-			n_comp = st.slider( 'Components', 2, max_components, min( 3, max_components ) )
+			max_components = min( 6, len( pca_vars ) )
+			if max_components < 2:
+				n_comp = 2
+				st.caption( 'Select at least two variables to configure PCA components.' )
+			elif max_components == 2:
+				n_comp = st.selectbox( 'Components', [ 2 ], key='desc_pca_components_fixed' )
+			else:
+				n_comp = st.slider( 'Components', 2, max_components, min( 3, max_components ),
+					key='desc_pca_components_slider' )
 		
 		c5, c6 = st.columns( 2, border=True )
 		if len( pca_vars ) >= 2:
@@ -5464,16 +5503,20 @@ elif mode == 'Classification Models':
 		
 		with col_c2:
 			target_options = [ column for column in df_original.columns if column not in features ]
-			targets = st.selectbox( 'Select Target', options=target_options,
-				key='classification_target' )
+			if target_options:
+				targets = st.selectbox( 'Select Target', options=target_options,
+					key='classification_target' )
+			else:
+				targets = None
+				st.info( 'At least one column must remain available as the classification target.' )
 		
 		# Create Button
 		sel_b1, sel_b2 = st.columns( [ 0.5, 0.5 ] )
 		with sel_b1:
 			if st.button( 'Create Working Dataset', icon='➕', key='classification_create_dataset',
-					use_container_width=True ):
+					use_container_width=True, disabled=targets is None ):
 				selected_all = features.copy( )
-				if targets not in selected_all:
+				if targets and targets not in selected_all:
 					selected_all.append( targets )
 				
 				if selected_all:
@@ -20273,10 +20316,14 @@ elif mode == 'Data Overview':
 		
 		preview_c1, preview_c2 = st.columns( [ .25, .75 ], border=True )
 		with preview_c1:
-			preview_rows = st.slider( 'Preview Rows', min_value=5,
-				max_value=max( 5, min( 100, len( df_dataset ) ) ),
-				value=min( 20, max( 5, len( df_dataset ) ) ), step=5,
-				key='visualization_overview_rows' )
+			max_preview_rows = min( 100, len( df_dataset ) )
+			if max_preview_rows <= 5:
+				preview_rows = st.selectbox( 'Preview Rows', [ max_preview_rows ],
+					key='visualization_overview_rows_fixed' )
+			else:
+				preview_rows = st.slider( 'Preview Rows', min_value=5,
+					max_value=max_preview_rows, value=min( 20, max_preview_rows ), step=1,
+					key='visualization_overview_rows' )
 		
 		with preview_c2:
 			preview_columns = st.multiselect( 'Preview Columns', df_dataset.columns.tolist( ),
@@ -20605,16 +20652,23 @@ elif mode == 'Scatter Analysis':
 
 		render_mathy_plotly_chart( figure, 'visualization_scatter_chart',
 			'mathy_scatter_analysis', f'{y_column} vs {x_column}', 620 )
-		pearson_r, pearson_p = stats.pearsonr( df_plot[ x_column ], df_plot[ y_column ] )
-		spearman_r, spearman_p = stats.spearmanr( df_plot[ x_column ], df_plot[ y_column ] )
-		covariance = float( df_plot[ [ x_column, y_column ] ].cov( ).iloc[ 0, 1 ] )
 		m1, m2, m3, m4, m5 = st.columns( 5, border=True )
 		m1.metric( 'Pairs', f'{len( df_plot ):,}' )
-		m2.metric( 'Pearson R', f'{pearson_r:,.3f}' )
-		m3.metric( 'Pearson P', f'{pearson_p:,.3g}' )
-		m4.metric( 'Spearman R', f'{spearman_r:,.3f}' )
-		m5.metric( 'Covariance', f'{covariance:,.3f}' )
-		st.caption( f'Spearman p-value: {spearman_p:.3g}.' )
+		if len( df_plot ) < 2:
+			m2.metric( 'Pearson R', 'n/a' )
+			m3.metric( 'Pearson P', 'n/a' )
+			m4.metric( 'Spearman R', 'n/a' )
+			m5.metric( 'Covariance', 'n/a' )
+			st.caption( 'At least two paired observations are required for association statistics.' )
+		else:
+			pearson_r, pearson_p = stats.pearsonr( df_plot[ x_column ], df_plot[ y_column ] )
+			spearman_r, spearman_p = stats.spearmanr( df_plot[ x_column ], df_plot[ y_column ] )
+			covariance = float( df_plot[ [ x_column, y_column ] ].cov( ).iloc[ 0, 1 ] )
+			m2.metric( 'Pearson R', f'{pearson_r:,.3f}' )
+			m3.metric( 'Pearson P', f'{pearson_p:,.3g}' )
+			m4.metric( 'Spearman R', f'{spearman_r:,.3f}' )
+			m5.metric( 'Covariance', f'{covariance:,.3f}' )
+			st.caption( f'Spearman p-value: {spearman_p:.3g}.' )
 
 # ============================================
 # CATEGORICAL DISTRIBUTIONS MODE
@@ -21188,9 +21242,14 @@ elif mode == 'Composition & Allocation':
 					help='Summary statistic used for each hierarchy path.' )
 			with c3:
 				max_levels = min( 4, len( usable_categories ) )
-				hierarchy_count = st.slider( 'Hierarchy Levels', 2, max_levels,
-					min( 3, max_levels ), 1, key='visualization_sunburst_levels',
-					help='Number of nested categorical levels shown from center outward.' )
+				if max_levels == 2:
+					hierarchy_count = st.selectbox( 'Hierarchy Levels', [ 2 ],
+						key='visualization_sunburst_levels_fixed',
+						help='Two categorical hierarchy levels are available for this dataset.' )
+				else:
+					hierarchy_count = st.slider( 'Hierarchy Levels', 2, max_levels,
+						min( 3, max_levels ), 1, key='visualization_sunburst_levels',
+						help='Number of nested categorical levels shown from center outward.' )
 			hierarchy_columns: List[ str ] = [ ]
 			hierarchy_controls = st.columns( hierarchy_count, border=True )
 			available = usable_categories.copy( )
@@ -21328,9 +21387,15 @@ elif mode == 'Lifecycle & Flow':
 		if chart_type == 'Lifecycle Flow':
 			c1, c2, c3 = st.columns( 3, border=True )
 			with c1:
-				stage_count = st.slider( 'Lifecycle Stages', 2, min( 4, len( usable_categories ) ), 2, 1,
-					key='visualization_lifecycle_stage_count',
-					help='Number of ordered categorical stages included in the flow.' )
+				max_stage_count = min( 4, len( usable_categories ) )
+				if max_stage_count == 2:
+					stage_count = st.selectbox( 'Lifecycle Stages', [ 2 ],
+						key='visualization_lifecycle_stage_count_fixed',
+						help='Two categorical lifecycle stages are available for this dataset.' )
+				else:
+					stage_count = st.slider( 'Lifecycle Stages', 2, max_stage_count, 2, 1,
+						key='visualization_lifecycle_stage_count',
+						help='Number of ordered categorical stages included in the flow.' )
 			with c2:
 				weight_column = st.selectbox( 'Flow Weight', [ '<Count>' ] + groups[ 'numeric' ],
 					key='visualization_lifecycle_weight',
@@ -21464,10 +21529,13 @@ elif mode == 'Missing Data Visualization':
 			display_mode = st.radio( 'Display', [ 'Count', 'Percentage' ], horizontal=True,
 				key='visualization_missing_display' )
 		with c3:
-			matrix_rows = st.slider( 'Matrix Rows', 10,
-				max( 10, min( 500, len( df_dataset ) ) ),
-				min( 100, max( 10, len( df_dataset ) ) ), 10,
-				key='visualization_missing_rows' )
+			max_matrix_rows = min( 500, len( df_dataset ) )
+			if max_matrix_rows <= 10:
+				matrix_rows = st.selectbox( 'Matrix Rows', [ max_matrix_rows ],
+					key='visualization_missing_rows_fixed' )
+			else:
+				matrix_rows = st.slider( 'Matrix Rows', 10, max_matrix_rows,
+					min( 100, max_matrix_rows ), 1, key='visualization_missing_rows' )
 
 		if not selected_columns:
 			st.info( 'Select one or more columns.' )
@@ -22153,8 +22221,9 @@ elif mode == 'CRUD Ops':
 			st.divider( )
 			
 			df_database = read_table( table )
-			df_database_rows = read_table_with_rowid( table )
 			database_schema = create_schema( table )
+			supports_rowid = table_supports_rowid( table )
+			df_database_rows = read_table_with_rowid( table ) if supports_rowid else pd.DataFrame( )
 			declared_schema = create_declared_schema_map( database_schema )
 			crud_profiles = profile_dataframe_schema( df_database, declared_schema )
 			crud_type_counts = pd.Series( { column: str( profile[ 'analytical_role' ] )
@@ -22169,6 +22238,8 @@ elif mode == 'CRUD Ops':
 				st.metric( 'Categorical Fields', int( crud_type_counts.get( 'categorical', 0 ) ) )
 			type_map = { str( item[ 1 ] ): str( item[ 2 ] or 'TEXT' ).upper( )
 				for item in database_schema }
+			primary_key_column_names = { str( item[ 1 ] ) for item in database_schema
+				if int( item[ 5 ] or 0 ) > 0 }
 			schema_signature = (table, tuple( (str( item[ 1 ] ), str( item[ 2 ] or '' ))
 				for item in database_schema ))
 			previous_signature = st.session_state.get( 'crud_database_schema_signature', None )
@@ -22183,240 +22254,261 @@ elif mode == 'CRUD Ops':
 			
 			st.data_editor( df_database )
 			
-			# ------------------------------------------------------------------
-			# INSERT
-			# ------------------------------------------------------------------
-			blue_divider( )
-			st.markdown( '##### ➕ Add Record' )
-			with st.expander( label='Insert', expanded=True ):
-				insert_data_values: Dict[ str, object ] = { }
-				primary_key_columns = [ item for item in database_schema if int( item[ 5 ] or 0 ) > 0 ]
-				auto_generated_columns = { str( primary_key_columns[ 0 ][ 1 ] ) } if (
-					len( primary_key_columns ) == 1 and
-					str( primary_key_columns[ 0 ][ 2 ] or '' ).strip( ).upper( ) == 'INTEGER') else set( )
-				insert_schema = [ item for item in database_schema if str( item[ 1 ] ) not in
-					auto_generated_columns ]
-				insert_columns = st.columns( 4 )
-				for index, schema_item in enumerate( insert_schema ):
-					column = str( schema_item[ 1 ] )
-					declared_type = str( schema_item[ 2 ] or 'TEXT' ).upper( )
-					target_column = insert_columns[ index % 4 ]
-					with target_column:
-						unique_values = df_database[ column ].dropna( ).drop_duplicates( ).tolist( )
-						choice_key = f'crud_insert_choice_{table}_{index}'
-						new_key = f'crud_insert_new_{table}_{index}'
-						if unique_values:
-							display_map = { str( value ): value for value in unique_values }
-							options = [ '<Enter New Value>' ] + list( display_map.keys( ) )
-							selection = st.selectbox( column, options, key=choice_key,
-								help='Select an existing unique field value or choose Enter New Value.' )
-							if selection == '<Enter New Value>':
-								value = st.text_input( f'New {column}', key=new_key )
-							else:
-								value = display_map[ selection ]
-						else:
-							value = st.text_input( column, key=new_key )
-						insert_data_values[ column ] = value
-				
-				st.divider( )
-				
-				ins_c1, ins_c2 = st.columns( 2 )
-				with ins_c1:
-					if st.button( label='Insert Row', icon='➕', width='stretch',
-							key='crud_insert_submit_button' ):
-						try:
-							persisted_values = { column: coerce_sqlite_value( value,
-								type_map[ column ] ) for column, value in insert_data_values.items( ) }
-							if persisted_values and database_record_exists( table, persisted_values ):
-								st.warning( 'This record already exists. No row was inserted.' )
-							else:
-								with create_connection( ) as conn:
-									if persisted_values:
-										columns = list( persisted_values.keys( ) )
-										column_list = ', '.join( f'"{column}"' for column in columns )
-										placeholders = ', '.join( [ '?' ] * len( columns ) )
-										statement = f'INSERT INTO "{table}" ({column_list}) VALUES ({placeholders});'
-										cursor = conn.execute( statement,
-											[ persisted_values[ column ] for column in columns ] )
-									else:
-										cursor = conn.execute( f'INSERT INTO "{table}" DEFAULT VALUES;' )
-									inserted_rowid = int( cursor.lastrowid )
-									conn.commit( )
-								if persisted_values and not database_record_matches( table, inserted_rowid, persisted_values ):
-									raise RuntimeError( 'Inserted row could not be verified.' )
-								if not persisted_values and read_database_record( table, inserted_rowid ) is None:
-									raise RuntimeError( 'Inserted row could not be verified.' )
-								refresh_crud_database_state( table )
-								queue_database_success( f'Row inserted successfully into "{table}".' )
-								st.rerun( )
-						except Exception as ex:
-							st.error( f'Unable to insert row: {ex}' )
-				
-				with ins_c2:
-					st.button( label='Reset', icon='🔄', width='stretch',
-						key='crud_insert_reset_button', on_click=reset_session_prefixes,
-						args=((f'crud_insert_choice_{table}_', f'crud_insert_new_{table}_'),) )
-
-			# ------------------------------------------------------------------
-			# UPDATE
-			# ------------------------------------------------------------------
-			blue_divider( )
-			st.markdown( '##### 📤 Update Data' )
-			with st.expander( label='Update', expanded=True ):
-				upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
-				with upd_c1:
-					rowid = st.number_input( 'Row ID', min_value=1, step=1,
-						key='crud_update_database_rowid' )
-				current_record = read_database_record( table, int( rowid ) )
-				update_values: Dict[ str, object ] = { }
-				if current_record is None:
-					st.info( 'Row ID not found.' )
-				else:
-					update_columns = st.columns( 4 )
-					for index, column in enumerate( current_record.keys( ) ):
-						target_column = update_columns[ index % 4 ]
+			if not supports_rowid:
+				st.warning( 'This table was created WITHOUT ROWID. Record-level CRUD operations are '
+					'unavailable, but schema and table-management operations remain available.' )
+			else:
+				# ------------------------------------------------------------------
+				# INSERT
+				# ------------------------------------------------------------------
+				blue_divider( )
+				st.markdown( '##### ➕ Add Record' )
+				with st.expander( label='Insert', expanded=True ):
+					insert_data_values: Dict[ str, object ] = { }
+					primary_key_columns = [ item for item in database_schema if int( item[ 5 ] or 0 ) > 0 ]
+					auto_generated_columns = { str( primary_key_columns[ 0 ][ 1 ] ) } if (
+						len( primary_key_columns ) == 1 and
+						str( primary_key_columns[ 0 ][ 2 ] or '' ).strip( ).upper( ) == 'INTEGER') else set( )
+					insert_schema = [ item for item in database_schema if str( item[ 1 ] ) not in
+						auto_generated_columns ]
+					insert_columns = st.columns( 4 )
+					for index, schema_item in enumerate( insert_schema ):
+						column = str( schema_item[ 1 ] )
+						declared_type = str( schema_item[ 2 ] or 'TEXT' ).upper( )
+						target_column = insert_columns[ index % 4 ]
 						with target_column:
-							current_value = current_record[ column ]
-							update_values[ column ] = st.text_input( column,
-								value='' if current_value is None else str( current_value ),
-								key=f'crud_update_value_{table}_{int( rowid )}_{index}' )
-
-				st.divider( )
-				
-				btn_c1, btn_c2 = st.columns( 2 )
-				with btn_c1:
-					if st.button( label='Update Row', icon='⬆️', width='stretch',
-							key='crud_update_submit_button', disabled=current_record is None ):
-						try:
-							persisted_values = { column: coerce_sqlite_value( value,
-								type_map[ column ] ) for column, value in update_values.items( ) }
-							set_clause = ', '.join( f'"{column}"=?' for column in persisted_values )
-							parameters = list( persisted_values.values( ) ) + [ int( rowid ) ]
-							with create_connection( ) as conn:
-								cursor = conn.execute(
-									f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;', parameters )
-								conn.commit( )
-							if cursor.rowcount == 0:
-								st.warning( 'Row ID not found. No row was updated.' )
+							unique_values = df_database[ column ].dropna( ).drop_duplicates( ).tolist( )
+							choice_key = f'crud_insert_choice_{table}_{index}'
+							new_key = f'crud_insert_new_{table}_{index}'
+							if unique_values:
+								display_map = { str( value ): value for value in unique_values }
+								options = [ '<Enter New Value>' ] + list( display_map.keys( ) )
+								selection = st.selectbox( column, options, key=choice_key,
+									help='Select an existing unique field value or choose Enter New Value.' )
+								if selection == '<Enter New Value>':
+									value = st.text_input( f'New {column}', key=new_key )
+								else:
+									value = display_map[ selection ]
 							else:
-								if not database_record_matches( table, int( rowid ), persisted_values ):
-									raise RuntimeError( 'Updated row could not be verified.' )
-								refresh_crud_database_state( table )
-								queue_database_success( f'Row {int( rowid )} updated successfully in "{table}".' )
-								st.rerun( )
-						except Exception as ex:
-							st.error( f'Unable to update row: {ex}' )
+								value = st.text_input( column, key=new_key )
+							insert_data_values[ column ] = value
 				
-				with btn_c2:
-					st.button( label='Reset', icon='🔄', width='stretch',
-						key='crud_update_reset_button', on_click=reset_session_prefixes,
-						args=((f'crud_update_value_{table}_{int( rowid )}_',),) )
-
-			# ------------------------------------------------------------------
-			# DELETE
-			# ------------------------------------------------------------------
-			blue_divider( )
-			st.markdown( '##### ❌ Remove Record' )
-			with st.expander( label='Delete', expanded=True ):
-				delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
-				with delete_c1:
-					delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1,
-						key='crud_delete_database_rowid' )
+					st.divider( )
 				
-				st.divider( )
+					ins_c1, ins_c2 = st.columns( 2 )
+					with ins_c1:
+						if st.button( label='Insert Row', icon='➕', width='stretch',
+								key='crud_insert_submit_button' ):
+							try:
+								persisted_values = { column: coerce_sqlite_value( value,
+									type_map[ column ] ) for column, value in insert_data_values.items( ) }
+								if persisted_values and database_record_exists( table, persisted_values ):
+									st.warning( 'This record already exists. No row was inserted.' )
+								else:
+									with create_connection( ) as conn:
+										if persisted_values:
+											columns = list( persisted_values.keys( ) )
+											column_list = ', '.join( f'"{column}"' for column in columns )
+											placeholders = ', '.join( [ '?' ] * len( columns ) )
+											statement = f'INSERT INTO "{table}" ({column_list}) VALUES ({placeholders});'
+											cursor = conn.execute( statement,
+												[ persisted_values[ column ] for column in columns ] )
+										else:
+											cursor = conn.execute( f'INSERT INTO "{table}" DEFAULT VALUES;' )
+										inserted_rowid = int( cursor.lastrowid )
+										conn.commit( )
+									if persisted_values and not database_record_matches( table, inserted_rowid, persisted_values ):
+										raise RuntimeError( 'Inserted row could not be verified.' )
+									if not persisted_values and read_database_record( table, inserted_rowid ) is None:
+										raise RuntimeError( 'Inserted row could not be verified.' )
+									refresh_crud_database_state( table )
+									queue_database_success( f'Row inserted successfully into "{table}".' )
+									st.rerun( )
+							except Exception as ex:
+								st.error( f'Unable to insert row: {ex}' )
 				
-				delete_btn_c1, delete_btn_c2  = st.columns( 2 )
-				with delete_btn_c1:
-					if st.button( label='Delete Row', icon='❌', width='stretch',
-							key='crud_delete_submit_button' ):
-						with create_connection( ) as conn:
-							cursor = conn.execute( f'DELETE FROM "{table}" WHERE rowid=?;',
-								(int( delete_id ),) )
-							conn.commit( )
-						if cursor.rowcount == 0:
-							st.warning( 'Row ID not found. No row was deleted.' )
-						else:
-							if read_database_record( table, int( delete_id ) ) is not None:
-								st.error( 'Deleted row could not be verified.' )
-							else:
-								refresh_crud_database_state( table )
-								queue_database_success( f'Row {int( delete_id )} deleted successfully from "{table}".' )
-								st.rerun( )
-				with delete_btn_c2:
-					st.button( label='Reset', icon='🔄', width='stretch',
-						key='crud_delete_reset_button', on_click=reset_session_keys,
-						args=([ 'crud_delete_database_rowid' ],) )
+					with ins_c2:
+						st.button( label='Reset', icon='🔄', width='stretch',
+							key='crud_insert_reset_button', on_click=reset_session_prefixes,
+							args=((f'crud_insert_choice_{table}_', f'crud_insert_new_{table}_'),) )
 
-			blue_divider( )
-
-			# -------------------------------------------------------------------------------------
-			# EDIT
-			# -------------------------------------------------------------------------------------
-			st.markdown( '##### 🛠️ Edit Data' )
-			with st.expander( label='Update', expanded=True ):
-				if df_database_rows.empty:
-					st.info( 'The selected table does not contain any records.' )
-				else:
-					index_c1, index_c2 = st.columns( [ 0.20, 0.80 ] )
-					with index_c1:
-						max_row_position = len( df_database_rows ) - 1
-						default_row_position = int( st.session_state.get(
-							'crud_record_row_position', 0 ) )
-						default_row_position = max( 0, min( default_row_position,
-							max_row_position ) )
-						row_position = st.number_input( 'Select Row Position', min_value=0,
-							max_value=max_row_position, value=default_row_position, step=1,
-							key='crud_record_row_position' )
-					selected_row = df_database_rows.iloc[ int( row_position ) ]
-					selected_rowid = int( selected_row[ '__mathy_rowid__' ] )
-					with index_c2:
-						st.caption( f'SQLite Row ID: {selected_rowid}' )
-
-					current_record = { column: selected_row[ column ] for column in df_database.columns }
-					updated_values: Dict[ str, object ] = { }
-					with st.form( f'crud_record_edit_form_{table}_{selected_rowid}' ):
-						record_columns = st.columns( 4 )
-						for index, column in enumerate( df_database.columns ):
-							target_column = record_columns[ index % 4 ]
+				# ------------------------------------------------------------------
+				# UPDATE
+				# ------------------------------------------------------------------
+				blue_divider( )
+				st.markdown( '##### 📤 Update Data' )
+				with st.expander( label='Update', expanded=True ):
+					upd_c1, upd_c2, upd_c3, upd_c4 = st.columns( 4 )
+					with upd_c1:
+						rowid = st.number_input( 'Row ID', min_value=1, step=1,
+							key='crud_update_database_rowid' )
+					current_record = read_database_record( table, int( rowid ) )
+					editable_update_columns = [ column for column in current_record
+						if column not in primary_key_column_names ] if current_record else [ ]
+					update_values: Dict[ str, object ] = { }
+					if current_record is None:
+						st.info( 'Row ID not found.' )
+					else:
+						update_columns = st.columns( 4 )
+						for index, column in enumerate( current_record.keys( ) ):
+							target_column = update_columns[ index % 4 ]
 							with target_column:
 								current_value = current_record[ column ]
-								updated_values[ column ] = st.text_input( column,
-									value='' if pd.isna( current_value ) else str( current_value ),
-									key=f'crud_record_value_{table}_{selected_rowid}_{index}' )
-						
-						st.divider( )
-						
-						record_btn_c1, record_btn_c2 = st.columns( 2 )
-						with record_btn_c1:
-							apply_record = st.form_submit_button( label='Apply Row Update', icon='✔️',
-								width='stretch' )
-						
-						with record_btn_c2:
-							st.form_submit_button( label='Reset', icon='🔄', width='stretch',
-								on_click=reset_session_prefixes,
-								args=((f'crud_record_value_{table}_{selected_rowid}_',),) )
+								update_values[ column ] = st.text_input( column,
+									value='' if current_value is None else str( current_value ),
+									key=f'crud_update_value_{table}_{int( rowid )}_{index}',
+									disabled=column in primary_key_column_names,
+									help='Primary-key fields are read-only.' if column in
+										primary_key_column_names else None )
 
-					if apply_record:
-						try:
-							persisted_values = { column: coerce_sqlite_value( value,
-								type_map[ column ] ) for column, value in updated_values.items( ) }
-							set_clause = ', '.join( f'"{column}"=?' for column in persisted_values )
+					st.divider( )
+				
+					btn_c1, btn_c2 = st.columns( 2 )
+					with btn_c1:
+						if st.button( label='Update Row', icon='⬆️', width='stretch',
+								key='crud_update_submit_button',
+								disabled=current_record is None or not editable_update_columns ):
+							try:
+								persisted_values = { column: coerce_sqlite_value( value,
+									type_map[ column ] ) for column, value in update_values.items( )
+									if column not in primary_key_column_names }
+								if not persisted_values:
+									raise ValueError( 'No editable non-primary-key fields are available.' )
+								set_clause = ', '.join( f'"{column}"=?' for column in persisted_values )
+								parameters = list( persisted_values.values( ) ) + [ int( rowid ) ]
+								with create_connection( ) as conn:
+									cursor = conn.execute(
+										f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;', parameters )
+									conn.commit( )
+								if cursor.rowcount == 0:
+									st.warning( 'Row ID not found. No row was updated.' )
+								else:
+									if not database_record_matches( table, int( rowid ), persisted_values ):
+										raise RuntimeError( 'Updated row could not be verified.' )
+									refresh_crud_database_state( table )
+									queue_database_success( f'Row {int( rowid )} updated successfully in "{table}".' )
+									st.rerun( )
+							except Exception as ex:
+								st.error( f'Unable to update row: {ex}' )
+				
+					with btn_c2:
+						st.button( label='Reset', icon='🔄', width='stretch',
+							key='crud_update_reset_button', on_click=reset_session_prefixes,
+							args=((f'crud_update_value_{table}_{int( rowid )}_',),) )
+
+				# ------------------------------------------------------------------
+				# DELETE
+				# ------------------------------------------------------------------
+				blue_divider( )
+				st.markdown( '##### ❌ Remove Record' )
+				with st.expander( label='Delete', expanded=True ):
+					delete_c1, delete_c2, delete_c3, delete_c4 = st.columns( 4 )
+					with delete_c1:
+						delete_id = st.number_input( 'Row ID to Delete', min_value=1, step=1,
+							key='crud_delete_database_rowid' )
+				
+					st.divider( )
+				
+					delete_btn_c1, delete_btn_c2  = st.columns( 2 )
+					with delete_btn_c1:
+						if st.button( label='Delete Row', icon='❌', width='stretch',
+								key='crud_delete_submit_button' ):
 							with create_connection( ) as conn:
-								cursor = conn.execute( f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;',
-									list( persisted_values.values( ) ) + [ selected_rowid ] )
+								cursor = conn.execute( f'DELETE FROM "{table}" WHERE rowid=?;',
+									(int( delete_id ),) )
 								conn.commit( )
 							if cursor.rowcount == 0:
-								st.warning( 'The selected record no longer exists.' )
+								st.warning( 'Row ID not found. No row was deleted.' )
 							else:
-								if not database_record_matches( table, selected_rowid, persisted_values ):
-									raise RuntimeError( 'Updated record could not be verified.' )
-								refresh_crud_database_state( table )
-								queue_database_success( f'Row position {int( row_position )} updated successfully in "{table}".' )
-								st.rerun( )
-						except Exception as ex:
-							st.error( f'Unable to update record: {ex}' )
+								if read_database_record( table, int( delete_id ) ) is not None:
+									st.error( 'Deleted row could not be verified.' )
+								else:
+									refresh_crud_database_state( table )
+									queue_database_success( f'Row {int( delete_id )} deleted successfully from "{table}".' )
+									st.rerun( )
+					with delete_btn_c2:
+						st.button( label='Reset', icon='🔄', width='stretch',
+							key='crud_delete_reset_button', on_click=reset_session_keys,
+							args=([ 'crud_delete_database_rowid' ],) )
 
-			blue_divider( )
+				blue_divider( )
+
+				# -------------------------------------------------------------------------------------
+				# EDIT
+				# -------------------------------------------------------------------------------------
+				st.markdown( '##### 🛠️ Edit Data' )
+				with st.expander( label='Update', expanded=True ):
+					if df_database_rows.empty:
+						st.info( 'The selected table does not contain any records.' )
+					else:
+						index_c1, index_c2 = st.columns( [ 0.20, 0.80 ] )
+						with index_c1:
+							max_row_position = len( df_database_rows ) - 1
+							default_row_position = int( st.session_state.get(
+								'crud_record_row_position', 0 ) )
+							default_row_position = max( 0, min( default_row_position,
+								max_row_position ) )
+							row_position = st.number_input( 'Select Row Position', min_value=0,
+								max_value=max_row_position, value=default_row_position, step=1,
+								key='crud_record_row_position' )
+						selected_row = df_database_rows.iloc[ int( row_position ) ]
+						selected_rowid = int( selected_row[ '__mathy_rowid__' ] )
+						with index_c2:
+							st.caption( f'SQLite Row ID: {selected_rowid}' )
+
+						current_record = { column: selected_row[ column ] for column in df_database.columns }
+						editable_record_columns = [ column for column in current_record
+							if column not in primary_key_column_names ]
+						updated_values: Dict[ str, object ] = { }
+						with st.form( f'crud_record_edit_form_{table}_{selected_rowid}' ):
+							record_columns = st.columns( 4 )
+							for index, column in enumerate( df_database.columns ):
+								target_column = record_columns[ index % 4 ]
+								with target_column:
+									current_value = current_record[ column ]
+									updated_values[ column ] = st.text_input( column,
+										value='' if pd.isna( current_value ) else str( current_value ),
+										key=f'crud_record_value_{table}_{selected_rowid}_{index}',
+										disabled=column in primary_key_column_names,
+										help='Primary-key fields are read-only.' if column in
+											primary_key_column_names else None )
+						
+							st.divider( )
+						
+							record_btn_c1, record_btn_c2 = st.columns( 2 )
+							with record_btn_c1:
+								apply_record = st.form_submit_button( label='Apply Row Update', icon='✔️',
+									width='stretch', disabled=not editable_record_columns )
+						
+							with record_btn_c2:
+								st.form_submit_button( label='Reset', icon='🔄', width='stretch',
+									on_click=reset_session_prefixes,
+									args=((f'crud_record_value_{table}_{selected_rowid}_',),) )
+
+						if apply_record:
+							try:
+								persisted_values = { column: coerce_sqlite_value( value,
+									type_map[ column ] ) for column, value in updated_values.items( )
+									if column not in primary_key_column_names }
+								if not persisted_values:
+									raise ValueError( 'No editable non-primary-key fields are available.' )
+								set_clause = ', '.join( f'"{column}"=?' for column in persisted_values )
+								with create_connection( ) as conn:
+									cursor = conn.execute( f'UPDATE "{table}" SET {set_clause} WHERE rowid=?;',
+										list( persisted_values.values( ) ) + [ selected_rowid ] )
+									conn.commit( )
+								if cursor.rowcount == 0:
+									st.warning( 'The selected record no longer exists.' )
+								else:
+									if not database_record_matches( table, selected_rowid, persisted_values ):
+										raise RuntimeError( 'Updated record could not be verified.' )
+									refresh_crud_database_state( table )
+									queue_database_success( f'Row position {int( row_position )} updated successfully in "{table}".' )
+									st.rerun( )
+							except Exception as ex:
+								st.error( f'Unable to update record: {ex}' )
+
+				blue_divider( )
 
 			# -------------------------------------------------------------------------------------
 			# COLUMN CRUD
@@ -22710,19 +22802,26 @@ elif mode == 'Data Aggregation':
 			with agg_c1:
 				table = st.selectbox( 'Table', tables, key='agg_table' )
 				df = read_table( table )
+				declared_schema = create_declared_schema_map( create_schema( table ) )
+				aggregation_profiles = profile_dataframe_schema( df, declared_schema )
 			with agg_c2:
-				numeric_columns = df.select_dtypes( include=[ 'number' ] ).columns.tolist( )
-				if numeric_columns:
-					col = st.selectbox( 'Column', numeric_columns, key='col_box' )
+				numeric_columns = [ column for column, profile in aggregation_profiles.items( )
+					if profile[ 'analytical_role' ] == 'numeric' ]
+				col = st.selectbox( 'Column', numeric_columns, key='col_box' ) if numeric_columns else None
+				if not numeric_columns:
+					st.info( 'No numeric columns are available.' )
 			with agg_c3:
-				aggregation = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ], key='agg_box' )
+				aggregation = st.selectbox( 'Function', [ 'SUM', 'AVG', 'COUNT' ], key='agg_box',
+					disabled=col is None )
 			with agg_c4:
-				if aggregation == 'SUM':
-					st.metric( 'Result', df[ col ].sum( ) )
-				elif aggregation == 'AVG':
-					st.metric( 'Result', df[ col ].mean( ) )
-				elif aggregation == 'COUNT':
-					st.metric( 'Result', df[ col ].count( ) )
+				if col is not None:
+					numeric_series = pd.to_numeric( df[ col ], errors='coerce' )
+					if aggregation == 'SUM':
+						st.metric( 'Result', numeric_series.sum( ) )
+					elif aggregation == 'AVG':
+						st.metric( 'Result', numeric_series.mean( ) )
+					elif aggregation == 'COUNT':
+						st.metric( 'Result', numeric_series.count( ) )
 
 # ============================================
 # SQL CONSOLE MODE
