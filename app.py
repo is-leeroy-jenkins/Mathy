@@ -537,7 +537,6 @@ def reset_session_keys( keys: List[ str ] ) -> None:
 	"""
 	clear_keys( keys )
 
-
 def reset_session_prefixes( prefixes: Tuple[ str, ... ] ) -> None:
 	"""Reset Streamlit widget state matching one or more key prefixes.
 
@@ -554,7 +553,6 @@ def reset_session_prefixes( prefixes: Tuple[ str, ... ] ) -> None:
 	throw_if( 'prefixes', prefixes )
 	keys = [ key for key in st.session_state.keys( ) if str( key ).startswith( prefixes ) ]
 	clear_keys( keys )
-
 
 def reset_classification_mode_state( ) -> None:
 	"""Reset state owned by the classification workflow.
@@ -1682,7 +1680,6 @@ def create_connection( ) -> sqlite3.Connection:
 	"""
 	return sqlite3.connect( cfg.DB_PATH )
 
-
 def read_table_with_rowid( table: str ) -> pd.DataFrame:
 	"""Read a SQLite table with its internal row identifier.
 
@@ -1700,7 +1697,6 @@ def read_table_with_rowid( table: str ) -> pd.DataFrame:
 	throw_if( 'table', table )
 	with create_connection( ) as conn:
 		return pd.read_sql_query( f'SELECT rowid AS "__mathy_rowid__", * FROM "{table}";', conn )
-
 
 def read_database_record( table: str, rowid: int ) -> Dict[ str, object ] | None:
 	"""Read one SQLite record by internal row identifier.
@@ -1726,7 +1722,6 @@ def read_database_record( table: str, rowid: int ) -> Dict[ str, object ] | None
 			return None
 		columns = [ description[ 0 ] for description in cursor.description or [ ] ]
 		return { column: row[ index ] for index, column in enumerate( columns ) }
-
 
 def coerce_sqlite_value( value: object, declared_type: str ) -> object:
 	"""Coerce an edited control value to its declared SQLite storage family.
@@ -1780,6 +1775,91 @@ def coerce_sqlite_value( value: object, declared_type: str ) -> object:
 		return value if isinstance( value, bytes ) else text.encode( 'utf-8' )
 	return str( value )
 
+def create_crud_database_table( table_name: str,
+	columns: List[ Dict[ str, str ] ] ) -> Tuple[ str, bool ]:
+	"""Create a SQLite table from CRUD Ops schema controls.
+
+	Purpose:
+	    Creates a new user-defined SQLite table with an automatic ``Id INTEGER PRIMARY KEY
+	    AUTOINCREMENT`` column, validates and normalizes each requested column identifier, preserves
+	    the selected SQLite data types, and optionally inserts one initial row when at least one
+	    initial field value is supplied.
+
+	Args:
+	    table_name (str): User-entered table name normalized to a valid SQLite identifier.
+	    columns (List[Dict[str, str]]): User-defined column specifications containing ``name``,
+	        ``type``, and optional ``initial_value`` values.
+
+	Returns:
+	    Tuple[str, bool]: Created SQLite table name followed by a flag indicating whether an initial
+	        row was inserted.
+	"""
+	throw_if( 'table_name', table_name )
+	throw_if( 'columns', columns )
+	safe_table_name = create_identifier( table_name )
+	existing_tables = { name.lower( ) for name in list_tables( ) }
+	if safe_table_name.lower( ) in existing_tables:
+		raise ValueError( f'Table "{safe_table_name}" already exists.' )
+
+	supported_types = { 'INTEGER', 'REAL', 'NUMERIC', 'TEXT', 'BLOB' }
+	column_definitions: List[ str ] = [ '"Id" INTEGER PRIMARY KEY AUTOINCREMENT' ]
+	column_names: List[ str ] = [ ]
+	initial_values: List[ object ] = [ ]
+	has_initial_values = False
+	seen_columns = { 'id' }
+
+	for index, column in enumerate( columns ):
+		column_name = str( column.get( 'name', '' ) )
+		throw_if( f'column_{index + 1}_name', column_name )
+		safe_column_name = create_identifier( column_name )
+		if safe_column_name.lower( ) in seen_columns:
+			raise ValueError( f'Column name "{safe_column_name}" is duplicated or reserved.' )
+		seen_columns.add( safe_column_name.lower( ) )
+
+		declared_type = str( column.get( 'type', 'TEXT' ) ).upper( )
+		if declared_type not in supported_types:
+			raise ValueError( f'Unsupported SQLite type: {declared_type}' )
+
+		raw_initial_value = column.get( 'initial_value', '' )
+		initial_text = str( raw_initial_value ).strip( ) if raw_initial_value is not None else ''
+		if initial_text:
+			initial_value = coerce_sqlite_value( raw_initial_value, declared_type )
+			has_initial_values = True
+		else:
+			initial_value = None
+
+		column_definitions.append( f'"{safe_column_name}" {declared_type}' )
+		column_names.append( safe_column_name )
+		initial_values.append( initial_value )
+
+	create_statement = (f'CREATE TABLE "{safe_table_name}" '
+		f'({", ".join( column_definitions )});')
+
+	with create_connection( ) as conn:
+		try:
+			conn.execute( 'BEGIN' )
+			conn.execute( create_statement )
+			if has_initial_values:
+				column_list = ', '.join( f'"{name}"' for name in column_names )
+				placeholders = ', '.join( [ '?' ] * len( column_names ) )
+				conn.execute( f'INSERT INTO "{safe_table_name}" ({column_list}) '
+					f'VALUES ({placeholders});', initial_values )
+			conn.commit( )
+		except Exception:
+			conn.rollback( )
+			raise
+
+	created_schema = create_schema( safe_table_name )
+	created_columns = [ str( row[ 1 ] ) for row in created_schema ]
+	expected_columns = [ 'Id' ] + column_names
+	if created_columns != expected_columns:
+		raise RuntimeError( 'Created table schema could not be verified.' )
+	if has_initial_values:
+		df_created = read_table( safe_table_name )
+		if len( df_created ) != 1:
+			raise RuntimeError( 'Initial table row could not be verified.' )
+
+	return safe_table_name, has_initial_values
 
 def database_record_exists( table: str, values: Dict[ str, object ],
 	exclude_rowid: int = 0 ) -> bool:
@@ -1809,7 +1889,6 @@ def database_record_exists( table: str, values: Dict[ str, object ],
 	with create_connection( ) as conn:
 		return conn.execute( query, parameters ).fetchone( ) is not None
 
-
 def database_record_matches( table: str, rowid: int, values: Dict[ str, object ] ) -> bool:
 	"""Verify persisted values for one SQLite record.
 
@@ -1834,7 +1913,6 @@ def database_record_matches( table: str, rowid: int, values: Dict[ str, object ]
 	with create_connection( ) as conn:
 		return conn.execute( query, parameters ).fetchone( ) is not None
 
-
 def refresh_crud_database_state( table: str ) -> pd.DataFrame:
 	"""Refresh CRUD and active analytical state after a committed SQLite mutation.
 
@@ -1855,10 +1933,14 @@ def refresh_crud_database_state( table: str ) -> pd.DataFrame:
 			st.session_state.get( 'active_database_table', '' ) == table):
 		st.session_state[ 'active_declared_schema' ] = create_declared_schema_map(
 			create_schema( table ) )
-		store_loaded_dataset( df_database, df_database )
+		if has_loaded_dataset( df_database ):
+			store_loaded_dataset( df_database, df_database )
+		else:
+			st.session_state[ 'raw_df' ] = df_database.copy( )
+			st.session_state[ 'df_original' ] = df_database.copy( )
+			st.session_state[ 'df_dataset' ] = df_database.copy( )
+			synchronize_dataset_columns( df_database )
 	return df_database
-
-
 
 def queue_database_success( message: str ) -> None:
 	"""Queue a database success message for the next Streamlit render.
@@ -1875,7 +1957,6 @@ def queue_database_success( message: str ) -> None:
 	"""
 	throw_if( 'message', message )
 	st.session_state[ 'database_operation_result' ] = str( message )
-
 
 def activate_database_table( table: str ) -> pd.DataFrame:
 	"""Activate one persisted SQLite table as the Mathy dataset.
@@ -1899,9 +1980,14 @@ def activate_database_table( table: str ) -> pd.DataFrame:
 	st.session_state[ 'active_declared_schema' ] = create_declared_schema_map(
 		create_schema( table ) )
 	st.session_state[ 'active_source_signature' ] = ('Database Data', table)
-	store_loaded_dataset( df_database, df_database )
+	if has_loaded_dataset( df_database ):
+		store_loaded_dataset( df_database, df_database )
+	else:
+		st.session_state[ 'raw_df' ] = df_database.copy( )
+		st.session_state[ 'df_original' ] = df_database.copy( )
+		st.session_state[ 'df_dataset' ] = df_database.copy( )
+		synchronize_dataset_columns( df_database )
 	return df_database
-
 
 def clear_active_database_table( ) -> None:
 	"""Clear active database-backed dataset state.
@@ -1921,7 +2007,6 @@ def clear_active_database_table( ) -> None:
 	st.session_state[ 'df_original' ] = pd.DataFrame( )
 	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
 	synchronize_dataset_columns( pd.DataFrame( ) )
-
 
 def create_available_table_names( requested_names: List[ str ], existing_tables: List[ str ] ) -> List[ str ]:
 	"""Create collision-safe SQLite table names.
@@ -1950,7 +2035,6 @@ def create_available_table_names( requested_names: List[ str ], existing_tables:
 		reserved.add( candidate.lower( ) )
 		available.append( candidate )
 	return available
-
 
 def write_dataframe_tables_to_database( df_tables: Dict[ str, pd.DataFrame ],
 	overwrite: bool=False ) -> Dict[ str, pd.DataFrame ]:
@@ -2007,7 +2091,6 @@ def write_dataframe_tables_to_database( df_tables: Dict[ str, pd.DataFrame ],
 		persisted_tables[ created_name ] = df_persisted
 	return persisted_tables
 
-
 def reconcile_import_table_metadata( old_table: str, new_table: str = '' ) -> None:
 	"""Reconcile upload metadata after a table rename or deletion.
 
@@ -2048,7 +2131,6 @@ def reconcile_import_table_metadata( old_table: str, new_table: str = '' ) -> No
 		if new_table:
 			sheet_names[ new_table ] = value
 		st.session_state[ 'data_upload_sheet_names' ] = sheet_names
-
 
 def split_sqlite_definitions( sql_text: str ) -> List[ str ]:
 	"""Split a SQLite table-definition body at top-level commas.
@@ -2091,7 +2173,6 @@ def split_sqlite_definitions( sql_text: str ) -> List[ str ]:
 	if buffer:
 		definitions.append( ''.join( buffer ).strip( ) )
 	return definitions
-
 
 def replace_sqlite_column_type( create_sql: str, table: str, column: str,
 	new_type: str, temp_table: str ) -> str:
@@ -2149,7 +2230,6 @@ def replace_sqlite_column_type( create_sql: str, table: str, column: str,
 	suffix = create_sql[ close_paren + 1: ].strip( ).rstrip( ';' )
 	return f'CREATE TABLE "{temp_table}" ({", ".join( definitions )})' + (
 		f' {suffix};' if suffix else ';' )
-
 
 def change_column_type( table: str, column: str, new_type: str ) -> None:
 	"""Change a SQLite column's declared type with an atomic table rebuild.
@@ -22035,9 +22115,6 @@ elif mode == 'CRUD Ops':
 		st.subheader( cfg.MODE[ 'CRUD Ops' ] )
 		blue_divider( )
 
-		# =====================================================================================
-		# DATABASE TABLE CRUD
-		# =====================================================================================
 		st.markdown( '##### Select Data' )
 		tables = [ table_name for table_name in list_tables( ) if not table_name.startswith( 'sqlite_' ) ]
 		if not tables:
@@ -22053,7 +22130,9 @@ elif mode == 'CRUD Ops':
 			crud_c1, crud_c2, crud_c3, crud_c4, crud_c5 = st.columns( 5, border=True )
 			with crud_c1:
 				table = st.selectbox( 'Select Table', tables, key='crud_table' )
-
+			
+			st.divider( )
+			
 			df_database = read_table( table )
 			df_database_rows = read_table_with_rowid( table )
 			database_schema = create_schema( table )
@@ -22082,7 +22161,9 @@ elif mode == 'CRUD Ops':
 					owned_prefixes ) ]
 				clear_keys( stale_keys )
 				st.session_state[ 'crud_database_schema_signature' ] = schema_signature
-
+			
+			st.data_editor( df_database )
+			
 			# ------------------------------------------------------------------
 			# INSERT
 			# ------------------------------------------------------------------
@@ -22322,7 +22403,7 @@ elif mode == 'CRUD Ops':
 			# COLUMN CRUD
 			# -------------------------------------------------------------------------------------
 			st.markdown( '##### 🏗️ Edit Schema' )
-			with st.expander( label='Table', expanded=True ):
+			with st.expander( label='Rename Table', expanded=True ):
 				protected_tables = { 'chat_history', 'embeddings', 'Prompts' }
 				is_protected_table = table in protected_tables
 				table_mgmt_c1, table_mgmt_c2 = st.columns( 2, border=True )
@@ -22400,14 +22481,14 @@ elif mode == 'CRUD Ops':
 							key='crud_table_manage_delete_reset', on_click=reset_session_keys,
 							args=([ 'crud_table_manage_delete_confirm' ],) )
 
-			with st.expander( label='Columns', expanded=True ):
+			with st.expander( label='Drop Columns', expanded=True ):
 				label_c1, label_c2 = st.columns( 2, border=True )
 				with label_c1:
 					drop_columns = st.multiselect( 'Columns to Drop', df_database.columns.tolist( ),
 						key='crud_schema_drop_columns' )
 					drop_btn_c1, drop_btn_c2 = st.columns( 2 )
 					with drop_btn_c1:
-						if st.button( label='Drop Column', icon='❌', width='stretch',
+						if st.button( label='Drop', icon='❌', width='stretch',
 								key='crud_schema_drop_submit_button' ):
 							if not drop_columns:
 								st.info( 'Select one or more columns to drop.' )
@@ -22464,7 +22545,7 @@ elif mode == 'CRUD Ops':
 							args=([ 'crud_schema_rename_column',
 								'crud_schema_rename_new_column_name' ],) )
 
-			st.markdown( '##### 📝 Define Data' )
+			st.markdown( '##### 📝 Define Columns' )
 			with st.expander( label='Data Types', expanded=True ):
 				type_c1, type_c2, type_c3 = st.columns( 3 )
 				with type_c1:
@@ -22506,12 +22587,70 @@ elif mode == 'CRUD Ops':
 						key='crud_schema_type_reset_button', on_click=reset_session_keys,
 						args=([ 'crud_schema_type_column', 'crud_schema_type_new' ],) )
 
+			# -------------------------------------------------------------------------------------
+			# DATABASE TABLE CRUD
+			# -------------------------------------------------------------------------------------
+			st.markdown( '##### 🆕 Create Table' )
+			with st.expander( label='Create Data', expanded=True ):
+				create_c1, create_c2 = st.columns( 2, border=True )
+				with create_c1:
+					crud_create_table_name = st.text_input( 'Table Name',
+						key='crud_create_table_name', help='Enter the name of the new SQLite table.' )
+				with create_c2:
+					crud_create_column_count = st.slider( 'Number of Columns', min_value=1,
+						max_value=20, value=5, step=1, key='crud_create_column_count',
+						help='Number of user-defined columns. Mathy adds an Id primary key automatically.' )
+	
+				st.caption( 'Mathy automatically adds: Id INTEGER PRIMARY KEY AUTOINCREMENT.' )
+				crud_create_columns: List[ Dict[ str, str ] ] = [ ]
+				crud_create_supported_types = [ 'INTEGER', 'REAL', 'NUMERIC', 'TEXT', 'BLOB' ]
+				for row_start in range( 0, int( crud_create_column_count ), 5 ):
+					schema_columns = st.columns( 5, border=True )
+					row_end = min( row_start + 5, int( crud_create_column_count ) )
+					for column_index in range( row_start, row_end ):
+						with schema_columns[ column_index - row_start ]:
+							st.markdown( f'**Column {column_index + 1}**' )
+							column_name = st.text_input( 'Column Name',
+								key=f'crud_create_column_name_{column_index}' )
+							column_type = st.selectbox( 'Data Type', crud_create_supported_types,
+								key=f'crud_create_column_type_{column_index}' )
+							initial_value = st.text_input( 'Initial Value (optional)',
+								key=f'crud_create_initial_value_{column_index}' )
+							crud_create_columns.append( { 'name': column_name, 'type': column_type,
+								'initial_value': initial_value } )
+	
+				st.divider( )
+				create_btn_c1, create_btn_c2 = st.columns( 2 )
+				with create_btn_c1:
+					if st.button( label='Create Table', icon='➕', width='stretch',
+							key='crud_create_table_submit' ):
+						try:
+							created_table, inserted_initial_row = create_crud_database_table(
+								crud_create_table_name, crud_create_columns )
+							st.session_state[ 'crud_next_table' ] = created_table
+							activate_database_table( created_table )
+							message = f'Table "{created_table}" was created successfully.'
+							if inserted_initial_row:
+								message += ' One initial row was inserted.'
+							queue_database_success( message )
+							st.rerun( )
+						except Exception as ex:
+							st.error( f'Unable to create table: {ex}' )
+				with create_btn_c2:
+					st.button( label='Reset', icon='🔄', width='stretch',
+						key='crud_create_table_reset', on_click=reset_session_prefixes,
+						args=(( 'crud_create_table_name', 'crud_create_column_count',
+							'crud_create_column_', 'crud_create_initial_value_' ),) )
+			
+			st.divider( )
+			
 			if st.session_state[ 'pipeline_log' ]:
 				st.caption( 'Active Dataset Operations' )
 				for step in st.session_state[ 'pipeline_log' ]:
 					st.write( f'• {step}' )
-
-
+			
+			blue_divider( )
+			
 # ============================================
 # DATA FILTER MODE
 # ============================================
@@ -22847,7 +22986,8 @@ elif mode == 'SQL Console':
 					else:
 						drop_table( tracked_table )
 						
-						st.session_state[ 'sql_console_last_saved_table' ] = None
+						st.session_state[
+							'sql_console_last_saved_table' ] = None
 						
 						queue_database_success(
 							f'Table "{tracked_table}" was deleted. '

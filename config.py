@@ -1108,15 +1108,42 @@ RFE = r'''Recursive Feature Elimination (RFE) Given an external estimator that a
 		until the desired number of features to select is eventually reached.
 '''
 
+# ----- Correlation Analysis
 
+PAIR_THRESHOLD = '''A correlation analysis pair threshold is a limit used to find feature pairs with
+		a pairwise correlation coefficient above a set value. It helps drop extra columns in data
+		science or build connection networks. Common absolute value limits range from 0.70 to 0.90
+		for removing multi-collinearity.
+'''
 
+# ------ Scatter Analysis
 
+SCATTER_ANALYSIS = '''A scatter analysis uses a scatter plot to visually display and evaluate the
+		relationship between two numerical variables. By plotting data points on an X and Y Cartesian
+		coordinate system, this analysis helps you quickly identify trends, patterns, and
+		correlations in your data
+'''
 
+PEARSON_P = '''A Pearson p-value evaluates the statistical significance of correlation coefficient (r).
+		It tests the null hypothesis that the true linear correlation between two continuous variables is zero
+'''
 
+PEARSON_R = '''A statistical measure that calculates the strength and direction of a linear relationship
+		between two continuous variables, producing a score from -1 to 1.
+'''
 
+SPEARMAN_R = '''Spearman's rank correlation coefficient measures the strength and direction of a
+		monotonic relationship between two ranked or ordinal variables. It acts as the non-parametric
+		alternative to the Pearson correlation, meaning it does not assume normal data distribution
+		or a linear relationship
+'''
 
+# ------ Categorical Distributions
 
-
+CATEGORICAL_DISTRIBUTION = '''The categorical distribution is the generalization of the Bernoulli
+		distribution for a categorical random variable, i.e. for a discrete variable with more than
+		two possible outcomes, such as the roll of a die.
+'''
 
 
 
