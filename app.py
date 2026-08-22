@@ -21149,11 +21149,13 @@ elif mode == 'Variance & Decomposition':
 				measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
 					key='visualization_decomposition_measure',
 					help='Measure decomposed across the selected hierarchy levels.' )
+			
 			with c2:
 				aggregation = st.selectbox( 'Aggregation',
 					[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
 					key='visualization_decomposition_aggregation',
 					help='Summary statistic used at every hierarchy branch.' )
+			
 			with c3:
 				hierarchy_limit = min( 4, len( usable_categories ) )
 				if hierarchy_limit == 1:
