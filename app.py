@@ -21394,7 +21394,7 @@ elif mode == 'KPI Summary':
 			st.info( 'At least one numeric measure is required.' )
 			st.stop( )
 
-		c1, c2 = st.columns( 2, border=True )
+		c1, c2 = st.columns( [ 0.75, 0.25 ], border=True )
 		with c1:
 			selected_measures = st.multiselect( 'KPI Measures', groups[ 'numeric' ],
 				default=groups[ 'numeric' ][ :min( 4, len( groups[ 'numeric' ] ) ) ],
@@ -21409,6 +21409,7 @@ elif mode == 'KPI Summary':
 		if not selected_measures:
 			st.info( 'Select at least one KPI measure.' )
 			st.stop( )
+			
 		aggregation_map = { 'Sum': 'sum', 'Mean': 'mean', 'Median': 'median',
 			'Minimum': 'min', 'Maximum': 'max', 'Count': 'count' }
 		rows: List[ Dict[ str, object ] ] = [ ]
