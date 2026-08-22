@@ -225,7 +225,8 @@ if 'df_classification_scores' not in st.session_state or st.session_state[ 'df_c
 if 'df_regression' not in st.session_state or st.session_state[ 'df_regression' ] is None:
 	st.session_state[ 'df_regression' ] = pd.DataFrame( )
 
-if 'df_regression_scores' not in st.session_state or st.session_state[ 'df_regression_scores' ] is None:
+if 'df_regression_scores' not in st.session_state or st.session_state[
+	'df_regression_scores' ] is None:
 	st.session_state[ 'df_regression_scores' ] = pd.DataFrame( )
 
 # ----------- Clustering Members
@@ -536,6 +537,7 @@ def reset_session_keys( keys: List[ str ] ) -> None:
 	"""
 	clear_keys( keys )
 
+
 def reset_session_prefixes( prefixes: Tuple[ str, ... ] ) -> None:
 	"""Reset Streamlit widget state matching one or more key prefixes.
 
@@ -552,6 +554,7 @@ def reset_session_prefixes( prefixes: Tuple[ str, ... ] ) -> None:
 	throw_if( 'prefixes', prefixes )
 	keys = [ key for key in st.session_state.keys( ) if str( key ).startswith( prefixes ) ]
 	clear_keys( keys )
+
 
 def reset_classification_mode_state( ) -> None:
 	"""Reset state owned by the classification workflow.
@@ -1679,6 +1682,7 @@ def create_connection( ) -> sqlite3.Connection:
 	"""
 	return sqlite3.connect( cfg.DB_PATH )
 
+
 def read_table_with_rowid( table: str ) -> pd.DataFrame:
 	"""Read a SQLite table with its internal row identifier.
 
@@ -1696,6 +1700,7 @@ def read_table_with_rowid( table: str ) -> pd.DataFrame:
 	throw_if( 'table', table )
 	with create_connection( ) as conn:
 		return pd.read_sql_query( f'SELECT rowid AS "__mathy_rowid__", * FROM "{table}";', conn )
+
 
 def read_database_record( table: str, rowid: int ) -> Dict[ str, object ] | None:
 	"""Read one SQLite record by internal row identifier.
@@ -1721,6 +1726,7 @@ def read_database_record( table: str, rowid: int ) -> Dict[ str, object ] | None
 			return None
 		columns = [ description[ 0 ] for description in cursor.description or [ ] ]
 		return { column: row[ index ] for index, column in enumerate( columns ) }
+
 
 def coerce_sqlite_value( value: object, declared_type: str ) -> object:
 	"""Coerce an edited control value to its declared SQLite storage family.
@@ -1774,6 +1780,7 @@ def coerce_sqlite_value( value: object, declared_type: str ) -> object:
 		return value if isinstance( value, bytes ) else text.encode( 'utf-8' )
 	return str( value )
 
+
 def database_record_exists( table: str, values: Dict[ str, object ],
 	exclude_rowid: int = 0 ) -> bool:
 	"""Determine whether an equivalent complete SQLite record already exists.
@@ -1802,6 +1809,7 @@ def database_record_exists( table: str, values: Dict[ str, object ],
 	with create_connection( ) as conn:
 		return conn.execute( query, parameters ).fetchone( ) is not None
 
+
 def database_record_matches( table: str, rowid: int, values: Dict[ str, object ] ) -> bool:
 	"""Verify persisted values for one SQLite record.
 
@@ -1826,6 +1834,7 @@ def database_record_matches( table: str, rowid: int, values: Dict[ str, object ]
 	with create_connection( ) as conn:
 		return conn.execute( query, parameters ).fetchone( ) is not None
 
+
 def refresh_crud_database_state( table: str ) -> pd.DataFrame:
 	"""Refresh CRUD and active analytical state after a committed SQLite mutation.
 
@@ -1849,6 +1858,8 @@ def refresh_crud_database_state( table: str ) -> pd.DataFrame:
 		store_loaded_dataset( df_database, df_database )
 	return df_database
 
+
+
 def queue_database_success( message: str ) -> None:
 	"""Queue a database success message for the next Streamlit render.
 
@@ -1864,6 +1875,7 @@ def queue_database_success( message: str ) -> None:
 	"""
 	throw_if( 'message', message )
 	st.session_state[ 'database_operation_result' ] = str( message )
+
 
 def activate_database_table( table: str ) -> pd.DataFrame:
 	"""Activate one persisted SQLite table as the Mathy dataset.
@@ -1890,6 +1902,7 @@ def activate_database_table( table: str ) -> pd.DataFrame:
 	store_loaded_dataset( df_database, df_database )
 	return df_database
 
+
 def clear_active_database_table( ) -> None:
 	"""Clear active database-backed dataset state.
 
@@ -1908,6 +1921,7 @@ def clear_active_database_table( ) -> None:
 	st.session_state[ 'df_original' ] = pd.DataFrame( )
 	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
 	synchronize_dataset_columns( pd.DataFrame( ) )
+
 
 def create_available_table_names( requested_names: List[ str ], existing_tables: List[ str ] ) -> List[ str ]:
 	"""Create collision-safe SQLite table names.
@@ -1936,6 +1950,7 @@ def create_available_table_names( requested_names: List[ str ], existing_tables:
 		reserved.add( candidate.lower( ) )
 		available.append( candidate )
 	return available
+
 
 def write_dataframe_tables_to_database( df_tables: Dict[ str, pd.DataFrame ],
 	overwrite: bool=False ) -> Dict[ str, pd.DataFrame ]:
@@ -1992,6 +2007,7 @@ def write_dataframe_tables_to_database( df_tables: Dict[ str, pd.DataFrame ],
 		persisted_tables[ created_name ] = df_persisted
 	return persisted_tables
 
+
 def reconcile_import_table_metadata( old_table: str, new_table: str = '' ) -> None:
 	"""Reconcile upload metadata after a table rename or deletion.
 
@@ -2032,6 +2048,7 @@ def reconcile_import_table_metadata( old_table: str, new_table: str = '' ) -> No
 		if new_table:
 			sheet_names[ new_table ] = value
 		st.session_state[ 'data_upload_sheet_names' ] = sheet_names
+
 
 def split_sqlite_definitions( sql_text: str ) -> List[ str ]:
 	"""Split a SQLite table-definition body at top-level commas.
@@ -2074,6 +2091,7 @@ def split_sqlite_definitions( sql_text: str ) -> List[ str ]:
 	if buffer:
 		definitions.append( ''.join( buffer ).strip( ) )
 	return definitions
+
 
 def replace_sqlite_column_type( create_sql: str, table: str, column: str,
 	new_type: str, temp_table: str ) -> str:
@@ -2131,6 +2149,7 @@ def replace_sqlite_column_type( create_sql: str, table: str, column: str,
 	suffix = create_sql[ close_paren + 1: ].strip( ).rstrip( ';' )
 	return f'CREATE TABLE "{temp_table}" ({", ".join( definitions )})' + (
 		f' {suffix};' if suffix else ';' )
+
 
 def change_column_type( table: str, column: str, new_type: str ) -> None:
 	"""Change a SQLite column's declared type with an atomic table rebuild.
@@ -3889,6 +3908,7 @@ st.set_page_config( page_title='Mathy', layout='wide', page_icon=cfg.FAVICON,
 st.logo( image=cfg.LOGO, size='large', link=cfg.REPO_URL )
 pd.options.display.float_format = '{:,.2f}'.format
 
+
 @st.dialog( 'Operation Successful' )
 def render_database_success_dialog( message: str ) -> None:
 	"""Render a queued database-operation success dialog.
@@ -3905,6 +3925,7 @@ def render_database_success_dialog( message: str ) -> None:
 	"""
 	throw_if( 'message', message )
 	st.success( message )
+
 
 pending_database_result = st.session_state.get( 'database_operation_result', None )
 if pending_database_result:
@@ -22490,6 +22511,7 @@ elif mode == 'CRUD Ops':
 				for step in st.session_state[ 'pipeline_log' ]:
 					st.write( f'• {step}' )
 
+
 # ============================================
 # DATA FILTER MODE
 # ============================================
@@ -22825,8 +22847,7 @@ elif mode == 'SQL Console':
 					else:
 						drop_table( tracked_table )
 						
-						st.session_state[
-							'sql_console_last_saved_table' ] = None
+						st.session_state[ 'sql_console_last_saved_table' ] = None
 						
 						queue_database_success(
 							f'Table "{tracked_table}" was deleted. '
