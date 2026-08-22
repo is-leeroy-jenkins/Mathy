@@ -20478,9 +20478,11 @@ elif mode == 'Correlation Analysis':
 			selected_columns = st.multiselect( 'Numeric Variables', numeric_columns,
 				default=numeric_columns[ :min( 8, len( numeric_columns ) ) ],
 				key='visualization_correlation_columns' )
+		
 		with c2:
 			method = st.radio( 'Method', [ 'Pearson', 'Spearman' ], horizontal=True,
 				key='visualization_correlation_method' )
+		
 		with c3:
 			threshold = st.slider( 'Pair Threshold', 0.0, 1.0, 0.0, 0.05,
 				key='visualization_correlation_threshold' )
@@ -20514,6 +20516,9 @@ elif mode == 'Correlation Analysis':
 		st.markdown( '##### Ranked Relationships' )
 		render_data_editor( df_filtered_pairs, use_container_width=True, hide_index=True,
 			disabled=True, key='visualization_correlation_pairs_table' )
+		
+		st.divider( )
+		
 		if not df_filtered_pairs.empty:
 			df_plot = df_filtered_pairs.head( 20 ).copy( )
 			df_plot[ 'Pair' ] = df_plot[ 'Variable 1' ] + ' ↔ ' + df_plot[ 'Variable 2' ]
