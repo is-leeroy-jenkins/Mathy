@@ -21053,15 +21053,18 @@ elif mode == 'Variance & Decomposition':
 				category = st.selectbox( 'Contribution Category', usable_categories,
 					key='visualization_waterfall_category',
 					help='Categorical field whose aggregated groups form the waterfall steps.' )
+			
 			with c2:
 				measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
 					key='visualization_waterfall_measure',
 					help='Numeric value aggregated for each contribution step.' )
+			
 			with c3:
 				aggregation = st.selectbox( 'Aggregation',
 					[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
 					key='visualization_waterfall_aggregation',
 					help='Summary statistic used to calculate each category contribution.' )
+			
 			with c4:
 				category_limit = st.slider( 'Maximum Categories', 2, 30, 12, 1,
 					key='visualization_waterfall_limit',
