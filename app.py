@@ -21025,6 +21025,7 @@ elif mode == 'Variance & Decomposition':
 		st.subheader( 'Variance & Decomposition', divider='gray',
 			help='Explain numeric change using waterfall contributions, pairwise variance, or '
 				'hierarchical decomposition of a measure.' )
+			
 		render_visualization_metric_styles( )
 		df_dataset = get_visualization_dataframe( )
 		if df_dataset.empty:
@@ -21042,11 +21043,12 @@ elif mode == 'Variance & Decomposition':
 			st.info( 'The loaded data does not satisfy the requirements for variance analysis.' )
 			st.stop( )
 
-		chart_type = st.selectbox( 'Visualization', chart_options,
-			key='visualization_variance_type',
-			help='Waterfall shows sequential contributions; Variance Bars compare two measures; '
-				'Decomposition Hierarchy breaks a measure into successive categorical drivers.' )
-
+		box_c1, box_2 = st.columns( [ 0.20, 0.80 ] )
+		with box_c1:
+			chart_type = st.selectbox( 'Visualization', chart_options, key='visualization_variance_type',
+				help='Waterfall shows sequential contributions; Variance Bars compare two measures; '
+					'Decomposition Hierarchy breaks a measure into successive categorical drivers.' )
+	
 		if chart_type == 'Waterfall':
 			c1, c2, c3, c4 = st.columns( 4, border=True )
 			with c1:
@@ -21066,7 +21068,9 @@ elif mode == 'Variance & Decomposition':
 				category_limit = st.slider( 'Maximum Categories', 2, 30, 12, 1,
 					key='visualization_waterfall_limit',
 					help='Maximum number of contribution steps shown before the total.' )
-
+		
+			blue_divider( )
+			
 			df_plot = aggregate_visualization_dataframe( df_dataset, [ category ], measure,
 				aggregation )
 			df_plot = df_plot.reindex( df_plot[ measure ].abs( ).sort_values(
@@ -21090,15 +21094,18 @@ elif mode == 'Variance & Decomposition':
 				base_measure = st.selectbox( 'Baseline Measure', groups[ 'numeric' ],
 					key='visualization_variance_base',
 					help='Reference measure subtracted from the comparison measure.' )
+			
 			with c2:
 				comparison_options = [ column for column in groups[ 'numeric' ] if column != base_measure ]
 				comparison_measure = st.selectbox( 'Comparison Measure', comparison_options,
 					key='visualization_variance_compare',
 					help='Measure compared against the baseline.' )
+			
 			with c3:
 				category = st.selectbox( 'Grouping Variable', [ '<None>' ] + usable_categories,
 					key='visualization_variance_category',
 					help='Optional categorical dimension used to calculate separate variances.' )
+			
 			with c4:
 				display_mode = st.radio( 'Variance', [ 'Absolute', 'Percentage' ], horizontal=True,
 					key='visualization_variance_display',
@@ -21145,11 +21152,13 @@ elif mode == 'Variance & Decomposition':
 				measure = st.selectbox( 'Numeric Measure', groups[ 'numeric' ],
 					key='visualization_decomposition_measure',
 					help='Measure decomposed across the selected hierarchy levels.' )
+			
 			with c2:
 				aggregation = st.selectbox( 'Aggregation',
 					[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
 					key='visualization_decomposition_aggregation',
 					help='Summary statistic used at every hierarchy branch.' )
+			
 			with c3:
 				hierarchy_limit = min( 4, len( usable_categories ) )
 				if hierarchy_limit == 1:
@@ -21162,26 +21171,28 @@ elif mode == 'Variance & Decomposition':
 					hierarchy_count = st.slider( 'Hierarchy Levels', 1, hierarchy_limit,
 						min( 2, hierarchy_limit ), 1, key='visualization_decomposition_levels',
 						help='Number of categorical levels used to break the measure into nested drivers.' )
-
-			hierarchy_columns: List[ str ] = [ ]
-			hierarchy_controls = st.columns( hierarchy_count, border=True )
-			available = usable_categories.copy( )
-			for index in range( hierarchy_count ):
-				with hierarchy_controls[ index ]:
-					selected = st.selectbox( f'Hierarchy {index + 1}', available,
-						key=f'visualization_decomposition_hierarchy_{index}',
-						help='Categorical dimension used at this decomposition level.' )
-					hierarchy_columns.append( selected )
-				available = [ column for column in available if column != selected ] or available
-			df_plot = aggregate_visualization_dataframe( df_dataset, hierarchy_columns, measure,
-				aggregation )
-			df_plot[ 'Plot Magnitude' ] = df_plot[ measure ].abs( )
-			figure = px.treemap( df_plot, path=hierarchy_columns, values='Plot Magnitude',
-				color=measure, color_continuous_scale='RdBu' )
-			render_mathy_plotly_chart( figure, 'visualization_decomposition_chart',
-				'mathy_decomposition', f'Decomposition Hierarchy — {measure}', 650 )
-			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
-				key='visualization_decomposition_table' )
+	
+		st.divider( )
+		
+		hierarchy_columns: List[ str ] = [ ]
+		hierarchy_controls = st.columns( hierarchy_count, border=True )
+		available = usable_categories.copy( )
+		for index in range( hierarchy_count ):
+			with hierarchy_controls[ index ]:
+				selected = st.selectbox( f'Hierarchy {index + 1}', available,
+					key=f'visualization_decomposition_hierarchy_{index}',
+					help='Categorical dimension used at this decomposition level.' )
+				hierarchy_columns.append( selected )
+			available = [ column for column in available if column != selected ] or available
+		df_plot = aggregate_visualization_dataframe( df_dataset, hierarchy_columns, measure,
+			aggregation )
+		df_plot[ 'Plot Magnitude' ] = df_plot[ measure ].abs( )
+		figure = px.treemap( df_plot, path=hierarchy_columns, values='Plot Magnitude',
+			color=measure, color_continuous_scale='RdBu' )
+		render_mathy_plotly_chart( figure, 'visualization_decomposition_chart',
+			'mathy_decomposition', f'Decomposition Hierarchy — {measure}', 650 )
+		render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
+			key='visualization_decomposition_table' )
 
 # ============================================
 # COMPOSITION & ALLOCATION MODE
