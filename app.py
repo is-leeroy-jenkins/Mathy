@@ -21016,7 +21016,6 @@ elif mode == 'Time-Series Visualization':
 			render_data_editor( df_series, use_container_width=True, hide_index=True, disabled=True,
 				key='visualization_timeseries_table' )
 
-
 # ============================================
 # VARIANCE & DECOMPOSITION MODE
 # ============================================
@@ -21072,6 +21071,7 @@ elif mode == 'Variance & Decomposition':
 				aggregation )
 			df_plot = df_plot.reindex( df_plot[ measure ].abs( ).sort_values(
 				ascending=False ).index ).head( category_limit )
+			
 			if df_plot.empty:
 				st.info( 'No valid waterfall contributions are available.' )
 				st.stop( )
@@ -21091,15 +21091,18 @@ elif mode == 'Variance & Decomposition':
 				base_measure = st.selectbox( 'Baseline Measure', groups[ 'numeric' ],
 					key='visualization_variance_base',
 					help='Reference measure subtracted from the comparison measure.' )
+			
 			with c2:
 				comparison_options = [ column for column in groups[ 'numeric' ] if column != base_measure ]
 				comparison_measure = st.selectbox( 'Comparison Measure', comparison_options,
 					key='visualization_variance_compare',
 					help='Measure compared against the baseline.' )
+			
 			with c3:
 				category = st.selectbox( 'Grouping Variable', [ '<None>' ] + usable_categories,
 					key='visualization_variance_category',
 					help='Optional categorical dimension used to calculate separate variances.' )
+			
 			with c4:
 				display_mode = st.radio( 'Variance', [ 'Absolute', 'Percentage' ], horizontal=True,
 					key='visualization_variance_display',
@@ -21174,6 +21177,9 @@ elif mode == 'Variance & Decomposition':
 						help='Categorical dimension used at this decomposition level.' )
 					hierarchy_columns.append( selected )
 				available = [ column for column in available if column != selected ] or available
+			
+			blue_divider( )
+			
 			df_plot = aggregate_visualization_dataframe( df_dataset, hierarchy_columns, measure,
 				aggregation )
 			df_plot[ 'Plot Magnitude' ] = df_plot[ measure ].abs( )
@@ -21181,6 +21187,9 @@ elif mode == 'Variance & Decomposition':
 				color=measure, color_continuous_scale='RdBu' )
 			render_mathy_plotly_chart( figure, 'visualization_decomposition_chart',
 				'mathy_decomposition', f'Decomposition Hierarchy — {measure}', 650 )
+			
+			st.divider( )
+			
 			render_data_editor( df_plot, use_container_width=True, hide_index=True, disabled=True,
 				key='visualization_decomposition_table' )
 
