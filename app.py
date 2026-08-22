@@ -537,6 +537,7 @@ def reset_session_keys( keys: List[ str ] ) -> None:
 	"""
 	clear_keys( keys )
 
+
 def reset_session_prefixes( prefixes: Tuple[ str, ... ] ) -> None:
 	"""Reset Streamlit widget state matching one or more key prefixes.
 
@@ -553,6 +554,7 @@ def reset_session_prefixes( prefixes: Tuple[ str, ... ] ) -> None:
 	throw_if( 'prefixes', prefixes )
 	keys = [ key for key in st.session_state.keys( ) if str( key ).startswith( prefixes ) ]
 	clear_keys( keys )
+
 
 def reset_classification_mode_state( ) -> None:
 	"""Reset state owned by the classification workflow.
@@ -1382,8 +1384,8 @@ def create_declared_schema_map( schema_rows: List[ Tuple ] ) -> Dict[ str, str ]
 		return { }
 	return { str( row[ 1 ] ): str( row[ 2 ] or '' ) for row in schema_rows }
 
-def profile_column( column_name: str, series: pd.Series, override_role: str='',
-	declared_type: str='' ) -> Dict[ str, object ]:
+def profile_column( column_name: str, series: pd.Series, override_role: str = '',
+	declared_type: str = '' ) -> Dict[ str, object ]:
 	"""Infer the physical type and analytical role of one dataframe column.
 
 	Purpose:
@@ -1578,7 +1580,7 @@ def profile_column( column_name: str, series: pd.Series, override_role: str='',
 		'is_integer_like': integer_like, 'confidence': confidence, 'reason': reason }
 
 def profile_dataframe_schema( df: pd.DataFrame,
-	declared_schema: Dict[ str, str ]=None ) -> Dict[ str, Dict[ str, object ] ]:
+	declared_schema: Dict[ str, str ] = None ) -> Dict[ str, Dict[ str, object ] ]:
 	"""Profile every dataframe column using the authoritative schema classifier.
 
 	Purpose:
@@ -1680,6 +1682,7 @@ def create_connection( ) -> sqlite3.Connection:
 	"""
 	return sqlite3.connect( cfg.DB_PATH )
 
+
 def read_table_with_rowid( table: str ) -> pd.DataFrame:
 	"""Read a SQLite table with its internal row identifier.
 
@@ -1697,6 +1700,7 @@ def read_table_with_rowid( table: str ) -> pd.DataFrame:
 	throw_if( 'table', table )
 	with create_connection( ) as conn:
 		return pd.read_sql_query( f'SELECT rowid AS "__mathy_rowid__", * FROM "{table}";', conn )
+
 
 def read_database_record( table: str, rowid: int ) -> Dict[ str, object ] | None:
 	"""Read one SQLite record by internal row identifier.
@@ -1722,6 +1726,7 @@ def read_database_record( table: str, rowid: int ) -> Dict[ str, object ] | None
 			return None
 		columns = [ description[ 0 ] for description in cursor.description or [ ] ]
 		return { column: row[ index ] for index, column in enumerate( columns ) }
+
 
 def coerce_sqlite_value( value: object, declared_type: str ) -> object:
 	"""Coerce an edited control value to its declared SQLite storage family.
@@ -1775,8 +1780,9 @@ def coerce_sqlite_value( value: object, declared_type: str ) -> object:
 		return value if isinstance( value, bytes ) else text.encode( 'utf-8' )
 	return str( value )
 
+
 def database_record_exists( table: str, values: Dict[ str, object ],
-	exclude_rowid: int=0 ) -> bool:
+	exclude_rowid: int = 0 ) -> bool:
 	"""Determine whether an equivalent complete SQLite record already exists.
 
 	Purpose:
@@ -1803,6 +1809,7 @@ def database_record_exists( table: str, values: Dict[ str, object ],
 	with create_connection( ) as conn:
 		return conn.execute( query, parameters ).fetchone( ) is not None
 
+
 def database_record_matches( table: str, rowid: int, values: Dict[ str, object ] ) -> bool:
 	"""Verify persisted values for one SQLite record.
 
@@ -1827,6 +1834,7 @@ def database_record_matches( table: str, rowid: int, values: Dict[ str, object ]
 	with create_connection( ) as conn:
 		return conn.execute( query, parameters ).fetchone( ) is not None
 
+
 def refresh_crud_database_state( table: str ) -> pd.DataFrame:
 	"""Refresh CRUD and active analytical state after a committed SQLite mutation.
 
@@ -1850,6 +1858,8 @@ def refresh_crud_database_state( table: str ) -> pd.DataFrame:
 		store_loaded_dataset( df_database, df_database )
 	return df_database
 
+
+
 def queue_database_success( message: str ) -> None:
 	"""Queue a database success message for the next Streamlit render.
 
@@ -1865,6 +1875,7 @@ def queue_database_success( message: str ) -> None:
 	"""
 	throw_if( 'message', message )
 	st.session_state[ 'database_operation_result' ] = str( message )
+
 
 def activate_database_table( table: str ) -> pd.DataFrame:
 	"""Activate one persisted SQLite table as the Mathy dataset.
@@ -1891,6 +1902,7 @@ def activate_database_table( table: str ) -> pd.DataFrame:
 	store_loaded_dataset( df_database, df_database )
 	return df_database
 
+
 def clear_active_database_table( ) -> None:
 	"""Clear active database-backed dataset state.
 
@@ -1909,6 +1921,7 @@ def clear_active_database_table( ) -> None:
 	st.session_state[ 'df_original' ] = pd.DataFrame( )
 	st.session_state[ 'df_dataset' ] = pd.DataFrame( )
 	synchronize_dataset_columns( pd.DataFrame( ) )
+
 
 def create_available_table_names( requested_names: List[ str ], existing_tables: List[ str ] ) -> List[ str ]:
 	"""Create collision-safe SQLite table names.
@@ -1937,6 +1950,7 @@ def create_available_table_names( requested_names: List[ str ], existing_tables:
 		reserved.add( candidate.lower( ) )
 		available.append( candidate )
 	return available
+
 
 def write_dataframe_tables_to_database( df_tables: Dict[ str, pd.DataFrame ],
 	overwrite: bool=False ) -> Dict[ str, pd.DataFrame ]:
@@ -1993,6 +2007,7 @@ def write_dataframe_tables_to_database( df_tables: Dict[ str, pd.DataFrame ],
 		persisted_tables[ created_name ] = df_persisted
 	return persisted_tables
 
+
 def reconcile_import_table_metadata( old_table: str, new_table: str = '' ) -> None:
 	"""Reconcile upload metadata after a table rename or deletion.
 
@@ -2033,6 +2048,7 @@ def reconcile_import_table_metadata( old_table: str, new_table: str = '' ) -> No
 		if new_table:
 			sheet_names[ new_table ] = value
 		st.session_state[ 'data_upload_sheet_names' ] = sheet_names
+
 
 def split_sqlite_definitions( sql_text: str ) -> List[ str ]:
 	"""Split a SQLite table-definition body at top-level commas.
@@ -2075,6 +2091,7 @@ def split_sqlite_definitions( sql_text: str ) -> List[ str ]:
 	if buffer:
 		definitions.append( ''.join( buffer ).strip( ) )
 	return definitions
+
 
 def replace_sqlite_column_type( create_sql: str, table: str, column: str,
 	new_type: str, temp_table: str ) -> str:
@@ -2132,6 +2149,7 @@ def replace_sqlite_column_type( create_sql: str, table: str, column: str,
 	suffix = create_sql[ close_paren + 1: ].strip( ).rstrip( ';' )
 	return f'CREATE TABLE "{temp_table}" ({", ".join( definitions )})' + (
 		f' {suffix};' if suffix else ';' )
+
 
 def change_column_type( table: str, column: str, new_type: str ) -> None:
 	"""Change a SQLite column's declared type with an atomic table rebuild.
@@ -2363,10 +2381,10 @@ def get_data_editor_column_config( df: pd.DataFrame,
 
 _streamlit_data_editor = st.data_editor
 
-def render_data_editor( df: pd.DataFrame, use_container_width: bool | None=None,
-	key: str='', height: int | str='auto', hide_index: bool | None=None,
-	disabled: bool | List[ str ]=False, column_config: Dict[ str, object ]=None,
-	num_rows: str='fixed' ) -> pd.DataFrame:
+def render_data_editor( df: pd.DataFrame, use_container_width: bool | None = None,
+	key: str = '', height: int | str = 'auto', hide_index: bool | None = None,
+	disabled: bool | List[ str ] = False, column_config: Dict[ str, object ] = None,
+	num_rows: str = 'fixed' ) -> pd.DataFrame:
 	"""Render a consistently formatted Streamlit dataframe editor.
 
 	Purpose:
@@ -3469,7 +3487,7 @@ def get_visualization_columns( df_frame: pd.DataFrame ) -> Dict[ str, List[ str 
 	}
 
 def get_usable_categorical_columns( df_frame: pd.DataFrame,
-	categorical_columns: List[ str ]=None ) -> List[ str ]:
+	categorical_columns: List[ str ] = None ) -> List[ str ]:
 	"""Return categorical columns containing comparative information.
 
 	Purpose:
@@ -3529,7 +3547,7 @@ def aggregate_visualization_dataframe( df_frame: pd.DataFrame, group_columns: Li
 	return df_result
 
 def create_sankey_from_stages( df_frame: pd.DataFrame, stage_columns: List[ str ],
-	value_column: str='', aggregation: str='Count' ) -> go.Figure:
+	value_column: str = '', aggregation: str = 'Count' ) -> go.Figure:
 	"""Create a Sankey diagram from ordered categorical stages.
 
 	Purpose:
@@ -3619,8 +3637,8 @@ def render_visualization_metric_styles( ) -> None:
 		</style>
 		""", unsafe_allow_html=True )
 
-def apply_mathy_plotly_theme( figure: go.Figure, title: str='',
-		height: int=500 ) -> go.Figure:
+def apply_mathy_plotly_theme( figure: go.Figure, title: str = '',
+		height: int = 500 ) -> go.Figure:
 	"""Apply the Mathy Plotly presentation theme.
 
 	Purpose:
@@ -3686,7 +3704,7 @@ def add_statistical_reference_lines( figure: go.Figure, mean_value: float,
 	return figure
 
 def render_mathy_plotly_chart( figure: go.Figure, key: str, filename: str,
-		title: str='', height: int=500 ) -> None:
+		title: str = '', height: int = 500 ) -> None:
 	"""Render a themed Plotly chart.
 
 	Purpose:
@@ -3783,8 +3801,8 @@ def create_qq_figure( values: np.ndarray, variable: str ) -> go.Figure:
 	return figure
 
 def create_cluster_figure( df_results: pd.DataFrame, feature_columns: List[ str ],
-		title: str, df_centroids: Optional[ pd.DataFrame ]=None,
-		centroid_label: str='Centroids' ) -> go.Figure:
+		title: str, df_centroids: Optional[ pd.DataFrame ] = None,
+		centroid_label: str = 'Centroids' ) -> go.Figure:
 	"""Create an interactive cluster-assignment figure.
 
 	Purpose:
@@ -3821,7 +3839,7 @@ def create_cluster_figure( df_results: pd.DataFrame, feature_columns: List[ str 
 	return figure
 
 def create_forecast_figure( series: np.ndarray, forecast: np.ndarray, variable: str,
-		title: str, forecast_label: str='Forecast' ) -> go.Figure:
+		title: str, forecast_label: str = 'Forecast' ) -> go.Figure:
 	"""Create an observed-versus-forecast Plotly figure.
 
 	Purpose:
@@ -5746,7 +5764,8 @@ elif mode == 'Classification Models':
 								st.rerun( )
 					
 					with a2:
-						if st.button( label='Reset', icon='🔁', key='classification_standard_reset',
+						if st.button( label='Reset', icon='🔁',
+								key='classification_standard_reset',
 								use_container_width=True ):
 							clear_classification_processed_state( )
 							st.success( 'Processed data cleared.' )
@@ -20985,9 +21004,16 @@ elif mode == 'Variance & Decomposition':
 					help='Summary statistic used at every hierarchy branch.' )
 			with c3:
 				hierarchy_limit = min( 4, len( usable_categories ) )
-				hierarchy_count = st.slider( 'Hierarchy Levels', 1, hierarchy_limit,
-					min( 2, hierarchy_limit ), 1, key='visualization_decomposition_levels',
-					help='Number of categorical levels used to break the measure into nested drivers.' )
+				if hierarchy_limit == 1:
+					if st.session_state.get( 'visualization_decomposition_levels', 1 ) != 1:
+						clear_keys( [ 'visualization_decomposition_levels' ] )
+					hierarchy_count = st.selectbox( 'Hierarchy Levels', [ 1 ],
+						key='visualization_decomposition_levels',
+						help='One categorical hierarchy level is available for this dataset.' )
+				else:
+					hierarchy_count = st.slider( 'Hierarchy Levels', 1, hierarchy_limit,
+						min( 2, hierarchy_limit ), 1, key='visualization_decomposition_levels',
+						help='Number of categorical levels used to break the measure into nested drivers.' )
 
 			hierarchy_columns: List[ str ] = [ ]
 			hierarchy_controls = st.columns( hierarchy_count, border=True )
@@ -21286,28 +21312,29 @@ elif mode == 'KPI Summary':
 			selected_measures = st.multiselect( 'KPI Measures', groups[ 'numeric' ],
 				default=groups[ 'numeric' ][ :min( 4, len( groups[ 'numeric' ] ) ) ],
 				key='visualization_kpi_measures',
-				help='Select up to five numeric fields to summarize as KPI cards.' )
+				help='Select numeric fields to summarize as KPI cards.' )
 		with c2:
 			aggregation = st.selectbox( 'Aggregation',
 				[ 'Sum', 'Mean', 'Median', 'Minimum', 'Maximum', 'Count' ],
 				key='visualization_kpi_aggregation',
 				help='Summary statistic displayed for each selected KPI measure.' )
-		selected_measures = selected_measures[ :5 ]
 		if not selected_measures:
 			st.info( 'Select at least one KPI measure.' )
 			st.stop( )
 		aggregation_map = { 'Sum': 'sum', 'Mean': 'mean', 'Median': 'median',
 			'Minimum': 'min', 'Maximum': 'max', 'Count': 'count' }
-		metric_columns = st.columns( len( selected_measures ), border=True )
 		rows: List[ Dict[ str, object ] ] = [ ]
-		for index, measure in enumerate( selected_measures ):
-			series = pd.to_numeric( df_dataset[ measure ], errors='coerce' ).dropna( )
-			value = float( getattr( series, aggregation_map[ aggregation ] )( ) ) if not series.empty else np.nan
-			with metric_columns[ index ]:
-				st.metric( measure, f'{value:,.2f}' if np.isfinite( value ) else 'n/a',
-					help=f'{aggregation} of populated numeric observations in {measure}.' )
-			rows.append( { 'Measure': measure, 'Aggregation': aggregation, 'Value': value,
-				'Observations': int( len( series ) ) } )
+		for row_start in range( 0, len( selected_measures ), 5 ):
+			metric_columns = st.columns( 5, border=True )
+			row_measures = selected_measures[ row_start: row_start + 5 ]
+			for column_index, measure in enumerate( row_measures ):
+				series = pd.to_numeric( df_dataset[ measure ], errors='coerce' ).dropna( )
+				value = float( getattr( series, aggregation_map[ aggregation ] )( ) ) if not series.empty else np.nan
+				with metric_columns[ column_index ]:
+					st.metric( measure, f'{value:,.2f}' if np.isfinite( value ) else 'n/a',
+						help=f'{aggregation} of populated numeric observations in {measure}.' )
+				rows.append( { 'Measure': measure, 'Aggregation': aggregation, 'Value': value,
+					'Observations': int( len( series ) ) } )
 		df_kpis = pd.DataFrame( rows )
 		render_data_editor( df_kpis, use_container_width=True, hide_index=True, disabled=True,
 			key='visualization_kpi_table' )
@@ -22483,6 +22510,7 @@ elif mode == 'CRUD Ops':
 				st.caption( 'Active Dataset Operations' )
 				for step in st.session_state[ 'pipeline_log' ]:
 					st.write( f'• {step}' )
+
 
 # ============================================
 # DATA FILTER MODE
