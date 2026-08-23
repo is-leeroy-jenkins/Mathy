@@ -20441,11 +20441,14 @@ elif mode == 'Numeric Distributions':
 			selected_columns = st.multiselect( 'Numeric Variables', numeric_columns,
 				default=numeric_columns[ :min( 4, len( numeric_columns ) ) ],
 				key='visualization_numeric_columns' )
+		
 		with c2:
 			bins = st.slider( 'Bins', 10, 100, 30, 5, key='visualization_numeric_bins' )
+		
 		with c3:
 			display_mode = st.radio( 'Display', [ 'Frequency', 'Density' ], horizontal=True,
 				key='visualization_numeric_display' )
+		
 		with c4:
 			shape_mode = st.radio( 'Shape', [ 'Box', 'Violin' ], horizontal=True,
 				key='visualization_numeric_shape' )
@@ -20549,6 +20552,7 @@ elif mode == 'Correlation Analysis':
 		with chart_c1:
 			render_data_editor( df_correlation, use_container_width=True, disabled=True,
 				key='visualization_correlation_matrix_table' )
+		
 		with chart_c2:
 			text_values = np.round( df_correlation.values, 2 ) if show_annotations else None
 			figure = go.Figure( data=go.Heatmap( z=df_correlation.values,
@@ -20598,13 +20602,16 @@ elif mode == 'Scatter Analysis':
 		with c1:
 			x_column = st.selectbox( 'X Variable', numeric_columns,
 				key='visualization_scatter_x' )
+		
 		with c2:
 			y_options = [ column for column in numeric_columns if column != x_column ]
 			y_column = st.selectbox( 'Y Variable', y_options,
 				key='visualization_scatter_y' )
+		
 		with c3:
 			color_column = st.selectbox( 'Color Group', [ '<None>' ] + groups[ 'categorical' ],
 				key='visualization_scatter_color' )
+		
 		with c4:
 			size_column = st.selectbox( 'Size Variable', [ '<None>' ] + numeric_columns,
 				key='visualization_scatter_size' )
@@ -20613,9 +20620,11 @@ elif mode == 'Scatter Analysis':
 		with c5:
 			show_trend = st.checkbox( 'Show Linear Trend', value=True,
 				key='visualization_scatter_trend' )
+		
 		with c6:
 			opacity = st.slider( 'Point Opacity', 0.20, 1.0, 0.75, 0.05,
 				key='visualization_scatter_opacity' )
+		
 		with c7:
 			marker_size = st.slider( 'Marker Size', 4, 24, 9, 1,
 				key='visualization_scatter_marker_size' )
@@ -20693,12 +20702,15 @@ elif mode == 'Categorical Distributions':
 		with c1:
 			column = st.selectbox( 'Categorical Variable', categorical_columns,
 				key='visualization_categorical_column' )
+		
 		with c2:
 			category_limit = st.slider( 'Maximum Categories', 2, 50, 15, 1,
 				key='visualization_categorical_limit' )
+		
 		with c3:
 			display_mode = st.radio( 'Display', [ 'Count', 'Percentage' ], horizontal=True,
 				key='visualization_categorical_display' )
+		
 		with c4:
 			include_missing = st.checkbox( 'Include Missing', value=True,
 				key='visualization_categorical_missing' )
@@ -21439,6 +21451,7 @@ elif mode == 'Lifecycle & Flow':
 				label_column = st.selectbox( 'Activity Label', usable_categories,
 					key='visualization_gantt_label',
 					help='Categorical field naming each task, activity, phase, or reporting item.' )
+			
 			with c2:
 				start_column = st.selectbox( 'Start Datetime', groups[ 'datetime' ],
 					key='visualization_gantt_start', help='Date or timestamp at which each activity begins.' )
