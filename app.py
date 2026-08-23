@@ -21442,10 +21442,12 @@ elif mode == 'Lifecycle & Flow':
 			with c2:
 				start_column = st.selectbox( 'Start Datetime', groups[ 'datetime' ],
 					key='visualization_gantt_start', help='Date or timestamp at which each activity begins.' )
+			
 			with c3:
 				end_options = [ column for column in groups[ 'datetime' ] if column != start_column ]
 				end_column = st.selectbox( 'End Datetime', end_options,
 					key='visualization_gantt_end', help='Date or timestamp at which each activity ends.' )
+			
 			with c4:
 				color_column = st.selectbox( 'Color Group', [ '<None>' ] + usable_categories,
 					key='visualization_gantt_color',
