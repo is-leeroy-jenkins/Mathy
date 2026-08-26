@@ -48,23 +48,28 @@ ___
 
 [![Containerized](https://img.shields.io/badge/Docker-App-2496ED?logo=docker&logoColor=white)](https://mathy.happyground-bf8f32a5.centralus.azurecontainerapps.io/)
 
-- Container App
+- Container Demo
   
 ### 🧱 Databricks
 
 [![Databricks Notebook](https://img.shields.io/badge/Databricks%20Repo-Mathy-FF3621?logo=databricks&logoColor=white)](https://dbc-a0c21f80-7bb3.cloud.databricks.com/editor/notebooks/1460524320197787?o=7474645703081351)
 
-- Notebooks
-- Repo
+- Notebook Demo
 
 ### 🔥 Streamlit 
 
 [![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit\&logoColor=white)](https://mathy-py.streamlit.app/)
+
+- Web Demo
+  
 ### ☁️ Google 
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
 
+- Notebook Demo
+
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
+
 ___
 
 
