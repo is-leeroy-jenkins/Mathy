@@ -39,7 +39,7 @@ custom spreadsheets; inspect and edit data; profile schema and distributions; ap
 operations; train classification, regression, clustering, and forecasting models; and manage local
 SQLite data through a guarded SQL/data-administration interface.
 
-## 🎥 Demo
+## 🎥 Cloud Demo
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-demo.gif)
 ___
