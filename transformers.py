@@ -2139,8 +2139,7 @@ class FeatureHasher( Transformer ):
 		Returns:
 		    List[str]: Public member names exposed by the class/object."""
 		return [ 'model', 'n_features', 'input_type', 'dtype', 'alternate_sign',
-			'transformed_data',
-			'train', 'transform', 'train_transform', 'inverse_transform' ]
+			'transformed_data', 'train', 'transform', 'train_transform', 'inverse_transform' ]
 	
 	def train( self, X: List[ Dict[ str, Any ] ] | List[ Tuple[ str, Any ] ] | List[ str ],
 			y: Optional[ np.ndarray ]=None ) -> FeatureHasher | None:
