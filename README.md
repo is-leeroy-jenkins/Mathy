@@ -43,34 +43,48 @@ SQLite data through a guarded SQL/data-administration interface.
 
 ![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-demo.gif)
 ___
+## ☁️ Cloud
 
-## ☁️ Google 
+<table>
+<td align="center">
+<img width="190" height="1" alt=""><br>
+<a href="https://mathy.happyground-bf8f32a5.centralus.azurecontainerapps.io">
+<img src="https://img.shields.io/badge/Docker-App-2496ED?logo=docker&logoColor=white" alt="Docker App">
+</a>
+</td>
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/is-leeroy-jenkins/Mathy/blob/main/ipynb/board.ipynb)
 
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-notebook.gif)
-___
+<td align="center">
+<img width="190" height="1" alt=""><br>
+<a href="https://mathy-py.streamlit.app/">
+<img src="https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit App">
+</a>
+</td>
 
-## 🧊 Azure
 
-[![Containerized](https://img.shields.io/badge/Docker-App-2496ED?logo=docker&logoColor=white)](https://mathy.happyground-bf8f32a5.centralus.azurecontainerapps.io/)
+<td align="center">
+<img width="190" height="1" alt=""><br>
+<a href="https://drive.google.com/file/d/1GJg9U-xR0YpyqZxraZR-NpzDLEo16lKq/view?usp=sharing">
+<img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
+</a>
+</td>
 
-- Container App
+<td align="center">
+<img width="190" height="1" alt=""><br>
+<a href="https://dbc-a0c21f80-7bb3.cloud.databricks.com/browse/folders/3169291152435631?o=7474645703081351">
+<img src="https://img.shields.io/badge/Databricks%20Repo-Cutey--Py-FF3621?logo=databricks&logoColor=white" alt="Databricks Notebook">
+</a>
+</td>
 
-## 🔥 Streamlit 
 
-[![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit\&logoColor=white)](https://mathy-py.streamlit.app/)
-
-- Web App
-
-![](https://github.com/is-leeroy-jenkins/Mathy/blob/main/resources/mathy-streamlit.gif)
-___
-
-## 🧱 Databricks
-[![Databricks Notebook](https://img.shields.io/badge/Databricks%20Repo-Mathy-FF3621?logo=databricks&logoColor=white)](https://dbc-a0c21f80-7bb3.cloud.databricks.com/editor/notebooks/1460524320197787?o=7474645703081351)
-
-- Notebooks
-- Repo
+<td align="center">
+<img width="190" height="1" alt=""><br>
+<a href="https://leeroy.usw-16.palantirfoundry.com/shares/links/fahcjyqmbp552">
+<img src="https://img.shields.io/badge/Palantir%20Foundry-Repository-101113?logo=palantir&logoColor=white" alt="Palantir Repo">
+</a>
+</td>
+</tr>
+</table>
 
 ## 🧠 Overview
 
