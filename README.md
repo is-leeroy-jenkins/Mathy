@@ -855,8 +855,8 @@ The table below reflects the active imports and runtime features used by the cur
 
 ## 📄 License
 
-- License: [MIT License © 2022–2025](https://github.com/is-leeroy-jenkins/Mathy/blob/main/LICENSE.txt)
+- License: [MIT License © 2022–2026](https://github.com/is-leeroy-jenkins/Mathy/blob/main/LICENSE.txt)
 - Contact: [Terry Eppler](mailto:terryeppler@gmail.com)
 
-#
+
 
