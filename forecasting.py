@@ -9,7 +9,8 @@
 ******************************************************************************************
 <copyright file="forecasting.py" company="Terry D. Eppler">
 
-     Mathy Models
+     forecasting.py
+     Copyright ©  2023  Terry Eppler
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the “Software”),

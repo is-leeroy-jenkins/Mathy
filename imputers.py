@@ -1,16 +1,16 @@
 """******************************************************************************************
-  Assembly:                Name
-  Filename:                name.py
+  Assembly:                mathy
+  Filename:                imputers.py
   Author:                  Terry D. Eppler
   Created:                 05-31-2022
 
   Last Modified By:        Terry D. Eppler
   Last Modified On:        05-01-2025
 ******************************************************************************************
-<copyright file="guro.py" company="Terry D. Eppler">
+<copyright file="imputers.py" company="Terry D. Eppler">
 
-     name.py
-     Copyright ©  2022  Terry Eppler
+     imputers.py
+     Copyright ©  2023  Terry Eppler
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the “Software”),
