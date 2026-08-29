@@ -333,21 +333,20 @@ The SQL console blocks mutation statements and accepts read-only query patterns 
 
 ## 🧩 Framework Modules
 
-| Module               | Purpose                                                         |
-| -------------------- | --------------------------------------------------------------- |
-| `classifications.py` | Classification model wrappers.                                  |
-| `regressions.py`     | Regression model wrappers.                                      |
-| `clusters.py`        | Clustering wrappers.                                            |
-| `forecasting.py`     | Time-series forecasting wrappers.                               |
-| `outliers.py`        | Outlier and novelty detection wrappers.                         |
-| `encoders.py`        | Label, categorical, target, and polynomial encoders.            |
-| `scalers.py`         | Scaling wrappers.                                               |
-| `imputers.py`        | Missing-value imputation wrappers.                              |
-| `transformers.py`    | Binarizers, vectorizers, hashers, and column transformers.      |
-| `features.py`        | Feature selection and dimensionality-reduction utilities.       |
-| `boogr.py`           | Error handling and diagnostics.                                 |
-| `minion.py`          | Utility helpers.                                                |
-| `config.py`          | App constants, mode labels, help text, paths, and style assets. |
+| Module                                                                                     | Purpose                                                         |
+|--------------------------------------------------------------------------------------------| --------------------------------------------------------------- |
+| [classifications](https://github.com/is-leeroy-jenkins/Mathy/blob/main/classifications.py) | Classification model wrappers.                                  |
+| [regressions](https://github.com/is-leeroy-jenkins/Mathy/blob/main/regressions.py)                                                                            | Regression model wrappers.                                      |
+| [clusters](https://github.com/is-leeroy-jenkins/Mathy/blob/main/clusters.py)                                                                               | Clustering wrappers.                                            |
+| [forecasting](https://github.com/is-leeroy-jenkins/Mathy/blob/main/forecasting.py)                                                                            | Time-series forecasting wrappers.                               |
+| [outliers](https://github.com/is-leeroy-jenkins/Mathy/blob/main/outliers.py)                                                                                  | Outlier and novelty detection wrappers.                         |
+| [encoders](https://github.com/is-leeroy-jenkins/Mathy/blob/main/encoders.py)                                                                                  | Label, categorical, target, and polynomial encoders.            |
+| [scalers](https://github.com/is-leeroy-jenkins/Mathy/blob/main/scalers.py)                                                                                   | Scaling wrappers.                                               |
+| [imputers](https://github.com/is-leeroy-jenkins/Mathy/blob/main/imputers.py)                                                                                  | Missing-value imputation wrappers.                              |
+| [transformers](https://github.com/is-leeroy-jenkins/Mathy/blob/main/transformers.py)                                                                              | Binarizers, vectorizers, hashers, and column transformers.      |
+| [features](https://github.com/is-leeroy-jenkins/Mathy/blob/main/features.py)                                                                                  | Feature selection and dimensionality-reduction utilities.       |
+| [boogr](https://github.com/is-leeroy-jenkins/Mathy/blob/main/boogr.py)                                                                                     | Error handling and diagnostics.                                 |
+| [config](https://github.com/is-leeroy-jenkins/Mathy/blob/main/config.py)                                                                                    | App constants, mode labels, help text, paths, and style assets. |
 
 ## ⚙️ Quickstart Example
 
