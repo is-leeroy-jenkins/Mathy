@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36bfb57a-5abe-4c37-b940-845fabab367c" name="Changes" comment="update" />
+    <list default="true" id="36bfb57a-5abe-4c37-b940-845fabab367c" name="Changes" comment="update">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,6 +38,7 @@
             <option value="$PROJECT_DIR$/app.py" />
             <option value="$PROJECT_DIR$/classifications.py" />
             <option value="$PROJECT_DIR$/regressions.py" />
+            <option value="$PROJECT_DIR$/app.py" />
           </set>
         </option>
       </LargeFiles>
@@ -99,6 +104,7 @@
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;SHELLCHECK.PATH&quot;: &quot;C:\\Users\\terry\\AppData\\Roaming\\JetBrains\\PyCharm2025.2\\plugins\\Shell Script\\shellcheck.exe&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/terry/source/repos/Mathy/resources&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -193,15 +199,9 @@
       <workItem from="1787468204013" duration="374000" />
       <workItem from="1787469219788" duration="560000" />
       <workItem from="1788029596896" duration="193000" />
-      <workItem from="1788029840257" duration="3801000" />
-    </task>
-    <task id="LOCAL-00152" summary="update">
-      <option name="closed" value="true" />
-      <created>1786572129888</created>
-      <option name="number" value="00152" />
-      <option name="presentableId" value="LOCAL-00152" />
-      <option name="project" value="LOCAL" />
-      <updated>1786572129888</updated>
+      <workItem from="1788029840257" duration="4428000" />
+      <workItem from="1788365787161" duration="539000" />
+      <workItem from="1788613579942" duration="703000" />
     </task>
     <task id="LOCAL-00153" summary="update">
       <option name="closed" value="true" />
@@ -587,7 +587,15 @@
       <option name="project" value="LOCAL" />
       <updated>1788035337585</updated>
     </task>
-    <option name="localTasksCounter" value="201" />
+    <task id="LOCAL-00201" summary="update">
+      <option name="closed" value="true" />
+      <created>1788035398452</created>
+      <option name="number" value="00201" />
+      <option name="presentableId" value="LOCAL-00201" />
+      <option name="project" value="LOCAL" />
+      <updated>1788035398452</updated>
+    </task>
+    <option name="localTasksCounter" value="202" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

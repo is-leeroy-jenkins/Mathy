@@ -20373,8 +20373,7 @@ elif mode == 'Data Overview':
 			'Missing', 'Missing %', 'Unique', 'Evidence' ] )
 		schema_sort = st.selectbox( 'Sort Schema By',
 			[ 'Original Order', 'Analytical Role', 'Storage Type', 'Inferred Type',
-				'Missing Percentage', 'Cardinality' ],
-			key='visualization_overview_schema_sort' )
+				'Missing Percentage', 'Cardinality' ], key='visualization_overview_schema_sort' )
 		if schema_sort == 'Analytical Role':
 			df_schema = df_schema.sort_values( [ 'Analytical Role', 'Column' ],
 				ignore_index=True )
